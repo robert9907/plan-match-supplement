@@ -290,6 +290,7 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
     app.firstName.trim() !== '' &&
     app.lastName.trim() !== '' &&
     app.mbi.replace(/-/g, '').length === 11 &&
+    app.securityPin.length === 4 &&
     app.phone.replace(/\D/g, '').length === 10 &&
     /.+@.+\..+/.test(app.email) &&
     app.addressLine.trim() !== '' &&
@@ -341,6 +342,23 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
         <div className="medicare-id-hint">
           Find this on your red, white, and blue Medicare card. It's 11 characters — letters and numbers.
         </div>
+      </div>
+
+      <div className="sec-label">Create a security PIN</div>
+      <input
+        className="fi mono pin-input"
+        type="password"
+        inputMode="numeric"
+        autoComplete="new-password"
+        placeholder="••••"
+        maxLength={4}
+        value={app.securityPin}
+        onChange={(e) =>
+          flow.updateApplication({ securityPin: e.target.value.replace(/\D/g, '').slice(0, 4) })
+        }
+      />
+      <div className="fi-hint">
+        This PIN protects your Medicare ID. You'll need it if you call us about this application.
       </div>
 
       <div className="sec-label">Medicare effective dates</div>

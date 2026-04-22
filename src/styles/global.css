@@ -1422,6 +1422,21 @@ textarea {
   line-height: 1.5;
 }
 
+.pin-input {
+  width: 140px;
+  letter-spacing: 0.5em;
+  font-size: 22px;
+  text-align: center;
+  padding: 12px 14px;
+}
+.fi-hint {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
 .auth-check {
   display: flex;
   align-items: flex-start;

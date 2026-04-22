@@ -29,6 +29,7 @@ export interface ApplicationData {
   firstName: string;
   lastName: string;
   mbi: string;
+  securityPin: string;
   partAEffective: string;
   partBEffective: string;
   phone: string;
@@ -122,6 +123,7 @@ function emptyApplication(): ApplicationData {
     firstName: '',
     lastName: '',
     mbi: '',
+    securityPin: '',
     partAEffective: '',
     partBEffective: '',
     phone: '',
