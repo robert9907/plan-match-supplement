@@ -14,6 +14,7 @@
 export type DdlCluster =
   | 'diabetes'
   | 'cardio'
+  | 'anticoagulant'
   | 'respiratory'
   | 'mental'
   | 'pain'
@@ -29,6 +30,9 @@ export interface DdlEntry {
   note?: string;
   carrierException?: string;
   cluster?: DdlCluster;
+  /** Insulin brands (any type/delivery) — underwriters treat insulin use as a
+   * distinct severity signal on top of the diabetes cluster count. */
+  isInsulin?: boolean;
 }
 
 // Key = first word of drug name, lowercased. Matches the lookup strategy
@@ -107,25 +111,65 @@ export const DDL: Record<string, DdlEntry> = {
     cluster: 'respiratory',
   },
 
-  // Cardio cluster — no individual flag, combo scoring applies
-  eliquis: { condition: null, declineAll: false, cluster: 'cardio' },
-  xarelto: { condition: null, declineAll: false, cluster: 'cardio' },
-  warfarin: { condition: null, declineAll: false, cluster: 'cardio' },
+  // Anticoagulant cluster — read by underwriters as a proxy for AFib,
+  // post-stent, DVT/PE, mechanical valve, or recent stroke/TIA. Carries
+  // more weight than routine BP/statin meds.
+  eliquis: {
+    condition: null,
+    declineAll: false,
+    cluster: 'anticoagulant',
+    note: 'Anticoagulant — signals AFib / post-stent / DVT',
+  },
+  xarelto: {
+    condition: null,
+    declineAll: false,
+    cluster: 'anticoagulant',
+    note: 'Anticoagulant — signals AFib / post-stent / DVT',
+  },
+  warfarin: {
+    condition: null,
+    declineAll: false,
+    cluster: 'anticoagulant',
+    note: 'Anticoagulant — signals AFib / mechanical valve / DVT',
+  },
+  pradaxa: {
+    condition: null,
+    declineAll: false,
+    cluster: 'anticoagulant',
+    note: 'Anticoagulant — signals AFib / post-stroke',
+  },
+  plavix: {
+    condition: null,
+    declineAll: false,
+    cluster: 'anticoagulant',
+    note: 'Antiplatelet — signals post-stent / post-MI / recent TIA',
+  },
+
+  // Cardio cluster — routine BP/cholesterol meds, combo scoring applies
   lisinopril: { condition: null, declineAll: false, cluster: 'cardio' },
   amlodipine: { condition: null, declineAll: false, cluster: 'cardio' },
   atorvastatin: { condition: null, declineAll: false, cluster: 'cardio' },
   losartan: { condition: null, declineAll: false, cluster: 'cardio' },
   metoprolol: { condition: null, declineAll: false, cluster: 'cardio' },
-  plavix: { condition: null, declineAll: false, cluster: 'cardio' },
 
-  // Diabetes cluster — combo scoring applies
+  // Diabetes cluster — combo scoring applies. Insulin brands carry
+  // `isInsulin` so the engine can separate injection-dependent profiles
+  // from oral-only management.
   metformin: { condition: null, declineAll: false, cluster: 'diabetes' },
   ozempic: { condition: null, declineAll: false, cluster: 'diabetes' },
   jardiance: { condition: null, declineAll: false, cluster: 'diabetes' },
-  lantus: { condition: null, declineAll: false, cluster: 'diabetes' },
   glipizide: { condition: null, declineAll: false, cluster: 'diabetes' },
   trulicity: { condition: null, declineAll: false, cluster: 'diabetes' },
   januvia: { condition: null, declineAll: false, cluster: 'diabetes' },
+  lantus: { condition: null, declineAll: false, cluster: 'diabetes', isInsulin: true },
+  novolog: { condition: null, declineAll: false, cluster: 'diabetes', isInsulin: true },
+  humalog: { condition: null, declineAll: false, cluster: 'diabetes', isInsulin: true },
+  basaglar: { condition: null, declineAll: false, cluster: 'diabetes', isInsulin: true },
+  tresiba: { condition: null, declineAll: false, cluster: 'diabetes', isInsulin: true },
+  levemir: { condition: null, declineAll: false, cluster: 'diabetes', isInsulin: true },
+  toujeo: { condition: null, declineAll: false, cluster: 'diabetes', isInsulin: true },
+  apidra: { condition: null, declineAll: false, cluster: 'diabetes', isInsulin: true },
+  fiasp: { condition: null, declineAll: false, cluster: 'diabetes', isInsulin: true },
 };
 
 export interface DrugCatalogItem {
@@ -141,10 +185,17 @@ export const DRUG_CATALOG: DrugCatalogItem[] = [
   { name: 'Trulicity', detail: 'GLP-1 · 1.5mg', dose: '1.5mg' },
   { name: 'Januvia', detail: 'DPP-4 · 100mg', dose: '100mg' },
   { name: 'Lantus (insulin glargine)', detail: 'Insulin · 20u', dose: '20u' },
+  { name: 'Novolog (insulin aspart)', detail: 'Insulin · 10u', dose: '10u' },
+  { name: 'Humalog (insulin lispro)', detail: 'Insulin · 10u', dose: '10u' },
+  { name: 'Basaglar', detail: 'Insulin · 20u', dose: '20u' },
+  { name: 'Tresiba', detail: 'Insulin · 20u', dose: '20u' },
+  { name: 'Levemir', detail: 'Insulin · 20u', dose: '20u' },
+  { name: 'Toujeo', detail: 'Insulin · 20u', dose: '20u' },
   { name: 'Glipizide', detail: 'Sulfonylurea · 10mg', dose: '10mg' },
-  { name: 'Eliquis (apixaban)', detail: 'Blood thinner · 5mg', dose: '5mg' },
-  { name: 'Xarelto', detail: 'Blood thinner · 20mg', dose: '20mg' },
-  { name: 'Warfarin', detail: 'Blood thinner · 5mg', dose: '5mg' },
+  { name: 'Eliquis (apixaban)', detail: 'Anticoagulant · 5mg', dose: '5mg' },
+  { name: 'Xarelto', detail: 'Anticoagulant · 20mg', dose: '20mg' },
+  { name: 'Warfarin', detail: 'Anticoagulant · 5mg', dose: '5mg' },
+  { name: 'Pradaxa', detail: 'Anticoagulant · 150mg', dose: '150mg' },
   { name: 'Plavix', detail: 'Antiplatelet · 75mg', dose: '75mg' },
   { name: 'Lisinopril', detail: 'ACE inhibitor · 20mg', dose: '20mg' },
   { name: 'Amlodipine', detail: 'CCB · 10mg', dose: '10mg' },

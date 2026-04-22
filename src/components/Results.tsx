@@ -256,6 +256,19 @@ interface CarrierCardProps {
 }
 
 function CarrierCard({ carrier, animated, index, onPick, showCta }: CarrierCardProps) {
+  if (carrier.hardKnockout) {
+    return (
+      <div className="cc cc-knockout">
+        <div className="cc-top">
+          <span className="cc-name">{carrier.name}</span>
+          <span className="cc-knockout-tag">Not eligible</span>
+        </div>
+        <div className="cc-knockout-reason">{carrier.knockoutReason}</div>
+        <div className="cc-disc">{carrier.discount} discount</div>
+      </div>
+    );
+  }
+
   const hasRange = carrier.rateClass.lo > 0;
   // Stagger bar animations slightly so they cascade into view.
   const delay = animated ? `${index * 60}ms` : '0ms';

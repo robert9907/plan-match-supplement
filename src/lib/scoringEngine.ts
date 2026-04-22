@@ -97,6 +97,10 @@ export interface CarrierResult {
   reason: string;
   discount: string;
   ctaLabel: string;
+  /** When true, the carrier won't write this applicant at any rate class.
+   * UI renders no percentage, no bar — just the reason. */
+  hardKnockout?: boolean;
+  knockoutReason?: string;
 }
 
 export interface ScoringResult {
@@ -179,6 +183,7 @@ function emptyClusters(): Record<DdlCluster, number> {
   return {
     diabetes: 0,
     cardio: 0,
+    anticoagulant: 0,
     respiratory: 0,
     mental: 0,
     pain: 0,
@@ -194,6 +199,7 @@ function emptyClusterDrugs(): Record<DdlCluster, string[]> {
   return {
     diabetes: [],
     cardio: [],
+    anticoagulant: [],
     respiratory: [],
     mental: [],
     pain: [],
@@ -247,7 +253,7 @@ interface MedsScore {
   comboFlags: string[];
 }
 
-function scoreMeds(meds: MedItem[]): MedsScore {
+function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   let score = 100;
   const flagCount = meds.filter((m) => m.status === 'flag').length;
   const warnCount = meds.filter((m) => m.status === 'warn').length;
@@ -264,39 +270,78 @@ function scoreMeds(meds: MedItem[]): MedsScore {
     }
   });
 
+  const insulinMeds = meds.filter((m) => ddlLookup(m.name)?.isInsulin);
+  const hasInsulin = insulinMeds.length > 0;
+  // "Cardiac signal" = any evidence of cardiovascular burden — raw cardio
+  // meds, an anticoagulant (AFib/stent/DVT proxy), or an explicit heart
+  // answer on the health screen.
+  const cardiacSignal =
+    clusters.cardio >= 1 || clusters.anticoagulant >= 1 || health.q8_heart === 'y';
+
   const comboFlags: string[] = [];
 
-  // Diabetes med stacking
+  // Diabetes med stacking — industry line is 3+, MoO's 2×2 Rule declines
+  // >2 oral diabetes meds outright.
   if (clusters.diabetes >= 3) {
-    score -= 15;
-    comboFlags.push(`${clusters.diabetes} diabetes meds — carriers flag 3+.`);
-  } else if (clusters.diabetes === 2) {
-    score -= 5;
-  }
-
-  // Cardio med stacking
-  if (clusters.cardio >= 4) {
-    score -= 15;
-    comboFlags.push(`${clusters.cardio} cardiovascular meds — signals active heart disease.`);
-  } else if (clusters.cardio === 3) {
-    score -= 5;
-  }
-
-  // The killer combination
-  if (clusters.diabetes >= 2 && clusters.cardio >= 2) {
-    score -= 25;
+    score = Math.min(score, 25);
     comboFlags.push(
-      `Diabetes (${clusters.diabetes}) + cardiovascular (${clusters.cardio}) combo — most carriers flag or decline.`,
+      `${clusters.diabetes} diabetes meds — most carriers flag 3+ as a decline threshold.`,
     );
-  } else if (clusters.diabetes >= 1 && clusters.cardio >= 2) {
+  } else if (clusters.diabetes === 2) {
     score -= 10;
-    comboFlags.push(`Diabetes + ${clusters.cardio} cardio meds — closer review.`);
   }
 
-  // Polypharmacy
+  // Cardio med stacking (BP / statin / beta blocker — excluding anticoagulants).
+  if (clusters.cardio >= 4) {
+    score = Math.min(score, 25);
+    comboFlags.push(`${clusters.cardio} cardiovascular meds — signals active heart disease.`);
+  } else if (clusters.cardio >= 3) {
+    score -= 15;
+    comboFlags.push(`${clusters.cardio} cardio meds — MoO 2×2 decline threshold.`);
+  }
+
+  // Anticoagulant presence — Warfarin / Eliquis / Xarelto / Pradaxa / Plavix.
+  // Read by underwriters as a proxy for AFib, post-stent, DVT, mechanical
+  // valve, or recent stroke/TIA. Carries more weight than routine BP meds.
+  if (clusters.anticoagulant >= 1) {
+    score -= 15;
+    comboFlags.push(
+      `Anticoagulant (${clusterDrugs.anticoagulant.join(', ')}) — carriers read as proxy for AFib / post-stent / DVT.`,
+    );
+  }
+
+  // Diabetes + cardiac combo — with anticoagulant or cardio cluster, this
+  // is the MoO/Humana/Aetna/Cigna-Preferred Part A knockout combo.
+  if (clusters.diabetes >= 1 && (clusters.cardio >= 2 || clusters.anticoagulant >= 1)) {
+    score = Math.min(score, 20);
+    comboFlags.push(
+      `Diabetes + cardiac combo — Part A knockout at most carriers (Cigna Std II/III or Bankers may accept).`,
+    );
+  } else if (clusters.diabetes >= 1 && clusters.cardio >= 1) {
+    score -= 15;
+    comboFlags.push(`Diabetes + cardio — closer review.`);
+  }
+
+  // Insulin + any cardiac signal — hard cap. Matches the compound question:
+  // "diabetes (insulin dependent or oral) with heart/stroke/BP 3+/insulin 50+".
+  if (hasInsulin && cardiacSignal) {
+    score = Math.min(score, 15);
+    comboFlags.push(
+      `Insulin (${insulinMeds.map((m) => m.name).join(', ')}) + cardiac signal — Part A knockout at most carriers.`,
+    );
+  }
+
+  // Insulin alone with high daily units — same compound question trigger.
+  if (hasInsulin && health.diabetesMgmt === 'o50') {
+    score = Math.min(score, 20);
+  }
+
+  // Polypharmacy — brokers flag 5+ maintenance Rx as closer review.
   if (meds.length >= 8) {
-    score -= 10;
+    score -= 15;
     comboFlags.push(`${meds.length} total meds — polypharmacy flag.`);
+  } else if (meds.length >= 5) {
+    score -= 5;
   }
 
   // Respiratory stacking
@@ -359,6 +404,11 @@ function buildClassLabelFor(heightIn: number | null, weightLbs: number | null): 
 // is known, bump each carrier up or down to reflect their underwriting
 // personality.
 
+/** Carriers that do NOT offer rated classes in NC — it's accept at
+ * Preferred/Standard or decline. Drives both the binary knockout check
+ * and the rate-class selection. */
+const BINARY_NC_CARRIERS = new Set(['Mutual of Omaha', 'Humana']);
+
 function adjustCarrierScore(
   carrierName: string,
   overall: number,
@@ -368,32 +418,31 @@ function adjustCarrierScore(
 ): number {
   let s = overall;
 
-  // Bankers Fidelity — the lenient carrier. Accepts insulin 50+ when
-  // others decline. More tolerant of diabetes+cardio combos.
+  const cardiacSignal =
+    clusters.cardio >= 1 || clusters.anticoagulant >= 1 || health.q8_heart === 'y';
+  const hasInsulin = meds.some((m) => ddlLookup(m.name)?.isInsulin);
+
+  // Bankers Fidelity — the softest carrier in the panel. Documented to
+  // accept >50 u/day insulin and heavier diabetes profiles where others
+  // decline. Give it a distinctly higher floor on those profiles so the
+  // differentiation shows up on the Results screen.
   if (carrierName === 'Bankers Fidelity') {
-    if (health.diabetesMgmt === 'o50') s = Math.max(s, 72);
+    if (hasInsulin || health.diabetesMgmt === 'o50') s = Math.max(s, 55);
+    if (clusters.diabetes >= 3) s = Math.max(s, 50);
     if (health.q7_diabetes === 'y' && health.diabetesMgmt !== 'o50') s += 10;
-    if (clusters.diabetes >= 2 && clusters.cardio >= 2) s += 15;
+    if (clusters.diabetes >= 1 && cardiacSignal) s = Math.max(s, 45);
   }
 
-  // Cigna accepts COPD at Std II/III when others decline.
-  if (carrierName === 'Cigna' && (health.q9_copd === 'y' || clusters.respiratory >= 1)) {
-    s += 15;
+  // Cigna has filed Std II/Std III tiers — accepts profiles at rated class
+  // that MoO/Humana decline outright.
+  if (carrierName === 'Cigna') {
+    if (health.q9_copd === 'y' || clusters.respiratory >= 1) s += 15;
+    if (clusters.diabetes >= 1 && cardiacSignal) s = Math.max(s, 45);
   }
 
-  // Aetna is stricter on diabetes+cardio combos.
-  if (carrierName === 'Aetna' && clusters.diabetes >= 2 && clusters.cardio >= 2) {
-    s -= 10;
-  }
-
-  // Mutual of Omaha — stricter on 3+ diabetes meds.
-  if (carrierName === 'Mutual of Omaha' && clusters.diabetes >= 3) {
-    s -= 10;
-  }
-
-  // Humana — moderate penalty on 3+ diabetes meds.
-  if (carrierName === 'Humana' && clusters.diabetes >= 3) {
-    s -= 5;
+  // Aetna is stricter than peers on diabetes + cardiovascular combos.
+  if (carrierName === 'Aetna' && clusters.diabetes >= 1 && cardiacSignal) {
+    s -= 20;
   }
 
   // Drug-specific carrier exceptions — if a med explicitly notes a
@@ -406,6 +455,65 @@ function adjustCarrierScore(
   });
 
   return Math.max(0, Math.min(100, Math.round(s)));
+}
+
+/** Detects knockouts that apply to every carrier regardless of personality:
+ * active cancer, transplant, dialysis, hospice, ALS/HIV/HepC, recent
+ * hospitalization, pending procedures, severe mental/neurodegenerative
+ * dx, or any med on the universal DDL (Humira, Gleevec, OxyContin, etc.). */
+function universalKnockoutReason(meds: MedItem[], health: HealthAnswers): string | null {
+  if (health.q1_hospitalized === 'y') return 'Hospitalized in past 12 months';
+  if (health.q2_hospice === 'y') return 'Hospice care';
+  if (health.q3_dialysis === 'y') return 'Dialysis';
+  if (health.q4_cancer === 'y') return 'Active cancer treatment';
+  if (health.q5_transplant === 'y') return 'Organ transplant history';
+  if (health.q6_als_hiv_hepc === 'y') return 'ALS / HIV / Hepatitis C';
+  if (health.q10_neuro === 'y') return 'Neurodegenerative condition';
+  if (health.q11_mental === 'y') return 'Severe mental health condition';
+  if (health.q12_pending === 'y') return 'Pending procedure or hospitalization';
+  const declineMed = meds.find((m) => ddlLookup(m.name)?.declineAll);
+  if (declineMed) {
+    const cond = ddlLookup(declineMed.name)?.condition ?? 'universal DDL';
+    return `${declineMed.name} — ${cond}`;
+  }
+  return null;
+}
+
+/** Carrier-specific knockouts beyond the universal list. Returns a reason
+ * string when the carrier will decline, or null to fall through to the
+ * adjusted-score path. */
+function carrierKnockoutReason(
+  carrierName: string,
+  adjustedScore: number,
+  clusters: Record<DdlCluster, number>,
+  health: HealthAnswers,
+): string | null {
+  // Mutual of Omaha — NC prohibits rate-ups, so this is binary. The 2×2
+  // Rule declines >2 diabetes meds, >2 BP meds, or diabetes combined with
+  // an explicit heart condition, an anticoagulant (heart-dx proxy), or
+  // 3+ BP meds (the "hypertension counts as heart condition" line).
+  if (carrierName === 'Mutual of Omaha') {
+    if (clusters.diabetes > 2) return '>2 diabetes meds — MoO 2×2 Rule decline';
+    if (clusters.cardio > 2) return '>2 cardio meds — MoO 2×2 Rule decline';
+    if (
+      clusters.diabetes >= 1 &&
+      (health.q8_heart === 'y' || clusters.anticoagulant >= 1 || clusters.cardio >= 3)
+    ) {
+      return 'Diabetes + cardiac — MoO 2×2 Rule decline';
+    }
+  }
+
+  // Humana — binary accept/decline model; no filed rated classes.
+  if (carrierName === 'Humana' && adjustedScore < 70) {
+    return 'Humana is accept-or-decline — score below Preferred/Standard threshold';
+  }
+
+  // MoO (NC) binary fallback if the 2×2 specifics didn't fire.
+  if (carrierName === 'Mutual of Omaha' && adjustedScore < 70) {
+    return 'MoO NC does not offer rated classes — score below Standard threshold';
+  }
+
+  return null;
 }
 
 function reasonForCarrier(carrierName: string, score: number, rc: RateClass): string {
@@ -476,11 +584,13 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
   }
 
   const healthScore = scoreHealth(inputs.health);
-  const medsResult = scoreMeds(inputs.meds);
+  const medsResult = scoreMeds(inputs.meds, inputs.health);
   const buildScoreValue = scoreBuild(inputs.heightIn, inputs.weightLbs);
   const tobaccoScore = scoreTobacco(inputs.tobacco);
 
-  const overall = Math.max(
+  const universalKo = universalKnockoutReason(inputs.meds, inputs.health);
+
+  const rawOverall = Math.max(
     0,
     Math.min(
       100,
@@ -492,6 +602,11 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
       ),
     ),
   );
+
+  // A universal knockout (cancer, transplant, dialysis, hospice, etc.)
+  // zeros out the whole profile — the weighted average would otherwise
+  // show 60–70% just from meds/build/tobacco being full.
+  const overall = universalKo ? 0 : rawOverall;
 
   const healthFlagCount = [
     inputs.health.q1_hospitalized,
@@ -511,28 +626,76 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
   const gRate = baseRate('G', inputs.age, inputs.gender, inputs.tobacco);
   const nRate = baseRate('N', inputs.age, inputs.gender, inputs.tobacco);
 
+  const declineRc: RateClass = { name: 'Likely Decline', lo: 0, hi: 0, badge: 'high-rated' };
+
   const carriers: CarrierResult[] = CARRIERS.map((c) => {
-    const score = adjustCarrierScore(
+    // Universal knockouts apply to every carrier uniformly.
+    if (universalKo) {
+      return {
+        name: c.name,
+        score: 0,
+        tone: 'low' as const,
+        rateClass: declineRc,
+        planGLo: 0,
+        planGHi: 0,
+        planNLo: 0,
+        planNHi: 0,
+        reason: 'Universal decline — applies to all carriers.',
+        discount: c.discount,
+        ctaLabel: 'Call Rob to discuss',
+        hardKnockout: true,
+        knockoutReason: universalKo,
+      };
+    }
+
+    const adjusted = adjustCarrierScore(
       c.name,
       overall,
       inputs.meds,
       medsResult.clusters,
       inputs.health,
     );
-    const tone = toneForScore(score);
-    const rc = rateClassForScore(score);
+
+    // Carrier-specific knockouts (MoO 2×2, MoO/Humana binary below Standard).
+    const koReason = carrierKnockoutReason(c.name, adjusted, medsResult.clusters, inputs.health);
+    if (koReason) {
+      return {
+        name: c.name,
+        score: 0,
+        tone: 'low' as const,
+        rateClass: declineRc,
+        planGLo: 0,
+        planGHi: 0,
+        planNLo: 0,
+        planNHi: 0,
+        reason: `${c.name} does not write this profile.`,
+        discount: c.discount,
+        ctaLabel: 'Call Rob to discuss',
+        hardKnockout: true,
+        knockoutReason: koReason,
+      };
+    }
+
+    // Binary carriers (MoO-NC, Humana) collapse rated tiers to Standard —
+    // if we get here, adjusted ≥ 70, so pick Preferred or Standard only.
+    const rc = BINARY_NC_CARRIERS.has(c.name)
+      ? adjusted >= 85
+        ? { name: 'Preferred', lo: 0.85, hi: 0.95, badge: 'preferred' as const }
+        : { name: 'Standard', lo: 0.95, hi: 1.05, badge: 'standard' as const }
+      : rateClassForScore(adjusted);
+
     return {
       name: c.name,
-      score,
-      tone,
+      score: adjusted,
+      tone: toneForScore(adjusted),
       rateClass: rc,
       planGLo: rc.lo > 0 ? Math.round(gRate * c.gA * rc.lo) : 0,
       planGHi: rc.hi > 0 ? Math.round(gRate * c.gA * rc.hi) : 0,
       planNLo: rc.lo > 0 ? Math.round(nRate * c.nA * rc.lo) : 0,
       planNHi: rc.hi > 0 ? Math.round(nRate * c.nA * rc.hi) : 0,
-      reason: reasonForCarrier(c.name, score, rc),
+      reason: reasonForCarrier(c.name, adjusted, rc),
       discount: c.discount,
-      ctaLabel: ctaLabel(score),
+      ctaLabel: ctaLabel(adjusted),
     };
   }).sort((a, b) => b.score - a.score);
 

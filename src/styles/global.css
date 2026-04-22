@@ -837,6 +837,33 @@ textarea {
   text-align: center;
 }
 
+/* ─── Hard-knockout carrier card ────────────────────────────────── */
+
+.cc.cc-knockout {
+  border-color: var(--red-border);
+  background: var(--red-bg);
+}
+.cc-knockout .cc-top {
+  margin-bottom: 6px;
+}
+.cc-knockout-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--red-text);
+  background: rgba(239, 68, 68, 0.14);
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cc-knockout-reason {
+  font-size: 12px;
+  color: var(--red-text);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
 /* ─── Rate estimate ─────────────────────────────────────────────── */
 
 .rate-est {
