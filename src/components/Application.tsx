@@ -327,9 +327,16 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
   }, []);
 
   // ─── MBI camera scan (mock) ──────────────────────────────────────
+  // The sheet captures three fields at once — MBI + Part A effective
+  // + Part B effective — matching the three pieces of info printed
+  // on a Medicare card. Today the MBI is the mock OCR output and the
+  // dates are placeholder values the user edits; real OCR will read
+  // all three from a single photo.
   const [scanOpen, setScanOpen] = useState(false);
   const [scanStage, setScanStage] = useState(0);
   const [scanResult, setScanResult] = useState<string | null>(null);
+  const [scanPartA, setScanPartA] = useState('');
+  const [scanPartB, setScanPartB] = useState('');
 
   useEffect(() => {
     if (!scanOpen) return;
@@ -339,17 +346,31 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
     const t2 = setTimeout(() => setScanStage(2), 1800);
     const t3 = setTimeout(() => {
       setScanResult(mockScannedMbi());
+      // Seed placeholder dates the user can edit. If the applicant has
+      // already typed dates on the form, preserve those — otherwise fall
+      // back to a plausible Medicare start date (Jun 1, 2023).
+      setScanPartA(app.partAEffective || '06/01/2023');
+      setScanPartB(app.partBEffective || '06/01/2023');
     }, 2600);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scanOpen]);
 
+  const scanPartAValid = isValidDate(scanPartA);
+  const scanPartBValid = isValidDate(scanPartB);
+  const scanCanConfirm = !!scanResult && scanPartAValid && scanPartBValid;
+
   const confirmScan = () => {
-    if (!scanResult) return;
-    flow.updateApplication({ mbi: formatMBI(scanResult) });
+    if (!scanCanConfirm || !scanResult) return;
+    flow.updateApplication({
+      mbi: formatMBI(scanResult),
+      partAEffective: scanPartA,
+      partBEffective: scanPartB,
+    });
     setScanOpen(false);
     setScanResult(null);
   };
@@ -571,15 +592,42 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
           </div>
 
           {scanResult && (
-            <div className="scan-sheet" role="dialog" aria-label="Confirm detected Medicare ID">
+            <div className="scan-sheet" role="dialog" aria-label="Confirm detected card details">
               <div className="scan-sheet-handle" />
-              <div className="scan-sheet-title">Detected Medicare ID</div>
+              <div className="scan-sheet-title">Detected from your card</div>
               <div className="scan-sheet-mbi">{formatMBI(scanResult)}</div>
-              <div className="scan-sheet-hint">
-                Double-check the characters against your card. You can edit it after confirming.
+
+              <div className="scan-sheet-field-label">Part A effective</div>
+              <input
+                className="scan-sheet-input mono"
+                placeholder="06/01/2023"
+                inputMode="numeric"
+                maxLength={10}
+                value={scanPartA}
+                onChange={(e) => setScanPartA(formatDate(e.target.value))}
+              />
+              <div className="scan-sheet-field-label" style={{ marginTop: 10 }}>
+                Part B effective
               </div>
-              <button className="btn" onClick={confirmScan} type="button">
-                Confirm & use this MBI →
+              <input
+                className="scan-sheet-input mono"
+                placeholder="06/01/2023"
+                inputMode="numeric"
+                maxLength={10}
+                value={scanPartB}
+                onChange={(e) => setScanPartB(formatDate(e.target.value))}
+              />
+
+              <div className="scan-sheet-hint">
+                Double-check these against your card. You can still edit them on the form.
+              </div>
+              <button
+                className="btn"
+                onClick={confirmScan}
+                disabled={!scanCanConfirm}
+                type="button"
+              >
+                Confirm &amp; fill application →
               </button>
               <button
                 className="scan-sheet-retry"

@@ -1328,8 +1328,33 @@ textarea {
   font-size: 12px;
   color: var(--text-muted);
   text-align: center;
-  margin-bottom: 14px;
+  margin: 6px 0 14px;
   line-height: 1.4;
+}
+.scan-sheet-field-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.scan-sheet-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+.scan-sheet-input.mono { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+.scan-sheet-input:focus {
+  outline: none;
+  border-color: var(--seafoam-deep, var(--seafoam));
+  box-shadow: 0 0 0 3px rgba(131, 240, 249, 0.2);
 }
 .scan-sheet-retry {
   width: 100%;
