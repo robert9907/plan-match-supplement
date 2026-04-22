@@ -192,6 +192,7 @@ function emptyClusters(): Record<DdlCluster, number> {
     autoimmune: 0,
     renal: 0,
     transplant: 0,
+    neuropathyAdj: 0,
   };
 }
 
@@ -208,6 +209,7 @@ function emptyClusterDrugs(): Record<DdlCluster, string[]> {
     autoimmune: [],
     renal: [],
     transplant: [],
+    neuropathyAdj: [],
   };
 }
 
@@ -278,6 +280,27 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   const cardiacSignal =
     clusters.cardio >= 1 || clusters.anticoagulant >= 1 || health.q8_heart === 'y';
 
+  // Severity tiers within diabetes / cardio clusters. Underwriters read
+  // drug stacks as an escalation ladder, not a raw count — someone on
+  // Metformin + Lantus is more severe than Metformin + Januvia even
+  // though both are "2 diabetes meds."
+  const diabetesTiers = meds
+    .map((m) => ddlLookup(m.name))
+    .filter(
+      (d): d is NonNullable<typeof d> =>
+        d?.cluster === 'diabetes' && d.severityTier !== undefined,
+    )
+    .map((d) => d.severityTier as 1 | 2 | 3);
+  const hasDiabetesEscalation =
+    diabetesTiers.length >= 2 &&
+    Math.max(...diabetesTiers) >= 2 &&
+    Math.min(...diabetesTiers) === 1;
+  const hasGlp1PlusInsulin = diabetesTiers.includes(2) && diabetesTiers.includes(3);
+  const cardioTier3Meds = meds.filter((m) => {
+    const d = ddlLookup(m.name);
+    return d?.cluster === 'cardio' && d.severityTier === 3;
+  });
+
   const comboFlags: string[] = [];
 
   // Diabetes med stacking — industry line is 3+, MoO's 2×2 Rule declines
@@ -334,6 +357,50 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   // Insulin alone with high daily units — same compound question trigger.
   if (hasInsulin && health.diabetesMgmt === 'o50') {
     score = Math.min(score, 20);
+  }
+
+  // Diabetes escalation pattern — tier-1 oral + tier-2/3 escalation on the
+  // same stack signals oral failure → A1c climbed → upgrade therapy.
+  if (hasDiabetesEscalation) {
+    score -= 10;
+    comboFlags.push('Diabetes escalation pattern — oral therapy appears to have failed.');
+  }
+
+  // GLP-1 + insulin — advanced escalation beyond oral failure.
+  if (hasGlp1PlusInsulin) {
+    score = Math.min(score, 15);
+    comboFlags.push('GLP-1 + insulin — advanced diabetes escalation.');
+  }
+
+  // Neuropathy-adjacent drug + diabetes — Gabapentin / Lyrica / Cymbalta
+  // paired with diabetes implies diabetic neuropathy, a carrier knockout
+  // even when not declared on the health screen.
+  if (
+    clusters.neuropathyAdj >= 1 &&
+    (clusters.diabetes >= 1 || health.q7_diabetes === 'y')
+  ) {
+    score = Math.min(score, 15);
+    comboFlags.push(
+      `${clusterDrugs.neuropathyAdj.join(', ')} + diabetes — underwriters infer diabetic neuropathy.`,
+    );
+  }
+
+  // Dual anticoagulation — Warfarin + Plavix, or two DOACs, etc. Signals
+  // mechanical valve or high-risk stent; universal decline territory.
+  if (clusters.anticoagulant >= 2) {
+    score = Math.min(score, 15);
+    comboFlags.push(
+      `Dual anticoagulation (${clusterDrugs.anticoagulant.join(', ')}) — mechanical valve or high-risk stent signal.`,
+    );
+  }
+
+  // Tier-3 cardio drug present (e.g., Carvedilol) — HFrEF-implied severity
+  // even when the drug isn't on the universal DDL.
+  if (cardioTier3Meds.length > 0) {
+    score = Math.min(score, 25);
+    comboFlags.push(
+      `${cardioTier3Meds.map((m) => m.name).join(', ')} — tier-3 cardiac med, HFrEF-implied.`,
+    );
   }
 
   // Polypharmacy — brokers flag 5+ maintenance Rx as closer review.
