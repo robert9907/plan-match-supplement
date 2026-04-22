@@ -1187,6 +1187,175 @@ textarea {
   cursor: pointer;
 }
 
+/* ─── MBI scan (Medicare card) ──────────────────────────────────── */
+
+/* Prominent scan CTA — primary input method on mobile. */
+.scan-card-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--navy);
+  color: var(--white);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: transform 0.12s ease, filter 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.scan-card-btn:active {
+  transform: scale(0.98);
+  filter: brightness(1.1);
+}
+.scan-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(131, 240, 249, 0.18);
+  color: var(--seafoam);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.scan-card-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.3;
+}
+.scan-card-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.scan-card-sub {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.scan-or {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 4px 0 10px;
+}
+
+/* Viewfinder — landscape orientation sized to a Medicare card. */
+.scan-frame.card {
+  width: min(320px, 85vw);
+  aspect-ratio: 1.586 / 1; /* ISO/IEC 7810 ID-1 ratio */
+  height: auto;
+  overflow: hidden;
+}
+.scan-sweep {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--seafoam) 20%,
+    var(--seafoam) 80%,
+    transparent
+  );
+  box-shadow: 0 0 12px var(--seafoam), 0 0 24px rgba(80, 200, 180, 0.4);
+  top: 0;
+  animation: scanSweep 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes scanSweep {
+  0% { top: 6%; opacity: 0; }
+  10% { opacity: 1; }
+  50% { top: 94%; opacity: 1; }
+  55% { opacity: 0; }
+  100% { top: 6%; opacity: 0; }
+}
+
+/* Bottom sheet — confirmation of detected MBI. */
+.scan-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 14px 20px 24px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+  animation: sheetUp 0.25s cubic-bezier(0.2, 0.8, 0.3, 1);
+  z-index: 201;
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.scan-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  margin: 0 auto 14px;
+}
+.scan-sheet-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.scan-sheet-mbi {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  letter-spacing: 0.08em;
+  padding: 12px 14px;
+  background: var(--seafoam-dim);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+}
+.scan-sheet-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+.scan-sheet-retry {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 10px;
+  margin-top: 6px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Missing-field hint under disabled Continue button. */
+.missing-hint {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 /* ─── Combo alert ───────────────────────────────────────────────── */
 
 .combo-alert {

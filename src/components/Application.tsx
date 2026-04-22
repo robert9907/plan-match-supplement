@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDob, useFlow } from '../context/FlowContext';
 import { heightLabel } from '../lib/buildChart';
@@ -283,20 +283,94 @@ interface DetailsStageProps {
   onBack: () => void;
 }
 
+// MM/DD/YYYY → true when 10 chars and a real date.
+function isValidDate(s: string): boolean {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
+  if (!m) return false;
+  const mm = Number(m[1]);
+  const dd = Number(m[2]);
+  const yy = Number(m[3]);
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31 || yy < 1900 || yy > 2100) return false;
+  const dt = new Date(Date.UTC(yy, mm - 1, dd));
+  return dt.getUTCFullYear() === yy && dt.getUTCMonth() === mm - 1 && dt.getUTCDate() === dd;
+}
+
+// A plausible MBI that passes the CMS regex in /api/enroll. Used as the
+// mock "scan result" until real OCR is wired in.
+function mockScannedMbi(): string {
+  const alpha = 'ACDEFGHJKMNPQRTVWXY';
+  const alphanum = 'ACDEFGHJKMNPQRTVWXY0123456789';
+  const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
+  const digit = () => String(Math.floor(Math.random() * 9) + 1);
+  return (
+    digit() + pick(alpha) + pick(alphanum) + digit() +
+    pick(alpha) + pick(alphanum) + digit() +
+    pick(alpha) + pick(alpha) + digit() + digit()
+  );
+}
+
+const MBI_SCAN_STAGES = ['Hold steady…', 'Reading Medicare ID…', 'Captured'];
+
 function DetailsStage({ onNext, onBack }: DetailsStageProps) {
   const flow = useFlow();
   const app = flow.application;
 
-  const canContinue =
-    app.firstName.trim() !== '' &&
-    app.lastName.trim() !== '' &&
-    app.mbi.replace(/-/g, '').length === 11 &&
-    app.securityPin.length === 4 &&
-    app.phone.replace(/\D/g, '').length === 10 &&
-    /.+@.+\..+/.test(app.email) &&
-    app.addressLine.trim() !== '' &&
-    app.city.trim() !== '' &&
-    app.zip.length === 5;
+  // Pre-fill ZIP from the About screen's flow.zip. The input previously
+  // *displayed* flow.zip via an `||` fallback but never wrote it to app.zip,
+  // so canContinue failed silently and the button stayed disabled on mobile
+  // with no visible cause.
+  useEffect(() => {
+    if (!app.zip && flow.zip && /^\d{5}$/.test(flow.zip)) {
+      flow.updateApplication({ zip: flow.zip });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ─── MBI camera scan (mock) ──────────────────────────────────────
+  const [scanOpen, setScanOpen] = useState(false);
+  const [scanStage, setScanStage] = useState(0);
+  const [scanResult, setScanResult] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!scanOpen) return;
+    setScanStage(0);
+    setScanResult(null);
+    const t1 = setTimeout(() => setScanStage(1), 900);
+    const t2 = setTimeout(() => setScanStage(2), 1800);
+    const t3 = setTimeout(() => {
+      setScanResult(mockScannedMbi());
+    }, 2600);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [scanOpen]);
+
+  const confirmScan = () => {
+    if (!scanResult) return;
+    flow.updateApplication({ mbi: formatMBI(scanResult) });
+    setScanOpen(false);
+    setScanResult(null);
+  };
+
+  // ─── Validation ──────────────────────────────────────────────────
+  // Build a list of unmet requirements so the disabled button can
+  // surface the reason inline — on mobile, a silent disabled button
+  // is indistinguishable from a broken one.
+  const missing: string[] = [];
+  if (app.firstName.trim() === '' || app.lastName.trim() === '') missing.push('legal name');
+  if (app.mbi.replace(/-/g, '').length !== 11) missing.push('Medicare ID');
+  if (app.securityPin.length !== 4) missing.push('4-digit security PIN');
+  if (!isValidDate(app.partAEffective)) missing.push('Part A effective date');
+  if (!isValidDate(app.partBEffective)) missing.push('Part B effective date');
+  if (app.phone.replace(/\D/g, '').length !== 10) missing.push('phone number');
+  if (!/.+@.+\..+/.test(app.email)) missing.push('email');
+  if (app.addressLine.trim() === '') missing.push('mailing address');
+  if (app.city.trim() === '') missing.push('city');
+  if (!/^\d{5}$/.test(app.zip)) missing.push('ZIP');
+
+  const canContinue = missing.length === 0;
 
   return (
     <Frame tag="APPLICATION" hideDots>
@@ -331,12 +405,31 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
         </div>
       </div>
 
+      <div className="sec-label">Medicare Beneficiary Identifier (MBI)</div>
+
+      <button className="scan-card-btn" onClick={() => setScanOpen(true)} type="button">
+        <span className="scan-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <rect x="2" y="4" width="20" height="16" rx={2} />
+            <circle cx="12" cy="12" r={3} />
+          </svg>
+        </span>
+        <span className="scan-card-label">
+          <span className="scan-card-title">Scan your Medicare card</span>
+          <span className="scan-card-sub">Fastest — we'll read the MBI from your card</span>
+        </span>
+      </button>
+
+      <div className="scan-or">or type it manually</div>
+
       <div className="medicare-id-card">
-        <div className="medicare-id-title">Medicare Beneficiary Identifier (MBI)</div>
         <input
           className="medicare-id-input"
           placeholder="1EG4-TE5-MK72"
           maxLength={13}
+          autoCapitalize="characters"
+          autoCorrect="off"
+          spellCheck={false}
           value={app.mbi}
           onChange={(e) => flow.updateApplication({ mbi: formatMBI(e.target.value) })}
         />
@@ -437,8 +530,9 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
           <input
             className="fi mono"
             placeholder="27707"
+            inputMode="numeric"
             maxLength={5}
-            value={app.zip || flow.zip}
+            value={app.zip}
             onChange={(e) =>
               flow.updateApplication({ zip: e.target.value.replace(/\D/g, '').slice(0, 5) })
             }
@@ -457,6 +551,53 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
       <button className="btn" onClick={onNext} disabled={!canContinue} type="button">
         Continue to authorization →
       </button>
+
+      {!canContinue && (
+        <div className="missing-hint" role="status" aria-live="polite">
+          Still needed: {missing.join(', ')}.
+        </div>
+      )}
+
+      {scanOpen && (
+        <div className="scan-overlay" role="dialog" aria-label="Medicare card scanner">
+          <button className="scan-close" onClick={() => setScanOpen(false)} type="button">
+            Cancel
+          </button>
+          <div className="scan-frame card">
+            <div className="scan-sweep" />
+          </div>
+          <div className="scan-status">
+            {scanResult ? 'Captured' : MBI_SCAN_STAGES[scanStage]}
+          </div>
+
+          {scanResult && (
+            <div className="scan-sheet" role="dialog" aria-label="Confirm detected Medicare ID">
+              <div className="scan-sheet-handle" />
+              <div className="scan-sheet-title">Detected Medicare ID</div>
+              <div className="scan-sheet-mbi">{formatMBI(scanResult)}</div>
+              <div className="scan-sheet-hint">
+                Double-check the characters against your card. You can edit it after confirming.
+              </div>
+              <button className="btn" onClick={confirmScan} type="button">
+                Confirm & use this MBI →
+              </button>
+              <button
+                className="scan-sheet-retry"
+                onClick={() => {
+                  setScanResult(null);
+                  setScanStage(0);
+                  // re-trigger the scan animation
+                  setScanOpen(false);
+                  setTimeout(() => setScanOpen(true), 50);
+                }}
+                type="button"
+              >
+                Scan again
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </Frame>
   );
 }
