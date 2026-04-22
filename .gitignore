@@ -9,3 +9,4 @@ dist-ssr
 _tmp-spec
 tsconfig.tsbuildinfo
 *.tsbuildinfo
+.vercel

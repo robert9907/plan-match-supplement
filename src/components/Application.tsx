@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDob, useFlow } from '../context/FlowContext';
 import { heightLabel } from '../lib/buildChart';
+import { submitApplication } from '../lib/submitApplication';
 import { BackRow, Frame } from './Frame';
 
 type Stage = 'review' | 'details' | 'sign';
@@ -471,6 +472,8 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
   const navigate = useNavigate();
   const flow = useFlow();
   const app = flow.application;
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const authLines = useMemo(
     () => [
@@ -512,9 +515,26 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
 
   const fullName = `${app.firstName} ${app.lastName}`.trim() || 'Signature';
 
-  const onSubmit = () => {
-    if (!canSubmit) return;
-    navigate('/embed/submitted');
+  const onSubmit = async () => {
+    if (!canSubmit || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const result = await submitApplication(flow, flow.age);
+      if (!result.ok) {
+        const msg =
+          result.errors?.map((e) => e.message).join(' ') ||
+          'Something went wrong submitting your application. Please try again.';
+        setSubmitError(msg);
+        setSubmitting(false);
+        return;
+      }
+      navigate('/embed/submitted');
+    } catch (err) {
+      console.error('[submit] failed:', err);
+      setSubmitError('Network error — please check your connection and try again.');
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -554,9 +574,26 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
       </div>
       {signed && <div className="sig-date">{signedLabel}</div>}
 
-      <button className="btn" onClick={onSubmit} disabled={!canSubmit} type="button">
-        Submit application →
+      <button className="btn" onClick={onSubmit} disabled={!canSubmit || submitting} type="button">
+        {submitting ? 'Submitting…' : 'Submit application →'}
       </button>
+
+      {submitError && (
+        <div
+          role="alert"
+          style={{
+            marginTop: 12,
+            padding: 10,
+            borderRadius: 'var(--radius-md)',
+            background: 'rgba(220, 38, 38, 0.08)',
+            color: 'var(--red-text)',
+            fontSize: 13,
+            lineHeight: 1.4,
+          }}
+        >
+          {submitError}
+        </div>
+      )}
 
       <div className="disclaimer">
         <span className="privacy-badge">🔒 E-Sign Act compliant</span>
