@@ -948,6 +948,65 @@ textarea {
   font-family: 'Inter', sans-serif;
 }
 
+/* ─── Results apply cluster ─────────────────────────────────────── */
+
+.apply-cluster {
+  margin-top: 14px;
+  padding: 16px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.apply-cluster-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin-bottom: 2px;
+}
+.apply-cta-call {
+  display: block;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.apply-cta-call:hover {
+  background: #1a4a8a;
+  transform: translateY(-1px);
+}
+.apply-cta-online {
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-primary);
+  border: 1.5px solid var(--border);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.apply-cta-online:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
 .disclaimer {
   font-size: 9px;
   color: var(--text-muted);

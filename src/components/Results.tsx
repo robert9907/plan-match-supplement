@@ -69,6 +69,21 @@ export function Results() {
     navigate('/embed/apply');
   };
 
+  // When every likely carrier shares the same tone (OEP, or any scenario
+  // where all top carriers land in the same bucket), per-card CTAs become
+  // noise — collapse them into one bottom action.
+  const uniformLikelyTone = likely.length > 0 && likely.every((c) => c.tone === likely[0].tone);
+  const cheapestQualifying = likely
+    .filter((c) => c.planGLo > 0)
+    .reduce<CarrierResult | null>(
+      (best, c) => (!best || c.planGLo < best.planGLo ? c : best),
+      null,
+    );
+
+  const applyOnlineCheapest = () => {
+    if (cheapestQualifying) pickCarrier(cheapestQualifying);
+  };
+
   const backTarget = flow.isOep ? '/embed/about' : '/embed/health';
 
   return (
@@ -154,9 +169,30 @@ export function Results() {
 
       <div>
         {likely.map((c, i) => (
-          <CarrierCard key={c.name} carrier={c} animated={animated} index={i} onPick={() => pickCarrier(c)} />
+          <CarrierCard
+            key={c.name}
+            carrier={c}
+            animated={animated}
+            index={i}
+            onPick={() => pickCarrier(c)}
+            showCta={!uniformLikelyTone}
+          />
         ))}
       </div>
+
+      {uniformLikelyTone && (
+        <div className="apply-cluster">
+          <div className="apply-cluster-label">Ready to apply?</div>
+          <a className="apply-cta-call" href="tel:+18287613326">
+            📞 Call Rob — (828) 761-3326
+          </a>
+          {cheapestQualifying && (
+            <button className="apply-cta-online" onClick={applyOnlineCheapest} type="button">
+              Or apply online →
+            </button>
+          )}
+        </div>
+      )}
 
       {unlikely.length > 0 && !showUnlikely && (
         <button className="red-toggle" onClick={() => setShowUnlikely(true)} type="button">
@@ -172,6 +208,7 @@ export function Results() {
               animated={animated}
               index={likely.length + i}
               onPick={() => pickCarrier(c)}
+              showCta
             />
           ))}
         </div>
@@ -215,9 +252,10 @@ interface CarrierCardProps {
   animated: boolean;
   index: number;
   onPick: () => void;
+  showCta: boolean;
 }
 
-function CarrierCard({ carrier, animated, index, onPick }: CarrierCardProps) {
+function CarrierCard({ carrier, animated, index, onPick, showCta }: CarrierCardProps) {
   const hasRange = carrier.rateClass.lo > 0;
   // Stagger bar animations slightly so they cascade into view.
   const delay = animated ? `${index * 60}ms` : '0ms';
@@ -266,9 +304,11 @@ function CarrierCard({ carrier, animated, index, onPick }: CarrierCardProps) {
       )}
 
       <div className="cc-reason">{carrier.reason}</div>
-      <button className={`cc-cta ${carrier.tone}`} onClick={onPick} type="button">
-        {carrier.ctaLabel}
-      </button>
+      {showCta && (
+        <button className={`cc-cta ${carrier.tone}`} onClick={onPick} type="button">
+          {carrier.ctaLabel}
+        </button>
+      )}
       <div className="cc-disc">{carrier.discount} discount</div>
     </div>
   );
