@@ -188,7 +188,7 @@ export function HealthScreen() {
       <div className="disclaimer">
         <span className="privacy-badge">🔒 Confidential</span>
         <br />
-        Screened locally in your browser. Never transmitted to any carrier. Rob Simm does not make acceptance decisions.
+        Screened locally in your browser. Never transmitted to any carrier. Your agent does not make acceptance decisions.
       </div>
     </Frame>
   );

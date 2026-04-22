@@ -133,7 +133,7 @@ function verdictForScore(s: number): string {
   if (s >= 85) return 'Strong qualification profile';
   if (s >= 70) return 'Good — most carriers likely accept';
   if (s >= 50) return 'Mixed — some carriers may accept';
-  if (s >= 25) return 'Limited options — Rob can help';
+  if (s >= 25) return 'Limited options — review carefully';
   return 'Most carriers will decline';
 }
 
@@ -591,21 +591,21 @@ function reasonForCarrier(carrierName: string, score: number, rc: RateClass): st
     return `${score}% — likely accepted at ${rc.name}. Final rate set by ${carrierName}.`;
   }
   if (score >= 55) {
-    return `${score}% — may accept at ${rc.name}. Rob verifies before applying.`;
+    return `${score}% — may accept at ${rc.name}. Verified before applying.`;
   }
   if (score >= 40) {
-    return `${score}% — possible at ${rc.name}. Rob pre-screens with ${carrierName}.`;
+    return `${score}% — possible at ${rc.name}. Pre-screened with ${carrierName}.`;
   }
   if (score >= 25) {
-    return `${score}% — limited. ${rc.name} if accepted. Rob can check.`;
+    return `${score}% — limited. ${rc.name} if accepted. Verification recommended.`;
   }
-  return 'Low likelihood. Rob can verify or suggest alternatives.';
+  return 'Low likelihood. Alternatives may be a better fit.';
 }
 
 function ctaLabel(score: number): string {
-  if (score >= 70) return 'Apply with Rob →';
-  if (score >= 40) return 'Talk to Rob first →';
-  return 'Call Rob to discuss';
+  if (score >= 70) return 'Apply online →';
+  if (score >= 40) return 'Review before applying →';
+  return 'Call to discuss';
 }
 
 // ─── Public entry point ──────────────────────────────────────────
@@ -629,7 +629,7 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
       planNHi: Math.round(nRate * c.nA * rc.hi),
       reason: `100% — guaranteed acceptance at ${rc.name} rates. OEP — no health screening required.`,
       discount: c.discount,
-      ctaLabel: 'Apply with Rob →',
+      ctaLabel: 'Apply online →',
     }));
     return {
       overall: 100,
@@ -709,7 +709,7 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
         planNHi: 0,
         reason: 'Universal decline — applies to all carriers.',
         discount: c.discount,
-        ctaLabel: 'Call Rob to discuss',
+        ctaLabel: 'Call to discuss',
         hardKnockout: true,
         knockoutReason: universalKo,
       };
@@ -737,7 +737,7 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
         planNHi: 0,
         reason: `${c.name} does not write this profile.`,
         discount: c.discount,
-        ctaLabel: 'Call Rob to discuss',
+        ctaLabel: 'Call to discuss',
         hardKnockout: true,
         knockoutReason: koReason,
       };

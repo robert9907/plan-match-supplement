@@ -147,8 +147,8 @@ export function Meds() {
         >
           <b style={{ color: 'var(--red-text)' }}>⚠ Medication flag</b>
           <span style={{ color: 'var(--red-text)' }}>
-            {flaggedMeds.map((m) => m.name).join(', ')} — on most carriers' declinable drug lists. Rob can identify
-            exceptions.
+            {flaggedMeds.map((m) => m.name).join(', ')} — on most carriers' declinable drug lists. Carrier-specific
+            exceptions may still apply.
           </span>
         </div>
       )}

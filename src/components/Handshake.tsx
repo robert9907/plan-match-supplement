@@ -10,7 +10,7 @@ export function Handshake() {
     return (
       <Frame tag="APPLICATION" hideDots>
         <h1 className="headline">Nothing to confirm yet.</h1>
-        <div className="sub-text">Start a screening to apply with Rob.</div>
+        <div className="sub-text">Start a screening to apply.</div>
         <button className="btn" onClick={() => navigate('/embed/about')} type="button">
           Start over →
         </button>
@@ -33,14 +33,14 @@ export function Handshake() {
         Application <em>submitted.</em>
       </h1>
       <div className="sub-text" style={{ textAlign: 'center' }}>
-        Rob is reviewing your application now. You're almost covered.
+        Your agent is reviewing your application now. You're almost covered.
       </div>
 
       <div className="sms-preview">
         <div className="sms-from">Auto-ack SMS — sent now</div>
         <div className="sms-body">
-          Hi {firstName} — Rob here. Got your Plan Match application for {carrierName} Plan {planLetter}. I'm reviewing now
-          and will submit to underwriting within 10 minutes. I'll text you next steps shortly. — Rob, NPN #10447418
+          Hi {firstName} — got your Plan Match application for {carrierName} Plan {planLetter}. Reviewing now and will
+          submit to underwriting within 10 minutes. We'll text you next steps shortly. — NPN #10447418
         </div>
       </div>
 
@@ -68,19 +68,19 @@ export function Handshake() {
         <div className="step-row">
           <div className="step-num">1</div>
           <div className="step-text">
-            <strong>Rob reviews</strong> your application — within 10 minutes
+            <strong>Your agent reviews</strong> your application — within 10 minutes
           </div>
         </div>
         <div className="step-row">
           <div className="step-num">2</div>
           <div className="step-text">
-            Rob submits to <strong>{carrierName}</strong> underwriting
+            Submitted to <strong>{carrierName}</strong> underwriting
           </div>
         </div>
         <div className="step-row">
           <div className="step-num">3</div>
           <div className="step-text">
-            Rob texts you a <span className="highlight">secure payment link</span> from {carrierName} to enter your first
+            You receive a <span className="highlight">secure payment link</span> from {carrierName} to enter your first
             premium payment
           </div>
         </div>
@@ -109,7 +109,7 @@ export function Handshake() {
       </div>
 
       <a href="tel:+18287613326" className="call-rob-link">
-        📞 Can't wait? Call Rob — (828) 761-3326
+        📞 Can't wait? Call (828) 761-3326
       </a>
 
       <div style={{ textAlign: 'center', marginTop: 16 }}>

@@ -11,6 +11,12 @@ function factorTone(value: number, tobacco = false): 'pass' | 'warn' | 'fail' {
   return 'fail';
 }
 
+const RIBBONS = [
+  { tier: 'gold', label: 'Best Match' },
+  { tier: 'silver', label: 'Runner Up' },
+  { tier: 'bronze', label: 'Also Strong' },
+] as const;
+
 export function Results() {
   const navigate = useNavigate();
   const flow = useFlow();
@@ -64,24 +70,9 @@ export function Results() {
   const likely = scoring.carriers.filter((c) => c.score >= 25);
   const unlikely = scoring.carriers.filter((c) => c.score < 25);
 
-  const pickCarrier = (c: CarrierResult) => {
-    flow.selectCarrier(c, 'G');
+  const pickCarrier = (c: CarrierResult, plan: 'G' | 'N') => {
+    flow.selectCarrier(c, plan);
     navigate('/embed/apply');
-  };
-
-  // When every likely carrier shares the same tone (OEP, or any scenario
-  // where all top carriers land in the same bucket), per-card CTAs become
-  // noise — collapse them into one bottom action.
-  const uniformLikelyTone = likely.length > 0 && likely.every((c) => c.tone === likely[0].tone);
-  const cheapestQualifying = likely
-    .filter((c) => c.planGLo > 0)
-    .reduce<CarrierResult | null>(
-      (best, c) => (!best || c.planGLo < best.planGLo ? c : best),
-      null,
-    );
-
-  const applyOnlineCheapest = () => {
-    if (cheapestQualifying) pickCarrier(cheapestQualifying);
   };
 
   const backTarget = flow.isOep ? '/embed/about' : '/embed/health';
@@ -174,25 +165,11 @@ export function Results() {
             carrier={c}
             animated={animated}
             index={i}
-            onPick={() => pickCarrier(c)}
-            showCta={!uniformLikelyTone}
+            ribbon={i < RIBBONS.length ? RIBBONS[i] : null}
+            onPick={(plan) => pickCarrier(c, plan)}
           />
         ))}
       </div>
-
-      {uniformLikelyTone && (
-        <div className="apply-cluster">
-          <div className="apply-cluster-label">Ready to apply?</div>
-          <a className="apply-cta-call" href="tel:+18287613326">
-            📞 Call Rob — (828) 761-3326
-          </a>
-          {cheapestQualifying && (
-            <button className="apply-cta-online" onClick={applyOnlineCheapest} type="button">
-              Or apply online →
-            </button>
-          )}
-        </div>
-      )}
 
       {unlikely.length > 0 && !showUnlikely && (
         <button className="red-toggle" onClick={() => setShowUnlikely(true)} type="button">
@@ -207,8 +184,8 @@ export function Results() {
               carrier={c}
               animated={animated}
               index={likely.length + i}
-              onPick={() => pickCarrier(c)}
-              showCta
+              ribbon={null}
+              onPick={(plan) => pickCarrier(c, plan)}
             />
           ))}
         </div>
@@ -217,8 +194,7 @@ export function Results() {
       <div className="disclaimer">
         <strong>About these results:</strong> Qualification scores and estimated premiums are based on publicly available
         underwriting guidelines, NC average rates, and predicted rate class. They are not guarantees. Final acceptance and
-        rates are determined by each carrier's underwriting department. Rob provides exact quotes before any application is
-        submitted.
+        rates are determined by each carrier's underwriting department. Exact quote provided before enrollment.
         <br />
         <br />
         We do not offer every plan available in your area. Contact Medicare.gov or 1-800-MEDICARE for a complete listing.
@@ -230,7 +206,7 @@ export function Results() {
           href="tel:+18287613326"
           style={{ fontSize: 13, color: 'var(--navy)', fontWeight: 600, textDecoration: 'none' }}
         >
-          Questions? Call Rob — (828) 761-3326
+          Questions? Call (828) 761-3326
         </a>
         <div
           style={{
@@ -251,11 +227,13 @@ interface CarrierCardProps {
   carrier: CarrierResult;
   animated: boolean;
   index: number;
-  onPick: () => void;
-  showCta: boolean;
+  ribbon: (typeof RIBBONS)[number] | null;
+  onPick: (plan: 'G' | 'N') => void;
 }
 
-function CarrierCard({ carrier, animated, index, onPick, showCta }: CarrierCardProps) {
+function CarrierCard({ carrier, animated, index, ribbon, onPick }: CarrierCardProps) {
+  const [plan, setPlan] = useState<'G' | 'N'>('G');
+
   if (carrier.hardKnockout) {
     return (
       <div className="cc cc-knockout">
@@ -273,7 +251,8 @@ function CarrierCard({ carrier, animated, index, onPick, showCta }: CarrierCardP
   // Stagger bar animations slightly so they cascade into view.
   const delay = animated ? `${index * 60}ms` : '0ms';
   return (
-    <div className="cc">
+    <div className={`cc${ribbon ? ` cc-ribboned cc-ribbon-${ribbon.tier}` : ''}`}>
+      {ribbon && <div className={`cc-ribbon ${ribbon.tier}`}>{ribbon.label}</div>}
       <div className="cc-top">
         <span className="cc-name">{carrier.name}</span>
         <span className={`cc-pct ${carrier.tone}`}>{carrier.score}%</span>
@@ -304,7 +283,7 @@ function CarrierCard({ carrier, animated, index, onPick, showCta }: CarrierCardP
             </span>
           </div>
           <div className={`rate-class-badge ${carrier.rateClass.badge}`}>
-            {carrier.rateClass.name} · Rob provides exact quote
+            {carrier.rateClass.name} · Exact quote provided before enrollment
           </div>
         </div>
       ) : (
@@ -317,11 +296,41 @@ function CarrierCard({ carrier, animated, index, onPick, showCta }: CarrierCardP
       )}
 
       <div className="cc-reason">{carrier.reason}</div>
-      {showCta && (
-        <button className={`cc-cta ${carrier.tone}`} onClick={onPick} type="button">
-          {carrier.ctaLabel}
-        </button>
+
+      {hasRange && (
+        <>
+          <div className="plan-toggle" role="radiogroup" aria-label={`Choose plan for ${carrier.name}`}>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={plan === 'G'}
+              className={`plan-toggle-opt${plan === 'G' ? ' selected' : ''}`}
+              onClick={() => setPlan('G')}
+            >
+              <span className="plan-toggle-letter">Plan G</span>
+              <span className="plan-toggle-price">
+                ${carrier.planGLo}–${carrier.planGHi}/mo
+              </span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={plan === 'N'}
+              className={`plan-toggle-opt${plan === 'N' ? ' selected' : ''}`}
+              onClick={() => setPlan('N')}
+            >
+              <span className="plan-toggle-letter">Plan N</span>
+              <span className="plan-toggle-price">
+                ${carrier.planNLo}–${carrier.planNHi}/mo
+              </span>
+            </button>
+          </div>
+          <button className="cc-cta select" onClick={() => onPick(plan)} type="button">
+            Select {carrier.name} Plan {plan} →
+          </button>
+        </>
       )}
+
       <div className="cc-disc">{carrier.discount} discount</div>
     </div>
   );

@@ -431,7 +431,7 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
         <span className="info-icon">🔒</span>
         <span className="info-text">
           <strong>Your Medicare ID is encrypted</strong> and transmitted securely. It is only shared with the carrier you
-          selected when Rob submits your application.
+          selected when your application is submitted.
         </span>
       </div>
 
@@ -506,7 +506,7 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
       <h1 className="headline">
         Review and <em>sign.</em>
       </h1>
-      <div className="sub-text">These authorizations are required by the carrier before Rob can submit your application.</div>
+      <div className="sub-text">These authorizations are required by the carrier before your application can be submitted.</div>
 
       {authLines.map((line, i) => (
         <div key={i} className="auth-check" onClick={() => flow.toggleAuthCheck(i as 0 | 1 | 2 | 3)}>
@@ -537,7 +537,7 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
       {signed && <div className="sig-date">{signedLabel}</div>}
 
       <button className="btn" onClick={onSubmit} disabled={!canSubmit} type="button">
-        Submit application to Rob →
+        Submit application →
       </button>
 
       <div className="disclaimer">
