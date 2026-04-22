@@ -309,6 +309,26 @@ async function persistToSupabase(p: EnrollPayload): Promise<string> {
 //              product='supplement', context carries the full screening
 //              payload so the AgentBase PlanMatch tab can render inline.
 
+// AgentBase stores Part A/B effective dates as separate month + year
+// columns where month is the full English name ("April") and year is
+// a 4-digit string ("2026"). The supplement form carries MM/DD/YYYY
+// strings (see formatDate in Application.tsx); we split them here so
+// clients.part_a_month / part_a_year / part_b_month / part_b_year get
+// populated exactly the way plan-match-prod writes them.
+const MONTH_NAMES_LONG = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+function splitEffectiveMdy(mdy: string | null | undefined): { month: string; year: string } {
+  if (!mdy) return { month: '', year: '' };
+  const m = /^(\d{2})\/\d{2}\/(\d{4})$/.exec(mdy);
+  if (!m) return { month: '', year: '' };
+  const idx = Number(m[1]) - 1;
+  if (idx < 0 || idx > 11) return { month: '', year: '' };
+  return { month: MONTH_NAMES_LONG[idx], year: m[2] };
+}
+
 async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promise<void> {
   const url = process.env.AGENTBASE_SUPABASE_URL;
   const key = process.env.AGENTBASE_SUPABASE_SERVICE_ROLE_KEY;
@@ -339,6 +359,8 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
   const cleanMbi = String(p.mbiNumber || '').replace(/[\s-]/g, '').toUpperCase();
   const dob = dobIso(p);
   const planName = `Plan ${p.planLetter}`;
+  const partA = splitEffectiveMdy(p.partAEffective);
+  const partB = splitEffectiveMdy(p.partBEffective);
 
   // ─── clients · upsert on normalized phone digits ────────────────────
   try {
@@ -366,11 +388,18 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
         last_name: p.lastName,
         email: p.email,
         dob,
-        address,
+        address: p.address,
+        city: p.city,
+        state: p.state,
+        zip: p.zip,
         county: p.county,
         medicare_id: cleanMbi,
         carrier: p.carrier,
         plan_name: planName,
+        part_a_month: partA.month,
+        part_a_year: partA.year,
+        part_b_month: partB.month,
+        part_b_year: partB.year,
         lead_source: existingLeadSource ? undefined : 'Plan Match Supplement',
       });
       if (Object.keys(patch).length > 0) {
@@ -394,11 +423,18 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
         phone: digits,
         email: p.email || null,
         dob,
-        address: address || null,
+        address: p.address || null,
+        city: p.city || null,
+        state: p.state || null,
+        zip: p.zip || null,
         county: p.county ?? null,
         medicare_id: cleanMbi || null,
         carrier: p.carrier,
         plan_name: planName,
+        part_a_month: partA.month || null,
+        part_a_year: partA.year || null,
+        part_b_month: partB.month || null,
+        part_b_year: partB.year || null,
         lead_source: 'Plan Match Supplement',
       };
       const insertResp = await fetch(`${base}/rest/v1/clients`, {
@@ -431,6 +467,9 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
       first_name: p.firstName,
       last_name: p.lastName,
       phone: digits,
+      email: p.email || null,
+      county: p.county ?? null,
+      age: p.age ?? null,
       source: 'plan_match_supplement',
       product: 'supplement',
       medicare_id: cleanMbi || null,
