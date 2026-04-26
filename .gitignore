@@ -10,3 +10,4 @@ _tmp-spec
 tsconfig.tsbuildinfo
 *.tsbuildinfo
 .vercel
+.env*.local
