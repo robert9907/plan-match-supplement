@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { About } from './components/About';
 import { Application } from './components/Application';
 import { FlowProvider } from './context/FlowContext';
@@ -7,9 +8,25 @@ import { HealthScreen } from './components/HealthScreen';
 import { Meds } from './components/Meds';
 import { Results } from './components/Results';
 
+// Reset scroll on every route change. Inside the embed iframe the user
+// otherwise lands at whatever scroll offset the previous screen left
+// behind, which usually reads as "the new screen opened at the bottom."
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (typeof document !== 'undefined') {
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+    }
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
     <FlowProvider>
+      <ScrollToTop />
       <Routes>
         <Route path="/embed/about" element={<About />} />
         <Route path="/embed/meds" element={<Meds />} />

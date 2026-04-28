@@ -12,6 +12,16 @@ export function Application() {
   const flow = useFlow();
   const [stage, setStage] = useState<Stage>('review');
 
+  // Stage transitions don't change the route, so the global ScrollToTop
+  // in App.tsx never fires for them. Reset scroll here too.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (typeof document !== 'undefined') {
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+    }
+  }, [stage]);
+
   if (!flow.selectedCarrier || !flow.scoring) {
     return (
       <Frame tag="APPLICATION" hideDots>

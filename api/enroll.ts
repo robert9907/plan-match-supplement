@@ -14,8 +14,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // CMS Medicare Beneficiary Identifier — 11 chars, digits 1-9 in position 1,
 // no S/L/O/I/B/Z in alpha positions (same regex as plan-match).
+// Letter class [AC-HJKMNP-RT-Y] = A,C,D,E,F,G,H,J,K,M,N,P,Q,R,T,U,V,W,X,Y
+// (20 letters; excludes B,I,L,O,S,Z exactly per CMS spec — earlier
+// [AC-HJKMNP-RTVWXY] erroneously also excluded U).
 const MBI_REGEX =
-  /^[1-9][AC-HJKMNP-RTVWXY][AC-HJKMNP-RTVWXY0-9][0-9][AC-HJKMNP-RTVWXY][AC-HJKMNP-RTVWXY0-9][0-9][AC-HJKMNP-RTVWXY][AC-HJKMNP-RTVWXY][0-9][0-9]$/;
+  /^[1-9][AC-HJKMNP-RT-Y][AC-HJKMNP-RT-Y0-9][0-9][AC-HJKMNP-RT-Y][AC-HJKMNP-RT-Y0-9][0-9][AC-HJKMNP-RT-Y][AC-HJKMNP-RT-Y][0-9][0-9]$/;
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
