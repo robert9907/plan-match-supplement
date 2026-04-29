@@ -1,44 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFlow } from '../context/FlowContext';
 import { DRUG_CATALOG, type DrugCatalogItem } from '../lib/ddlData';
 import { classifyMed, type MedItem } from '../lib/scoringEngine';
 import { BackRow, Frame } from './Frame';
-
-// A fake "scan" sequence — the prototype shows a camera viewfinder with
-// focusing → reading → captured steps. We don't have a real camera, so
-// we simulate the UX with timed status changes and then add a realistic
-// result drug (Metformin, which is common and shows the "safe" path).
-const SCAN_STAGES = ['Focusing…', 'Reading label…', 'Captured'];
+import { PillScanSheet } from './PillScanSheet';
 
 export function Meds() {
   const navigate = useNavigate();
   const flow = useFlow();
   const [query, setQuery] = useState('');
   const [scanOpen, setScanOpen] = useState(false);
-  const [scanStage, setScanStage] = useState(0);
-
-  useEffect(() => {
-    if (!scanOpen) return;
-    setScanStage(0);
-    const t1 = setTimeout(() => setScanStage(1), 900);
-    const t2 = setTimeout(() => setScanStage(2), 1800);
-    const t3 = setTimeout(() => {
-      // Pull a plausible drug the consumer "scanned". Pick Metformin if
-      // not already on the list, else first unpicked drug.
-      const pick =
-        DRUG_CATALOG.find((d) => d.name === 'Metformin' && !flow.meds.some((m) => m.name === d.name)) ??
-        DRUG_CATALOG.find((d) => !flow.meds.some((m) => m.name === d.name));
-      if (pick) addDrug(pick);
-      setScanOpen(false);
-    }, 2600);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scanOpen]);
 
   const matches = useMemo<DrugCatalogItem[]>(() => {
     if (query.trim().length < 2) return [];
@@ -55,6 +27,21 @@ export function Meds() {
     };
     flow.addMed(med);
     setQuery('');
+  };
+
+  // Single funnel for any add path (search pick, free-typed entry, or
+  // scan confirmation). DRUG_CATALOG dose wins when the user typed a
+  // catalog name without a strength; the OCR-extracted strength wins
+  // when the scan path passes one in. classifyMed runs the DDL lookup
+  // by first lowercased token, so this works for ad-hoc names too.
+  const addByName = (name: string, dose: string) => {
+    const classification = classifyMed(name);
+    const med: MedItem = {
+      name,
+      dose,
+      ...classification,
+    };
+    flow.addMed(med);
   };
 
   const flaggedMeds = flow.meds.filter((m) => m.status === 'flag');
@@ -170,13 +157,13 @@ export function Meds() {
       </div>
 
       {scanOpen && (
-        <div className="scan-overlay" role="dialog" aria-label="Pill bottle scanner">
-          <button className="scan-close" onClick={() => setScanOpen(false)} type="button">
-            Cancel
-          </button>
-          <div className="scan-frame" />
-          <div className="scan-status">{SCAN_STAGES[scanStage]}</div>
-        </div>
+        <PillScanSheet
+          onClose={() => setScanOpen(false)}
+          onConfirm={({ name, dose }) => {
+            addByName(name, dose);
+            setScanOpen(false);
+          }}
+        />
       )}
     </Frame>
   );

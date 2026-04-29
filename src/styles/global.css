@@ -1253,6 +1253,53 @@ textarea {
   height: auto;
   overflow: hidden;
 }
+
+/* Viewfinder — portrait orientation sized for a pill bottle label. */
+.scan-frame.pill {
+  width: min(260px, 75vw);
+  aspect-ratio: 3 / 4;
+  height: auto;
+  overflow: hidden;
+  background: #000;
+}
+/* Live <video> + captured still both fill the frame. The video is
+   muted+playsInline+autoPlay (set as attributes on the element) so
+   iOS Safari renders it inline inside the viewfinder. */
+.scan-video,
+.scan-still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Shutter row — sits below the viewfinder during the camera stage. */
+.scan-shutter-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 28px;
+}
+.scan-shutter {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 4px solid white;
+  background: white;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.scan-shutter:active {
+  transform: scale(0.92);
+}
+.scan-shutter:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 .scan-sweep {
   position: absolute;
   left: 6px;
