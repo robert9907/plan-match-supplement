@@ -1449,6 +1449,227 @@ textarea {
   line-height: 1.6;
 }
 
+/* ─── Medigap explainer (Plan G vs Plan N accordion) ────────────── */
+
+.medigap-accordion {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--off-white);
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.medigap-accordion.open {
+  border-color: var(--navy);
+  background: var(--white);
+}
+.medigap-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: var(--text-primary);
+}
+.medigap-trigger:hover {
+  background: var(--seafoam-dim);
+}
+.medigap-accordion.open .medigap-trigger:hover {
+  background: transparent;
+}
+.medigap-trigger-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.25;
+}
+.medigap-trigger-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.medigap-trigger-title {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.medigap-trigger-chev {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--navy);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.medigap-accordion.open .medigap-trigger-chev {
+  transform: rotate(180deg);
+  background: var(--navy);
+  color: var(--white);
+  border-color: var(--navy);
+}
+.medigap-body {
+  padding: 4px 16px 16px;
+  animation: slideIn 0.25s ease;
+}
+.medigap-lede {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+.medigap-lede strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.medigap-plans {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.medigap-plan {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+.medigap-plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.medigap-plan-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: var(--seafoam);
+  font-family: 'Fraunces', serif;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.medigap-plan-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 500;
+  padding: 3px 7px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.medigap-plan-badge.popular {
+  background: var(--green-bg);
+  color: var(--green-text);
+}
+.medigap-plan-badge.value {
+  background: var(--seafoam-solid);
+  color: var(--navy);
+}
+.medigap-plan-name {
+  font-family: 'Fraunces', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.medigap-plan-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 10px;
+  flex: 1;
+}
+.medigap-plan-risk {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.medigap-plan-risk-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.medigap-plan-risk-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.medigap-callout {
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.medigap-callout-icon {
+  color: var(--amber);
+  font-size: 14px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.medigap-callout-text {
+  font-size: 12px;
+  color: var(--amber-text);
+  line-height: 1.55;
+}
+.medigap-callout-text strong {
+  font-weight: 700;
+}
+.medigap-contrast {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.medigap-contrast-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.medigap-contrast-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.medigap-contrast-text strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* ─── Cross-sell card ───────────────────────────────────────────── */
 
 .cross-sell {

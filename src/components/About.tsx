@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFlow, type PromptReason } from '../context/FlowContext';
 import { BackRow, Frame } from './Frame';
+import { MedigapExplainer } from './MedigapExplainer';
 
 const PROMPTS: Exclude<PromptReason, null>[] = [
   'Turning 65',
@@ -131,6 +132,8 @@ export function About() {
       <h1 className="headline">
         You deserve the right <em>coverage.</em>
       </h1>
+
+      <MedigapExplainer />
 
       <div className="sec-label">
         What's prompting this? <span className="sec-hint">(tap one)</span>
