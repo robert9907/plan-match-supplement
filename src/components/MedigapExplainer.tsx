@@ -53,7 +53,7 @@ export function MedigapExplainer() {
               </div>
               <div className="medigap-plan-risk">
                 <span className="medigap-plan-risk-label">Annual out-of-pocket</span>
-                <span className="medigap-plan-risk-value">~$257 deductible</span>
+                <span className="medigap-plan-risk-value">~$283 deductible</span>
               </div>
             </div>
 
@@ -74,7 +74,7 @@ export function MedigapExplainer() {
               </div>
               <div className="medigap-plan-risk">
                 <span className="medigap-plan-risk-label">Annual out-of-pocket</span>
-                <span className="medigap-plan-risk-value">$257 + copays</span>
+                <span className="medigap-plan-risk-value">$283 + copays</span>
               </div>
             </div>
           </div>
