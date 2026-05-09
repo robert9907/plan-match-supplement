@@ -46,6 +46,11 @@ export function MedigapExplainer() {
                 Covers everything except the small Part B deductible. After that, you pay $0 for Medicare-approved
                 services.
               </div>
+              <div className="medigap-copays">
+                <div className="copay-item"><span className="copay-label">Doctor visits</span><span className="copay-value free">$0</span></div>
+                <div className="copay-item"><span className="copay-label">Specialist visits</span><span className="copay-value free">$0</span></div>
+                <div className="copay-item"><span className="copay-label">Emergency room</span><span className="copay-value free">$0</span></div>
+              </div>
               <div className="medigap-plan-risk">
                 <span className="medigap-plan-risk-label">Annual out-of-pocket</span>
                 <span className="medigap-plan-risk-value">~$257 deductible</span>
@@ -61,6 +66,11 @@ export function MedigapExplainer() {
               <div className="medigap-plan-desc">
                 Lower monthly cost in exchange for small office-visit and ER copays, plus possible excess charges from
                 non-participating doctors.
+              </div>
+              <div className="medigap-copays">
+                <div className="copay-item"><span className="copay-label">Doctor visits</span><span className="copay-value">up to $20</span></div>
+                <div className="copay-item"><span className="copay-label">Specialist visits</span><span className="copay-value">up to $20</span></div>
+                <div className="copay-item"><span className="copay-label">Emergency room</span><span className="copay-value">up to $50</span></div>
               </div>
               <div className="medigap-plan-risk">
                 <span className="medigap-plan-risk-label">Annual out-of-pocket</span>

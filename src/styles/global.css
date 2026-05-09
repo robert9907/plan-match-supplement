@@ -1600,6 +1600,34 @@ textarea {
   margin-bottom: 10px;
   flex: 1;
 }
+.medigap-copays {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.copay-item {
+  flex: 1;
+  background: var(--off-white);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.copay-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.copay-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.copay-value.free {
+  color: var(--green);
+}
 .medigap-plan-risk {
   border-top: 1px solid var(--border);
   padding-top: 8px;
