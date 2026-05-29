@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCameraStream } from '../hooks/useCameraStream';
 import { useLabelScan, type LabelScanResult } from '../hooks/useLabelScan';
 import { DRUG_CATALOG, type DrugCatalogItem } from '../lib/ddlData';
@@ -36,22 +36,49 @@ function cleanDrugName(raw: string): string {
 
 // ─── Component ────────────────────────────────────────────────────
 
-type Stage = 'camera' | 'reading' | 'review' | 'fallback';
+type Stage = 'capturing' | 'review' | 'fallback';
+
+interface ScanQueueItem {
+  id: string;
+  dataUrl: string;
+  status: 'pending' | 'success' | 'error';
+  label: LabelScanResult | null;
+  error: string | null;
+  // Per-row include/exclude toggle for the review stage. Defaults true
+  // on success rows; the user can uncheck a misread before Add All.
+  selected: boolean;
+}
+
+export interface ScannedDrug {
+  name: string;
+  dose: string;
+}
 
 interface Props {
-  /** Called with a confirmed drug name + dose. Parent runs classifyMed
-   *  + addMed; this sheet stays UI-only so it can be reused later. */
-  onConfirm: (drug: { name: string; dose: string }) => void;
+  /** Called once with every drug the user confirmed — single bottle
+   *  scans pass a single-element array, multi-bottle pass N. Parent
+   *  runs classifyMed + addMed inside this callback and is responsible
+   *  for calling onClose afterwards. */
+  onConfirm: (drugs: ScannedDrug[]) => void;
   onClose: () => void;
 }
 
-export function PillScanSheet({ onConfirm, onClose }: Props) {
-  const [stage, setStage] = useState<Stage>('camera');
-  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
-  const [label, setLabel] = useState<LabelScanResult | null>(null);
-  const [typed, setTyped] = useState('');
+function labelToDrug(label: LabelScanResult): ScannedDrug | null {
+  if (!label.drugName) return null;
+  const catalogHit = findCatalogMatch(label.drugName);
+  const displayName = catalogHit?.name ?? cleanDrugName(label.drugName);
+  const dose = label.strength ?? catalogHit?.dose ?? '';
+  return { name: displayName, dose };
+}
 
-  const cameraActive = stage === 'camera';
+export function PillScanSheet({ onConfirm, onClose }: Props) {
+  const [stage, setStage] = useState<Stage>('capturing');
+  const [queue, setQueue] = useState<ScanQueueItem[]>([]);
+  const [flash, setFlash] = useState(false);
+  const [typed, setTyped] = useState('');
+  const idCounter = useRef(0);
+
+  const cameraActive = stage === 'capturing';
   const { videoRef, status, error, capture, stop } = useCameraStream(cameraActive);
   const { scan } = useLabelScan();
 
@@ -64,50 +91,116 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
     }
   }, [status]);
 
-  async function onShutter() {
+  function updateItem(id: string, patch: Partial<Omit<ScanQueueItem, 'id'>>) {
+    setQueue((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
+  }
+
+  function fireScan(id: string, dataUrl: string) {
+    void scan(dataUrl)
+      .then((res) => {
+        if (res.label && res.label.drugName) {
+          updateItem(id, {
+            status: 'success',
+            label: res.label,
+            error: null,
+            selected: true,
+          });
+        } else {
+          updateItem(id, {
+            status: 'error',
+            label: res.label,
+            error: 'No label detected',
+            selected: false,
+          });
+        }
+      })
+      .catch((err: unknown) => {
+        updateItem(id, {
+          status: 'error',
+          label: null,
+          error: err instanceof Error ? err.message : 'Scan failed',
+          selected: false,
+        });
+      });
+  }
+
+  function onShutter() {
     if (status !== 'ready') return;
     const dataUrl = capture();
     if (!dataUrl) return;
-    setCapturedPhoto(dataUrl);
-    stop();
-    setStage('reading');
-    const { label: scanned } = await scan(dataUrl);
-    // Preserve the label whenever it carries a drug name, even on
-    // low confidence — the review card is itself a confirm-or-retype
-    // prompt, which beats discarding the OCR result and forcing the
-    // user back to typing. Mirrors the consumer fix in d4395cf.
-    if (scanned && scanned.drugName) {
-      setLabel(scanned);
-      setStage('review');
-    } else {
-      setLabel(null);
-      setStage('fallback');
-    }
+    setFlash(true);
+    window.setTimeout(() => setFlash(false), 220);
+    const id = `scan-${Date.now()}-${idCounter.current++}`;
+    setQueue((prev) => [
+      ...prev,
+      {
+        id,
+        dataUrl,
+        status: 'pending',
+        label: null,
+        error: null,
+        selected: false,
+      },
+    ]);
+    fireScan(id, dataUrl);
   }
 
-  function confirmFromVision() {
-    if (!label || !label.drugName) return;
-    const catalogHit = findCatalogMatch(label.drugName);
-    const displayName = catalogHit?.name ?? cleanDrugName(label.drugName);
-    const dose = label.strength ?? catalogHit?.dose ?? '';
-    onConfirm({ name: displayName, dose });
+  function onDone() {
+    stop();
+    // Single capture → keep the existing single-card review so a one-
+    // bottle scan still works exactly as before.
+    if (queue.length === 1) {
+      const only = queue[0];
+      if (only.status === 'success' && only.label?.drugName) {
+        setStage('review');
+      } else {
+        setStage('fallback');
+      }
+      return;
+    }
+    setStage('review');
+  }
+
+  function removeFromQueue(id: string) {
+    setQueue((prev) => prev.filter((it) => it.id !== id));
+  }
+
+  function retryItem(item: ScanQueueItem) {
+    updateItem(item.id, { status: 'pending', error: null });
+    fireScan(item.id, item.dataUrl);
+  }
+
+  function toggleSelected(id: string) {
+    setQueue((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, selected: !it.selected } : it)),
+    );
+  }
+
+  function confirmFromQueue() {
+    const drugs = queue
+      .filter((it) => it.selected && it.status === 'success' && it.label?.drugName)
+      .map((it) => labelToDrug(it.label!))
+      .filter((d): d is ScannedDrug => Boolean(d));
+    if (drugs.length === 0) return;
+    onConfirm(drugs);
   }
 
   function confirmTyped() {
     const cleaned = cleanDrugName(typed);
     if (!cleaned) return;
     const catalogHit = findCatalogMatch(cleaned);
-    onConfirm({
-      name: catalogHit?.name ?? cleaned,
-      dose: catalogHit?.dose ?? '',
-    });
+    onConfirm([
+      {
+        name: catalogHit?.name ?? cleaned,
+        dose: catalogHit?.dose ?? '',
+      },
+    ]);
   }
 
   function rescan() {
-    setLabel(null);
-    setCapturedPhoto(null);
+    setQueue([]);
     setTyped('');
-    setStage('camera');
+    setStage('capturing');
   }
 
   // Suggestions from DRUG_CATALOG when the user types in fallback mode.
@@ -118,6 +211,11 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
         ).slice(0, 5)
       : [];
 
+  const total = queue.length;
+  const successCount = queue.filter((it) => it.status === 'success').length;
+  const pendingCount = queue.filter((it) => it.status === 'pending').length;
+  const selectedCount = queue.filter((it) => it.selected).length;
+
   // ─── Render ────────────────────────────────────────────────────
 
   return (
@@ -126,43 +224,113 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
         Cancel
       </button>
 
-      {/* Viewfinder — the live <video> sits inside the frame on
-          camera / reading stages. On review/fallback we swap to the
-          captured still. */}
-      <div className="scan-frame pill" aria-hidden={stage !== 'camera' && stage !== 'reading'}>
-        {(stage === 'camera' || stage === 'reading') && (
-          <video
-            ref={videoRef}
-            className="scan-video"
-            playsInline
-            muted
-            autoPlay
-          />
+      {/* Viewfinder — live <video> on capturing stage; sits behind the
+          flash overlay so a capture confirmation reads even on dark
+          labels. */}
+      <div className="scan-frame pill" aria-hidden={stage !== 'capturing'}>
+        {stage === 'capturing' && (
+          <>
+            <video
+              ref={videoRef}
+              className="scan-video"
+              playsInline
+              muted
+              autoPlay
+            />
+            <div className="scan-sweep" />
+            <div className={['scan-capture-flash', flash ? 'flash' : ''].filter(Boolean).join(' ')} />
+          </>
         )}
-        {stage === 'reading' && capturedPhoto && (
-          <img className="scan-still" src={capturedPhoto} alt="" />
-        )}
-        {(stage === 'camera' || stage === 'reading') && <div className="scan-sweep" />}
       </div>
 
       <div className="scan-status">
-        {stage === 'reading'
-          ? 'Reading label…'
-          : status === 'requesting'
-          ? 'Opening camera…'
-          : status === 'ready'
-          ? 'Point at the bottle label'
-          : status === 'denied'
-          ? 'Camera access needed — type instead'
-          : status === 'unsupported'
-          ? 'Camera unavailable — type instead'
-          : status === 'error'
-          ? error ?? 'Camera unavailable'
-          : ''}
+        {stage === 'capturing' && status === 'requesting' && 'Opening camera…'}
+        {stage === 'capturing' && status === 'ready' && (
+          total === 0
+            ? 'Point at the bottle label'
+            : `${total} bottle${total === 1 ? '' : 's'} scanned · keep going`
+        )}
+        {stage === 'capturing' && status === 'denied' && 'Camera access needed — type instead'}
+        {stage === 'capturing' && status === 'unsupported' && 'Camera unavailable — type instead'}
+        {stage === 'capturing' && status === 'error' && (error ?? 'Camera unavailable')}
       </div>
 
-      {/* Shutter — only on the live camera stage. */}
-      {stage === 'camera' && (
+      {/* Thumbnail strip + Done button — visible during capturing once
+          there's at least one scanned bottle in the queue. */}
+      {stage === 'capturing' && total > 0 && (
+        <div className="scan-queue">
+          <div className="scan-queue-head">
+            <span className="scan-queue-count">
+              {total} bottle{total === 1 ? '' : 's'} scanned
+              {pendingCount > 0
+                ? ' · reading…'
+                : successCount < total
+                ? ` · ${successCount} read`
+                : ''}
+            </span>
+            <button
+              type="button"
+              className="scan-done-btn"
+              onClick={onDone}
+              disabled={total === 0}
+            >
+              Done scanning →
+            </button>
+          </div>
+          <div className="scan-strip" role="list">
+            {queue.map((it) => (
+              <div
+                key={it.id}
+                role="listitem"
+                className={`scan-thumb scan-thumb-${it.status}`}
+                onClick={() => {
+                  if (it.status === 'error') retryItem(it);
+                }}
+                title={
+                  it.status === 'success'
+                    ? cleanDrugName(it.label?.drugName ?? 'Read')
+                    : it.status === 'error'
+                    ? it.error ?? 'Tap to retry'
+                    : 'Reading…'
+                }
+              >
+                <img src={it.dataUrl} alt="" />
+                <div className="scan-thumb-overlay">
+                  {it.status === 'pending' && <span className="scan-thumb-spinner" />}
+                  {it.status === 'success' && (
+                    <>
+                      <span className="scan-thumb-badge scan-thumb-badge-ok">✓</span>
+                      <span className="scan-thumb-name">
+                        {cleanDrugName(it.label?.drugName ?? 'Read')}
+                      </span>
+                    </>
+                  )}
+                  {it.status === 'error' && (
+                    <>
+                      <span className="scan-thumb-badge scan-thumb-badge-err">×</span>
+                      <span className="scan-thumb-name">Tap to retry</span>
+                    </>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="scan-thumb-remove"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeFromQueue(it.id);
+                  }}
+                  aria-label="Remove this capture"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Shutter — only on the live capturing stage. */}
+      {stage === 'capturing' && (
         <div className="scan-shutter-row">
           <button
             type="button"
@@ -174,43 +342,45 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
         </div>
       )}
 
-      {/* Review — vision returned a drug name (any confidence). */}
-      {stage === 'review' && label && (
+      {/* Review — single-bottle (legacy single card). Used when the user
+          tapped Done after one capture and OCR resolved with a label. */}
+      {stage === 'review' && queue.length === 1 && queue[0].label?.drugName && (
         <div className="scan-sheet" role="dialog" aria-label="Confirm detected medication">
           <div className="scan-sheet-handle" />
           <div className="scan-sheet-title">
-            {label.confidence === 'low' ? 'Best read of your label' : 'Detected from your label'}
+            {queue[0].label.confidence === 'low'
+              ? 'Best read of your label'
+              : 'Detected from your label'}
           </div>
           <div className="scan-sheet-mbi" style={{ fontSize: 18, letterSpacing: 0 }}>
-            {cleanDrugName(label.drugName!)}
-            {label.strength ? ` · ${label.strength}` : ''}
+            {cleanDrugName(queue[0].label.drugName)}
+            {queue[0].label.strength ? ` · ${queue[0].label.strength}` : ''}
           </div>
-          {label.directions && (
+          {queue[0].label.directions && (
             <div className="scan-sheet-hint" style={{ marginBottom: 8 }}>
-              {label.directions}
+              {queue[0].label.directions}
             </div>
           )}
-          {label.prescriber && (
+          {queue[0].label.prescriber && (
             <div className="scan-sheet-hint" style={{ marginTop: 0 }}>
               Prescribed by{' '}
-              {label.prescriber.startsWith('Dr.') ? label.prescriber : `Dr. ${label.prescriber}`}
+              {queue[0].label.prescriber.startsWith('Dr.')
+                ? queue[0].label.prescriber
+                : `Dr. ${queue[0].label.prescriber}`}
             </div>
           )}
           <div className="scan-sheet-hint">
-            {label.confidence === 'low'
+            {queue[0].label.confidence === 'low'
               ? "We couldn't read it confidently. Confirm or retype."
               : 'Tap confirm to add this to your list.'}
           </div>
-          <button className="btn" onClick={confirmFromVision} type="button">
+          <button className="btn" onClick={confirmFromQueue} type="button">
             Confirm &amp; add →
           </button>
           <button
             className="scan-sheet-retry"
             type="button"
-            onClick={() => {
-              setLabel(null);
-              setStage('fallback');
-            }}
+            onClick={() => setStage('fallback')}
           >
             Not right — type instead
           </button>
@@ -220,12 +390,86 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
         </div>
       )}
 
+      {/* Review — multi-bottle list with checkboxes. */}
+      {stage === 'review' && queue.length >= 2 && (
+        <div className="scan-sheet" role="dialog" aria-label="Confirm detected medications">
+          <div className="scan-sheet-handle" />
+          <div className="scan-sheet-title">
+            {total} bottle{total === 1 ? '' : 's'} scanned
+          </div>
+          <div className="scan-multi-list" role="list">
+            {queue.map((it) => {
+              const display = it.label?.drugName ? cleanDrugName(it.label.drugName) : null;
+              return (
+                <div
+                  key={it.id}
+                  role="listitem"
+                  className={[
+                    'scan-multi-row',
+                    `scan-multi-row-${it.status}`,
+                    it.selected ? 'scan-multi-row-on' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <label className="scan-multi-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={it.selected}
+                      disabled={it.status !== 'success'}
+                      onChange={() => toggleSelected(it.id)}
+                      aria-label={display ? `Add ${display}` : 'Pending capture'}
+                    />
+                    <span className="scan-multi-checkbox-box" aria-hidden />
+                  </label>
+                  <img className="scan-multi-thumb" src={it.dataUrl} alt="" />
+                  <div className="scan-multi-body">
+                    {it.status === 'success' && display && (
+                      <>
+                        <div className="scan-multi-name">
+                          {display}
+                          {it.label?.strength ? ` · ${it.label.strength}` : ''}
+                        </div>
+                        {it.label?.directions && (
+                          <div className="scan-multi-detail">{it.label.directions}</div>
+                        )}
+                      </>
+                    )}
+                    {it.status === 'pending' && (
+                      <div className="scan-multi-name muted">Reading label…</div>
+                    )}
+                    {it.status === 'error' && (
+                      <div className="scan-multi-name" style={{ color: '#b42318' }}>
+                        Couldn't read this label
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <button
+            className="btn"
+            onClick={confirmFromQueue}
+            disabled={selectedCount === 0 || pendingCount > 0}
+            type="button"
+          >
+            {pendingCount > 0
+              ? `Reading ${pendingCount}…`
+              : `Add ${selectedCount} medication${selectedCount === 1 ? '' : 's'} →`}
+          </button>
+          <button className="scan-sheet-retry" type="button" onClick={rescan}>
+            Rescan
+          </button>
+        </div>
+      )}
+
       {/* Fallback — vision missed or user opted out. */}
       {stage === 'fallback' && (
         <div className="scan-sheet" role="dialog" aria-label="Type medication name">
           <div className="scan-sheet-handle" />
           <div className="scan-sheet-title">
-            {label === null && capturedPhoto ? "Couldn't read label" : 'Type the medication'}
+            {queue.length > 0 && successCount === 0 ? "Couldn't read label" : 'Type the medication'}
           </div>
           <input
             className="scan-sheet-input"
@@ -240,7 +484,7 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
                 <div
                   key={d.name}
                   className="ac-item"
-                  onClick={() => onConfirm({ name: d.name, dose: d.dose })}
+                  onClick={() => onConfirm([{ name: d.name, dose: d.dose }])}
                 >
                   <div className="ac-name">{d.name}</div>
                   <div className="ac-detail">{d.detail}</div>

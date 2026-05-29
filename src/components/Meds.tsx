@@ -159,8 +159,8 @@ export function Meds() {
       {scanOpen && (
         <PillScanSheet
           onClose={() => setScanOpen(false)}
-          onConfirm={({ name, dose }) => {
-            addByName(name, dose);
+          onConfirm={(drugs) => {
+            for (const { name, dose } of drugs) addByName(name, dose);
             setScanOpen(false);
           }}
         />
