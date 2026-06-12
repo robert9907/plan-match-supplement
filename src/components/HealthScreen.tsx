@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFlow } from '../context/FlowContext';
 import { classifyBuild, buildClassDescription, HEIGHT_OPTIONS } from '../lib/buildChart';
 import { scoreApplication, type HealthAnswers, type YesNo } from '../lib/scoringEngine';
+import { prefetchRates } from '../lib/cmsPremiums';
 import { BackRow, Frame } from './Frame';
 
 type QuestionKey = Exclude<keyof HealthAnswers, 'diabetesMgmt' | 'heartRecency'>;
@@ -44,6 +45,8 @@ const HEART_OPTIONS: { value: HealthAnswers['heartRecency']; label: string }[] =
 export function HealthScreen() {
   const navigate = useNavigate();
   const flow = useFlow();
+  const [scoring, setScoring] = useState(false);
+  const [scoreError, setScoreError] = useState<string | null>(null);
 
   const answerQ = (key: QuestionKey, value: YesNo) => {
     flow.setHealth((h) => ({ ...h, [key]: value }));
@@ -60,20 +63,30 @@ export function HealthScreen() {
   const heartSliderFilled = flow.health.q8_heart !== 'y' || flow.health.heartRecency !== null;
   const canContinue = allAnswered && diabetesSliderFilled && heartSliderFilled;
 
-  const onContinue = () => {
-    if (!canContinue || !flow.gender || !flow.tobacco) return;
-    const scoring = scoreApplication({
-      age: flow.age,
-      gender: flow.gender,
-      tobacco: flow.tobacco,
-      meds: flow.meds,
-      health: flow.health,
-      heightIn: flow.heightIn,
-      weightLbs: flow.weightLbs,
-      oep: false,
-    });
-    flow.setScoring(scoring);
-    navigate('/embed/results');
+  const onContinue = async () => {
+    if (!canContinue || !flow.gender || !flow.tobacco || scoring) return;
+    setScoreError(null);
+    setScoring(true);
+    try {
+      // Rates were prefetched on About → this await is usually instant.
+      await prefetchRates(flow.zip, flow.gender === 'Female' ? 'FEMALE' : 'MALE');
+      const result = scoreApplication({
+        age: flow.age,
+        gender: flow.gender,
+        tobacco: flow.tobacco,
+        zip: flow.zip,
+        meds: flow.meds,
+        health: flow.health,
+        heightIn: flow.heightIn,
+        weightLbs: flow.weightLbs,
+        oep: false,
+      });
+      flow.setScoring(result);
+      navigate('/embed/results');
+    } catch (err) {
+      setScoreError(err instanceof Error ? err.message : 'Could not load rates');
+      setScoring(false);
+    }
   };
 
   return (
@@ -181,9 +194,15 @@ export function HealthScreen() {
       </div>
       {buildDesc && <div className={`build-res ${buildDesc.tone}`}>{buildDesc.label}</div>}
 
-      <button className="btn" onClick={onContinue} disabled={!canContinue} type="button">
-        Check my qualification →
+      <button className="btn" onClick={onContinue} disabled={!canContinue || scoring} type="button">
+        {scoring ? 'Loading rates…' : 'Check my qualification →'}
       </button>
+      {scoreError && (
+        <div className="combo-alert" style={{ marginTop: 8 }}>
+          <b>⚠ Could not load carrier rates</b>
+          <span>{scoreError}. Please try again.</span>
+        </div>
+      )}
 
       <div className="disclaimer">
         <span className="privacy-badge">🔒 Confidential</span>

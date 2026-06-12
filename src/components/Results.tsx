@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFlow } from '../context/FlowContext';
 import { scoreApplication, type CarrierResult, type ScoringResult } from '../lib/scoringEngine';
+import { prefetchRates } from '../lib/cmsPremiums';
 import { BackRow, Frame } from './Frame';
 
 function factorTone(value: number, tobacco = false): 'pass' | 'warn' | 'fail' {
@@ -24,27 +25,46 @@ export function Results() {
   const [animated, setAnimated] = useState(false);
 
   // If the consumer landed on /embed/results without running the score
-  // (e.g. Turning 65 OEP bypass, or direct nav), compute it now.
-  const scoring: ScoringResult | null = useMemo(() => {
-    if (flow.scoring) return flow.scoring;
-    if (!flow.gender || !flow.tobacco) return null;
-    const result = scoreApplication({
-      age: flow.age,
-      gender: flow.gender,
-      tobacco: flow.tobacco,
-      meds: flow.meds,
-      health: flow.health,
-      heightIn: flow.heightIn,
-      weightLbs: flow.weightLbs,
-      oep: flow.isOep,
-    });
-    return result;
-  }, [flow]);
+  // (e.g. Turning 65 OEP bypass, or direct nav), compute it now. Rates
+  // load async, so this lives in state — useMemo can't await.
+  const [scoring, setScoring] = useState<ScoringResult | null>(flow.scoring);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (scoring && !flow.scoring) flow.setScoring(scoring);
+    if (flow.scoring) {
+      setScoring(flow.scoring);
+      return;
+    }
+    if (!flow.gender || !flow.tobacco) return;
+    let cancelled = false;
+    setLoadError(null);
+    (async () => {
+      try {
+        await prefetchRates(flow.zip, flow.gender === 'Female' ? 'FEMALE' : 'MALE');
+        if (cancelled) return;
+        const result = scoreApplication({
+          age: flow.age,
+          gender: flow.gender!,
+          tobacco: flow.tobacco!,
+          zip: flow.zip,
+          meds: flow.meds,
+          health: flow.health,
+          heightIn: flow.heightIn,
+          weightLbs: flow.weightLbs,
+          oep: flow.isOep,
+        });
+        flow.setScoring(result);
+        setScoring(result);
+      } catch (err) {
+        if (cancelled) return;
+        setLoadError(err instanceof Error ? err.message : 'Could not load rates');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scoring]);
+  }, [flow.scoring]);
 
   useEffect(() => {
     // Kick off the width transitions after first paint.
@@ -53,16 +73,33 @@ export function Results() {
   }, [scoring]);
 
   if (!scoring) {
-    // Haven't been through About yet — route back.
+    const stale = !flow.gender || !flow.tobacco;
     return (
       <Frame step={4}>
         <BackRow onClick={() => navigate('/embed/about')} />
         <div className="step-label">Step 4 of 4 · Your results</div>
-        <h1 className="headline">Let's start from the beginning.</h1>
-        <div className="sub-text">We need a few details first before we can show your qualification.</div>
-        <button className="btn" onClick={() => navigate('/embed/about')} type="button">
-          Go to About you →
-        </button>
+        {stale ? (
+          <>
+            <h1 className="headline">Let's start from the beginning.</h1>
+            <div className="sub-text">We need a few details first before we can show your qualification.</div>
+            <button className="btn" onClick={() => navigate('/embed/about')} type="button">
+              Go to About you →
+            </button>
+          </>
+        ) : loadError ? (
+          <>
+            <h1 className="headline">Couldn't load carrier rates.</h1>
+            <div className="sub-text">{loadError}</div>
+            <button className="btn" onClick={() => navigate('/embed/about')} type="button">
+              Start over →
+            </button>
+          </>
+        ) : (
+          <>
+            <h1 className="headline">Loading your matches…</h1>
+            <div className="sub-text">Pulling CMS rate data for your area.</div>
+          </>
+        )}
       </Frame>
     );
   }

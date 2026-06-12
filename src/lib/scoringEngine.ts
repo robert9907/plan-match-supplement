@@ -11,6 +11,7 @@
 
 import { DDL, ddlLookup, type DdlCluster, type DdlEntry } from './ddlData';
 import { classifyBuild, CLASS_I_MAX, CLASS_II_MAX, STANDARD_MAX } from './buildChart';
+import { lookupRates, carrierRuleName } from './cmsPremiums';
 
 // ─── Inputs ──────────────────────────────────────────────────────
 
@@ -66,6 +67,7 @@ export interface ScoringInputs {
   age: number;
   gender: 'Male' | 'Female';
   tobacco: 'Yes' | 'No';
+  zip: string;
   meds: MedItem[];
   health: HealthAnswers;
   heightIn: number | null;
@@ -146,38 +148,65 @@ function rateClassForScore(s: number): RateClass {
   return { name: 'Likely Decline', lo: 0, hi: 0, badge: 'high-rated' };
 }
 
-// Base monthly premium for Plan G/N at age 65, female, non-tobacco, NC avg.
-const BASE_PLAN_G = 135;
-const BASE_PLAN_N = 95;
-
-function baseRate(plan: 'G' | 'N', age: number, gender: 'Male' | 'Female', tobacco: 'Yes' | 'No'): number {
-  let base = plan === 'G' ? BASE_PLAN_G : BASE_PLAN_N;
-  // +3.5% per year over 65 (cannot go below 65 baseline)
-  const effAge = Math.max(65, age);
-  base *= 1 + (effAge - 65) * 0.035;
-  if (gender === 'Male') base *= 1.18;
-  if (tobacco === 'Yes') base *= 1.2;
-  return base;
+// CMS Plan Finder ships age-65, non-tobacco base rates. Older ages and
+// tobacco users get the same uplift multipliers the legacy synthetic engine
+// used — layered on top of the real base rate.
+function ageMultiplier(age: number): number {
+  return 1 + Math.max(0, age - 65) * 0.035;
 }
 
-interface CarrierDef {
-  name: string;
-  /** Price adjustment factor for Plan G (multiplied against base rate). */
-  gA: number;
-  /** Price adjustment factor for Plan N. */
-  nA: number;
-  /** Household discount copy. */
-  discount: string;
+function tobaccoMultiplier(tobacco: 'Yes' | 'No'): number {
+  return tobacco === 'Yes' ? 1.2 : 1;
 }
 
-const CARRIERS: CarrierDef[] = [
-  { name: 'BCBS of NC', gA: 1.05, nA: 1.05, discount: '10% household' },
-  { name: 'Mutual of Omaha', gA: 1.02, nA: 0.99, discount: '12% household' },
-  { name: 'Aetna', gA: 1.07, nA: 1.06, discount: '7% household' },
-  { name: 'Cigna', gA: 1.1, nA: 1.11, discount: '20% household' },
-  { name: 'Bankers Fidelity', gA: 1.01, nA: 0.97, discount: 'None' },
-  { name: 'Humana', gA: 1.12, nA: 1.13, discount: '5% household' },
-];
+/** Combined Plan G + Plan N rates for one carrier in one ZIP. */
+interface CarrierRates {
+  gRate: number;
+  nRate: number;
+  gHhd?: number;
+  nHhd?: number;
+}
+
+function buildCarrierMap(
+  zip: string,
+  gender: 'Male' | 'Female',
+): Map<string, CarrierRates> {
+  const genderKey = gender === 'Female' ? 'FEMALE' : 'MALE';
+  const planGRates = lookupRates(zip, 'G', genderKey);
+  const planNRates = lookupRates(zip, 'N', genderKey);
+  const map = new Map<string, CarrierRates>();
+  for (const r of planGRates) {
+    map.set(r.company, {
+      gRate: r.rate,
+      nRate: 0,
+      gHhd: r.hhdRoommate ?? r.hhdStandard,
+    });
+  }
+  for (const r of planNRates) {
+    const existing = map.get(r.company);
+    if (existing) {
+      existing.nRate = r.rate;
+      existing.nHhd = r.hhdRoommate ?? r.hhdStandard;
+    } else {
+      map.set(r.company, {
+        gRate: 0,
+        nRate: r.rate,
+        nHhd: r.hhdRoommate ?? r.hhdStandard,
+      });
+    }
+  }
+  return map;
+}
+
+function discountCopy(rates: CarrierRates): string {
+  if (rates.gHhd && rates.gHhd > 0) {
+    return `HHD: $${rates.gHhd.toFixed(0)}/mo Plan G`;
+  }
+  if (rates.nHhd && rates.nHhd > 0) {
+    return `HHD: $${rates.nHhd.toFixed(0)}/mo Plan N`;
+  }
+  return 'None listed';
+}
 
 function emptyClusters(): Record<DdlCluster, number> {
   return {
@@ -616,21 +645,26 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
   // underwriting. We still render carrier cards but at 100% each.
   if (inputs.oep) {
     const rc: RateClass = { name: 'Preferred', lo: 0.85, hi: 0.95, badge: 'preferred' };
-    const gRate = baseRate('G', inputs.age, inputs.gender, inputs.tobacco);
-    const nRate = baseRate('N', inputs.age, inputs.gender, inputs.tobacco);
-    const carriers: CarrierResult[] = CARRIERS.map((c) => ({
-      name: c.name,
-      score: 100,
-      tone: 'high' as const,
-      rateClass: rc,
-      planGLo: Math.round(gRate * c.gA * rc.lo),
-      planGHi: Math.round(gRate * c.gA * rc.hi),
-      planNLo: Math.round(nRate * c.nA * rc.lo),
-      planNHi: Math.round(nRate * c.nA * rc.hi),
-      reason: `100% — guaranteed acceptance at ${rc.name} rates. OEP — no health screening required.`,
-      discount: c.discount,
-      ctaLabel: 'Apply online →',
-    }));
+    const ageMul = ageMultiplier(inputs.age);
+    const tobMul = tobaccoMultiplier(inputs.tobacco);
+    const carrierMap = buildCarrierMap(inputs.zip, inputs.gender);
+    const carriers: CarrierResult[] = Array.from(carrierMap.entries()).map(([company, rates]) => {
+      const gAdj = rates.gRate * ageMul * tobMul;
+      const nAdj = rates.nRate * ageMul * tobMul;
+      return {
+        name: company,
+        score: 100,
+        tone: 'high' as const,
+        rateClass: rc,
+        planGLo: gAdj > 0 ? Math.round(gAdj * rc.lo) : 0,
+        planGHi: gAdj > 0 ? Math.round(gAdj * rc.hi) : 0,
+        planNLo: nAdj > 0 ? Math.round(nAdj * rc.lo) : 0,
+        planNHi: nAdj > 0 ? Math.round(nAdj * rc.hi) : 0,
+        reason: `100% — guaranteed acceptance at ${rc.name} rates. OEP — no health screening required.`,
+        discount: discountCopy(rates),
+        ctaLabel: 'Apply online →',
+      };
+    });
     return {
       overall: 100,
       overallTone: 'high',
@@ -690,16 +724,22 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
     inputs.health.q12_pending,
   ].filter((a) => a === 'y').length;
 
-  const gRate = baseRate('G', inputs.age, inputs.gender, inputs.tobacco);
-  const nRate = baseRate('N', inputs.age, inputs.gender, inputs.tobacco);
+  const ageMul = ageMultiplier(inputs.age);
+  const tobMul = tobaccoMultiplier(inputs.tobacco);
+  const carrierMap = buildCarrierMap(inputs.zip, inputs.gender);
 
   const declineRc: RateClass = { name: 'Likely Decline', lo: 0, hi: 0, badge: 'high-rated' };
 
-  const carriers: CarrierResult[] = CARRIERS.map((c) => {
+  const carriers: CarrierResult[] = Array.from(carrierMap.entries()).map(([company, rates]) => {
+    const ruleName = carrierRuleName(company) ?? company;
+    const discount = discountCopy(rates);
+    const gAdj = rates.gRate * ageMul * tobMul;
+    const nAdj = rates.nRate * ageMul * tobMul;
+
     // Universal knockouts apply to every carrier uniformly.
     if (universalKo) {
       return {
-        name: c.name,
+        name: company,
         score: 0,
         tone: 'low' as const,
         rateClass: declineRc,
@@ -708,7 +748,7 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
         planNLo: 0,
         planNHi: 0,
         reason: 'Universal decline — applies to all carriers.',
-        discount: c.discount,
+        discount,
         ctaLabel: 'Call to discuss',
         hardKnockout: true,
         knockoutReason: universalKo,
@@ -716,7 +756,7 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
     }
 
     const adjusted = adjustCarrierScore(
-      c.name,
+      ruleName,
       overall,
       inputs.meds,
       medsResult.clusters,
@@ -724,10 +764,10 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
     );
 
     // Carrier-specific knockouts (MoO 2×2, MoO/Humana binary below Standard).
-    const koReason = carrierKnockoutReason(c.name, adjusted, medsResult.clusters, inputs.health);
+    const koReason = carrierKnockoutReason(ruleName, adjusted, medsResult.clusters, inputs.health);
     if (koReason) {
       return {
-        name: c.name,
+        name: company,
         score: 0,
         tone: 'low' as const,
         rateClass: declineRc,
@@ -735,8 +775,8 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
         planGHi: 0,
         planNLo: 0,
         planNHi: 0,
-        reason: `${c.name} does not write this profile.`,
-        discount: c.discount,
+        reason: `${company} does not write this profile.`,
+        discount,
         ctaLabel: 'Call to discuss',
         hardKnockout: true,
         knockoutReason: koReason,
@@ -745,23 +785,23 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
 
     // Binary carriers (MoO-NC, Humana) collapse rated tiers to Standard —
     // if we get here, adjusted ≥ 70, so pick Preferred or Standard only.
-    const rc = BINARY_NC_CARRIERS.has(c.name)
+    const rc = BINARY_NC_CARRIERS.has(ruleName)
       ? adjusted >= 85
         ? { name: 'Preferred', lo: 0.85, hi: 0.95, badge: 'preferred' as const }
         : { name: 'Standard', lo: 0.95, hi: 1.05, badge: 'standard' as const }
       : rateClassForScore(adjusted);
 
     return {
-      name: c.name,
+      name: company,
       score: adjusted,
       tone: toneForScore(adjusted),
       rateClass: rc,
-      planGLo: rc.lo > 0 ? Math.round(gRate * c.gA * rc.lo) : 0,
-      planGHi: rc.hi > 0 ? Math.round(gRate * c.gA * rc.hi) : 0,
-      planNLo: rc.lo > 0 ? Math.round(nRate * c.nA * rc.lo) : 0,
-      planNHi: rc.hi > 0 ? Math.round(nRate * c.nA * rc.hi) : 0,
-      reason: reasonForCarrier(c.name, adjusted, rc),
-      discount: c.discount,
+      planGLo: rc.lo > 0 && gAdj > 0 ? Math.round(gAdj * rc.lo) : 0,
+      planGHi: rc.hi > 0 && gAdj > 0 ? Math.round(gAdj * rc.hi) : 0,
+      planNLo: rc.lo > 0 && nAdj > 0 ? Math.round(nAdj * rc.lo) : 0,
+      planNHi: rc.hi > 0 && nAdj > 0 ? Math.round(nAdj * rc.hi) : 0,
+      reason: reasonForCarrier(company, adjusted, rc),
+      discount,
       ctaLabel: ctaLabel(adjusted),
     };
   }).sort((a, b) => b.score - a.score);

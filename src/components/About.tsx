@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFlow, type PromptReason } from '../context/FlowContext';
+import { prefetchRates } from '../lib/cmsPremiums';
 import { BackRow, Frame } from './Frame';
 import { MedigapExplainer } from './MedigapExplainer';
 
@@ -117,6 +118,12 @@ export function About() {
 
   const onContinue = () => {
     if (!canContinue) return;
+    // Fire-and-forget warm-up — by the time the user reaches Health/Results,
+    // the rate bundle is usually already cached. Failures here are silent;
+    // the awaited prefetch on those screens will surface any real error.
+    if (flow.gender && flow.zip.length === 5) {
+      void prefetchRates(flow.zip, flow.gender === 'Female' ? 'FEMALE' : 'MALE').catch(() => {});
+    }
     if (flow.prompt === 'Turning 65') {
       // OEP bypass — skip Meds + Health, go straight to Results.
       navigate('/embed/results');
