@@ -2117,14 +2117,19 @@ textarea {
   padding: 4px 0;
   font-size: 13px;
   gap: 10px;
+  min-width: 0;
 }
 .prefill-label {
   color: var(--text-secondary);
+  flex-shrink: 0;
 }
 .prefill-value {
   color: var(--text-primary);
   font-weight: 500;
   text-align: right;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .medicare-id-card {
@@ -2757,13 +2762,21 @@ textarea {
   border-radius: 16px;
   overflow: hidden;
   transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s;
-  cursor: grab;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+@media (hover: hover) {
+  .building {
+    cursor: grab;
+  }
 }
 .building:active {
   cursor: grabbing;
 }
-.building:hover {
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+@media (hover: hover) {
+  .building:hover {
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  }
 }
 .building-dragging {
   opacity: 0.3;
@@ -3197,6 +3210,10 @@ textarea {
 @media (max-width: 430px) {
   .action-bar {
     width: 100%;
+    left: 0;
+    right: 0;
+    transform: none;
+    border-radius: 0;
   }
 }
 
