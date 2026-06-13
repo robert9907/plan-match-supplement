@@ -1,34 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFlow } from '../context/FlowContext';
 import { scoreApplication, type CarrierResult, type ScoringResult } from '../lib/scoringEngine';
-import { prefetchRates } from '../lib/cmsPremiums';
+import { lookupRates, prefetchRates } from '../lib/cmsPremiums';
+import {
+  groupCarriersByParent,
+  cheapestVariantFor,
+  bestHhdLabel,
+  type CarrierGroup,
+} from '../lib/carrierGroups';
+import { ScoreRing } from './ScoreRing';
+import { Building } from './Building';
+import { PriceSpectrum } from './PriceSpectrum';
+import { CompareModal } from './CompareModal';
 import { BackRow, Frame } from './Frame';
 
-function factorTone(value: number, tobacco = false): 'pass' | 'warn' | 'fail' {
-  if (tobacco) return value >= 85 ? 'pass' : 'warn';
-  if (value >= 70) return 'pass';
-  if (value >= 40) return 'warn';
-  return 'fail';
-}
+// Number of ranked picks the user can drop into the top-3 slot row.
+const SLOT_COUNT = 3;
+const MEDALS = ['🥇', '🥈', '🥉'];
 
-const RIBBONS = [
-  { tier: 'gold', label: 'Best Match' },
-  { tier: 'silver', label: 'Runner Up' },
-  { tier: 'bronze', label: 'Also Strong' },
-] as const;
+const FACTOR_ITEMS: Array<{ key: 'meds' | 'health' | 'build' | 'tobacco'; icon: string; label: string }> = [
+  { key: 'meds', icon: '💊', label: 'Meds' },
+  { key: 'health', icon: '❤️', label: 'Health' },
+  { key: 'build', icon: '⚖️', label: 'Build' },
+  { key: 'tobacco', icon: '🚬', label: 'Tobacco' },
+];
 
 export function Results() {
   const navigate = useNavigate();
   const flow = useFlow();
-  const [showUnlikely, setShowUnlikely] = useState(false);
-  const [animated, setAnimated] = useState(false);
 
-  // If the consumer landed on /embed/results without running the score
-  // (e.g. Turning 65 OEP bypass, or direct nav), compute it now. Rates
-  // load async, so this lives in state — useMemo can't await.
+  // Async-loaded scoring (rates prefetched in About → HealthScreen).
   const [scoring, setScoring] = useState<ScoringResult | null>(flow.scoring);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Ranking + UI state.
+  const [slots, setSlots] = useState<(CarrierGroup | null)[]>(
+    () => Array(SLOT_COUNT).fill(null),
+  );
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [hoverSlot, setHoverSlot] = useState<number | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [showCompare, setShowCompare] = useState(false);
+  const [autoSlotted, setAutoSlotted] = useState(false);
 
   useEffect(() => {
     if (flow.scoring) {
@@ -66,12 +80,171 @@ export function Results() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flow.scoring]);
 
-  useEffect(() => {
-    // Kick off the width transitions after first paint.
-    const id = requestAnimationFrame(() => setAnimated(true));
-    return () => cancelAnimationFrame(id);
-  }, [scoring]);
+  // Build a quick name → rateType map from the prefetched CMS rates so the
+  // CompareModal Rate-type row + Building meta line don't have to re-fetch.
+  const rateTypeByCompany = useMemo(() => {
+    if (!flow.gender || !flow.zip) return new Map<string, string>();
+    const genderKey = flow.gender === 'Female' ? 'FEMALE' : 'MALE';
+    const all = [
+      ...lookupRates(flow.zip, 'G', genderKey),
+      ...lookupRates(flow.zip, 'N', genderKey),
+    ];
+    const m = new Map<string, string>();
+    for (const r of all) if (!m.has(r.company)) m.set(r.company, r.rateType);
+    return m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scoring, flow.zip, flow.gender]);
 
+  const groups = useMemo<CarrierGroup[]>(
+    () =>
+      scoring
+        ? groupCarriersByParent(
+            scoring.carriers,
+            (name) => rateTypeByCompany.get(name) as never,
+          )
+        : [],
+    [scoring, rateTypeByCompany],
+  );
+  const eligibleGroups = useMemo(() => groups.filter((g) => !g.allKnockedOut), [groups]);
+  const knockoutGroups = useMemo(() => groups.filter((g) => g.allKnockedOut), [groups]);
+
+  // Plan G market bounds across the eligible pool (fallback to the spec's
+  // baseline when only one carrier filed Plan G).
+  const [marketMinG, marketMaxG] = useMemo(() => {
+    const prices: number[] = [];
+    for (const g of eligibleGroups) {
+      const c = cheapestVariantFor(g, 'G');
+      if (c) prices.push(c.carrier.planGLo);
+    }
+    if (prices.length === 0) return [102, 310];
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return [Math.floor(min), Math.ceil(max)];
+  }, [eligibleGroups]);
+
+  // Auto-populate the slots with the top three eligible groups on first
+  // load. We track this with a flag so the user's subsequent removals
+  // aren't overridden.
+  useEffect(() => {
+    if (autoSlotted) return;
+    if (eligibleGroups.length === 0) return;
+    setSlots(
+      Array.from({ length: SLOT_COUNT }, (_, i) => eligibleGroups[i] ?? null),
+    );
+    setAutoSlotted(true);
+  }, [eligibleGroups, autoSlotted]);
+
+  const rankedParents = useMemo(() => {
+    const s = new Set<string>();
+    for (const slot of slots) if (slot) s.add(slot.parent);
+    return s;
+  }, [slots]);
+
+  const slotsFilled = slots.filter(Boolean).length;
+
+  // ── Drag-and-drop handlers ───────────────────────────────────────────
+  const onBuildingDragStart = useCallback(
+    (parent: string) => (e: React.DragEvent) => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', parent);
+      setDraggingId(parent);
+    },
+    [],
+  );
+  const onBuildingDragEnd = useCallback(() => {
+    setDraggingId(null);
+    setHoverSlot(null);
+  }, []);
+  const onSlotDragOver = useCallback(
+    (i: number) => (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      setHoverSlot(i);
+    },
+    [],
+  );
+  const onSlotDragLeave = useCallback(
+    (i: number) => () => {
+      setHoverSlot((cur) => (cur === i ? null : cur));
+    },
+    [],
+  );
+  const onSlotDrop = useCallback(
+    (i: number) => (e: React.DragEvent) => {
+      e.preventDefault();
+      const parent = e.dataTransfer.getData('text/plain') || draggingId;
+      if (!parent) return;
+      const target = eligibleGroups.find((g) => g.parent === parent);
+      if (!target) return;
+      setSlots((prev) => {
+        const next = [...prev];
+        // Remove from any other slot first — no duplicates.
+        for (let k = 0; k < next.length; k++) {
+          if (next[k]?.parent === parent) next[k] = null;
+        }
+        next[i] = target;
+        return next;
+      });
+      setDraggingId(null);
+      setHoverSlot(null);
+    },
+    [draggingId, eligibleGroups],
+  );
+
+  // Click-to-add for touch UX — drag-and-drop is unreliable on iOS.
+  const addToTop3 = useCallback(
+    (group: CarrierGroup) => {
+      setSlots((prev) => {
+        if (prev.some((s) => s?.parent === group.parent)) return prev;
+        const next = [...prev];
+        const emptyIdx = next.findIndex((s) => s === null);
+        if (emptyIdx === -1) {
+          // All full — replace the lowest-score slot.
+          let worstIdx = 0;
+          let worstScore = Number.POSITIVE_INFINITY;
+          for (let k = 0; k < next.length; k++) {
+            const s = next[k];
+            if (s && s.bestScore < worstScore) {
+              worstScore = s.bestScore;
+              worstIdx = k;
+            }
+          }
+          next[worstIdx] = group;
+        } else {
+          next[emptyIdx] = group;
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const clearSlot = useCallback((i: number) => {
+    setSlots((prev) => {
+      const next = [...prev];
+      next[i] = null;
+      return next;
+    });
+  }, []);
+
+  const toggleExpand = useCallback((parent: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(parent)) next.delete(parent);
+      else next.add(parent);
+      return next;
+    });
+  }, []);
+
+  const onApply = useCallback(
+    (carrier: CarrierResult, plan: 'G' | 'N') => {
+      flow.selectCarrier(carrier, plan);
+      navigate('/embed/apply');
+    },
+    [flow, navigate],
+  );
+
+  // ─── Loading / empty states ──────────────────────────────────────────
   if (!scoring) {
     const stale = !flow.gender || !flow.tobacco;
     return (
@@ -104,71 +277,47 @@ export function Results() {
     );
   }
 
-  const likely = scoring.carriers.filter((c) => c.score >= 25);
-  const unlikely = scoring.carriers.filter((c) => c.score < 25);
-
-  const pickCarrier = (c: CarrierResult, plan: 'G' | 'N') => {
-    flow.selectCarrier(c, plan);
-    navigate('/embed/apply');
-  };
-
   const backTarget = flow.isOep ? '/embed/about' : '/embed/health';
+  const profile = `${flow.age} · ${flow.gender ?? '—'} · ZIP ${flow.zip}`;
+  const factorScores = {
+    meds: scoring.factorMeds,
+    health: scoring.factorHealth,
+    build: scoring.factorBuild,
+    tobacco: scoring.factorTobacco,
+  };
+  const totalPlans = eligibleGroups.reduce((sum, g) => sum + g.variants.length, 0);
 
   return (
     <Frame step={4}>
       <BackRow onClick={() => navigate(backTarget)} />
       <div className="step-label">Step 4 of 4 · Your results</div>
-      <h1 className="headline">
-        Here's who will <em>cover</em> you.
-      </h1>
 
-      <div className="score-hero">
-        <div className="score-hero-label">Your qualification score</div>
-        <div className="score-bar-wrap">
-          <div
-            className={`score-bar ${scoring.overallTone}`}
-            style={{ width: animated ? `${scoring.overall}%` : '0%' }}
-          />
-          <span className="score-pct">{scoring.overall}%</span>
-        </div>
-        <div className="score-verdict">{scoring.verdict}</div>
-        <div className="score-factors-text">
-          {scoring.isOep
-            ? 'Open Enrollment — no screening required'
-            : `4 factors · ${flow.meds.length} meds · ${scoring.healthFlagCount} health flags`}
-        </div>
-      </div>
-
-      <div className="factors">
-        <div className="factor">
-          <div className="factor-icon">💊</div>
-          <div className="factor-label">Meds</div>
-          <div className={`factor-value ${factorTone(scoring.factorMeds)}`}>
-            {scoring.isOep ? 'N/A' : `${scoring.factorMeds}%`}
+      <header className="results-header">
+        <div className="results-header-row">
+          <div className="results-header-id">
+            <div className="results-header-kicker">PLAN MATCH · SUPPLEMENT</div>
+            <h1 className="results-header-title">Medicare Supplement</h1>
+            <div className="results-header-sub">{profile}</div>
+          </div>
+          <div className="results-header-ring">
+            <ScoreRing score={scoring.overall} size={64} dark />
           </div>
         </div>
-        <div className="factor">
-          <div className="factor-icon">❤️</div>
-          <div className="factor-label">Health</div>
-          <div className={`factor-value ${factorTone(scoring.factorHealth)}`}>
-            {scoring.isOep ? 'N/A' : `${scoring.factorHealth}%`}
-          </div>
+        <div className="results-header-verdict">{scoring.verdict}</div>
+        <div className="factor-pills">
+          {FACTOR_ITEMS.map((f) => (
+            <div className="factor-pill" key={f.key}>
+              <span className="factor-pill-icon" aria-hidden="true">
+                {f.icon}
+              </span>
+              <span className="factor-pill-label">{f.label}</span>
+              <span className={`factor-pill-score tone-${toneFor(factorScores[f.key])}`}>
+                {scoring.isOep ? 'N/A' : `${factorScores[f.key]}%`}
+              </span>
+            </div>
+          ))}
         </div>
-        <div className="factor">
-          <div className="factor-icon">⚖️</div>
-          <div className="factor-label">Build</div>
-          <div className={`factor-value ${factorTone(scoring.factorBuild)}`}>
-            {scoring.isOep ? 'N/A' : `${scoring.factorBuild}%`}
-          </div>
-        </div>
-        <div className="factor">
-          <div className="factor-icon">🚬</div>
-          <div className="factor-label">Tobacco</div>
-          <div className={`factor-value ${factorTone(scoring.factorTobacco, true)}`}>
-            {scoring.factorTobacco}%
-          </div>
-        </div>
-      </div>
+      </header>
 
       {scoring.comboFlags.length > 0 && (
         <div className="combo-alert">
@@ -195,180 +344,217 @@ export function Results() {
         </div>
       )}
 
-      <div>
-        {likely.map((c, i) => (
-          <CarrierCard
-            key={c.name}
-            carrier={c}
-            animated={animated}
-            index={i}
-            ribbon={i < RIBBONS.length ? RIBBONS[i] : null}
-            onPick={(plan) => pickCarrier(c, plan)}
+      <div className="slot-section">
+        <div className="slot-title">
+          <span>Your top 3 picks</span>
+          <span className="slot-title-meta">Drag a carrier here or tap ★ Pick</span>
+        </div>
+        <div className="slot-row">
+          {slots.map((slot, i) => (
+            <DropSlot
+              key={i}
+              index={i}
+              group={slot}
+              hover={hoverSlot === i}
+              onDragOver={onSlotDragOver(i)}
+              onDragLeave={onSlotDragLeave(i)}
+              onDrop={onSlotDrop(i)}
+              onClear={() => clearSlot(i)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {eligibleGroups.length > 1 && (
+        <PriceSpectrum
+          groups={eligibleGroups}
+          rankedParents={rankedParents}
+          marketMin={marketMinG}
+          marketMax={marketMaxG}
+        />
+      )}
+
+      <div className="building-section-title">
+        <span>
+          {eligibleGroups.length} carrier {eligibleGroups.length === 1 ? 'family' : 'families'}
+          {' · '}
+          {totalPlans} plan{totalPlans === 1 ? '' : 's'}
+        </span>
+        <span className="building-section-meta">Drag · tap to expand</span>
+      </div>
+
+      <div className="building-list">
+        {eligibleGroups.map((group) => (
+          <Building
+            key={group.parent}
+            group={group}
+            expanded={expandedIds.has(group.parent)}
+            ranked={rankedParents.has(group.parent)}
+            dragging={draggingId === group.parent}
+            marketMin={marketMinG}
+            marketMax={marketMaxG}
+            onToggleExpand={() => toggleExpand(group.parent)}
+            onAddToTop3={() => addToTop3(group)}
+            onDragStart={onBuildingDragStart(group.parent)}
+            onDragEnd={onBuildingDragEnd}
           />
         ))}
       </div>
 
-      {unlikely.length > 0 && !showUnlikely && (
-        <button className="red-toggle" onClick={() => setShowUnlikely(true)} type="button">
-          Show unlikely carriers ▼
-        </button>
-      )}
-      {unlikely.length > 0 && showUnlikely && (
-        <div>
-          {unlikely.map((c, i) => (
-            <CarrierCard
-              key={c.name}
-              carrier={c}
-              animated={animated}
-              index={likely.length + i}
-              ribbon={null}
-              onPick={(plan) => pickCarrier(c, plan)}
-            />
-          ))}
-        </div>
+      {knockoutGroups.length > 0 && (
+        <>
+          <div className="building-section-title building-section-title-muted">
+            <span>Not available for this profile</span>
+            <span className="building-section-meta">
+              {knockoutGroups.length} carrier{knockoutGroups.length === 1 ? '' : 's'}
+            </span>
+          </div>
+          <div className="knockout-list">
+            {knockoutGroups.map((g) => (
+              <div key={g.parent} className="knockout-row">
+                <span className="knockout-row-name">{g.parent}</span>
+                <span className="knockout-row-reason">
+                  {g.variants[0]?.carrier.knockoutReason ?? 'Not available'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       <div className="disclaimer">
         <strong>About these results:</strong> Qualification scores and estimated premiums are based on publicly available
-        underwriting guidelines, NC average rates, and predicted rate class. They are not guarantees. Final acceptance and
-        rates are determined by each carrier's underwriting department. Exact quote provided before enrollment.
+        underwriting guidelines, CMS Plan Finder data, and predicted rate class. They are not guarantees. Final acceptance
+        and rates are determined by each carrier's underwriting department. Exact quote provided before enrollment.
         <br />
         <br />
         We do not offer every plan available in your area. Contact Medicare.gov or 1-800-MEDICARE for a complete listing.
         This tool does not provide medical advice. Medicare Supplement plans do not cover prescription drugs.
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: 14 }}>
-        <a
-          href="tel:+18287613326"
-          style={{ fontSize: 13, color: 'var(--navy)', fontWeight: 600, textDecoration: 'none' }}
-        >
-          Questions? Call (828) 761-3326
-        </a>
-        <div
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 9,
-            color: 'var(--text-muted)',
-            marginTop: 6,
-          }}
-        >
-          Rob Simm · NPN #10447418 · GenerationHealth.me
+      <div className="results-footer-tel">
+        <a href="tel:+18287613326">Questions? Call (828) 761-3326</a>
+        <div className="results-footer-name">Rob Simm · NPN #10447418 · GenerationHealth.me</div>
+      </div>
+
+      <div className="action-bar-spacer" aria-hidden="true" />
+      <div className="action-bar">
+        <div className="action-bar-left">
+          <span className="action-bar-count">{slotsFilled}</span>
+          <span className="action-bar-status">
+            {slotsFilled === SLOT_COUNT
+              ? 'Ready to compare!'
+              : slotsFilled === 0
+              ? 'Pick up to 3 carriers'
+              : `${SLOT_COUNT - slotsFilled} slot${SLOT_COUNT - slotsFilled === 1 ? '' : 's'} open`}
+          </span>
+        </div>
+        <div className="action-bar-right">
+          <button
+            type="button"
+            className="action-btn action-btn-ghost"
+            onClick={() => window.print()}
+            title="Save as PDF"
+          >
+            PDF
+          </button>
+          <button
+            type="button"
+            className="action-btn action-btn-ghost"
+            onClick={() => {
+              const sms = `sms:?&body=${encodeURIComponent(
+                `My Plan Match supplement results: ${window.location.href}`,
+              )}`;
+              window.location.href = sms;
+            }}
+            title="Text these results"
+          >
+            Text
+          </button>
+          <button
+            type="button"
+            className="action-btn action-btn-primary"
+            onClick={() => setShowCompare(true)}
+            disabled={slotsFilled < 1}
+          >
+            Compare {slotsFilled > 1 ? slotsFilled : ''} →
+          </button>
         </div>
       </div>
+
+      {showCompare && (
+        <CompareModal
+          picks={slots.filter((s): s is CarrierGroup => s !== null)}
+          onClose={() => setShowCompare(false)}
+          onApply={onApply}
+        />
+      )}
     </Frame>
   );
 }
 
-interface CarrierCardProps {
-  carrier: CarrierResult;
-  animated: boolean;
+// ─── DropSlot ────────────────────────────────────────────────────────────
+
+interface DropSlotProps {
   index: number;
-  ribbon: (typeof RIBBONS)[number] | null;
-  onPick: (plan: 'G' | 'N') => void;
+  group: CarrierGroup | null;
+  hover: boolean;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: () => void;
+  onDrop: (e: React.DragEvent) => void;
+  onClear: () => void;
 }
 
-function CarrierCard({ carrier, animated, index, ribbon, onPick }: CarrierCardProps) {
-  const [plan, setPlan] = useState<'G' | 'N'>('G');
-
-  if (carrier.hardKnockout) {
+function DropSlot({ index, group, hover, onDragOver, onDragLeave, onDrop, onClear }: DropSlotProps) {
+  const medal = MEDALS[index] ?? '🏅';
+  const filled = group !== null;
+  const cls = `slot${filled ? ' slot-filled' : ''}${hover ? ' slot-hover' : ''}`;
+  if (!filled) {
     return (
-      <div className="cc cc-knockout">
-        <div className="cc-top">
-          <span className="cc-name">{carrier.name}</span>
-          <span className="cc-knockout-tag">Not eligible</span>
+      <div className={cls} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
+        <div className="slot-medal" aria-hidden="true">
+          {medal}
         </div>
-        <div className="cc-knockout-reason">{carrier.knockoutReason}</div>
-        <div className="cc-disc">{carrier.discount} discount</div>
+        <div className="slot-empty-label">↕ Drag a carrier</div>
       </div>
     );
   }
-
-  const hasRange = carrier.rateClass.lo > 0;
-  // Stagger bar animations slightly so they cascade into view.
-  const delay = animated ? `${index * 60}ms` : '0ms';
+  const cG = cheapestVariantFor(group, 'G');
+  const cN = cheapestVariantFor(group, 'N');
+  const hhd = bestHhdLabel(group);
   return (
-    <div className={`cc${ribbon ? ` cc-ribboned cc-ribbon-${ribbon.tier}` : ''}`}>
-      {ribbon && <div className={`cc-ribbon ${ribbon.tier}`}>{ribbon.label}</div>}
-      <div className="cc-top">
-        <span className="cc-name">{carrier.name}</span>
-        <span className={`cc-pct ${carrier.tone}`}>{carrier.score}%</span>
-      </div>
-      <div className="cc-bar-wrap">
-        <div
-          className={`cc-bar ${carrier.tone}`}
-          style={{
-            width: animated ? `${carrier.score}%` : '0%',
-            transitionDelay: delay,
-          }}
-        />
-      </div>
-
-      {hasRange ? (
-        <div className="rate-est">
-          <div className="rate-est-label">Estimated premium range</div>
-          <div className="rate-est-row">
-            <span className="rate-est-plan">Plan G</span>
-            <span className="rate-est-price">
-              ${carrier.planGLo} – ${carrier.planGHi}/mo
-            </span>
-          </div>
-          <div className="rate-est-row">
-            <span className="rate-est-plan">Plan N</span>
-            <span className="rate-est-price">
-              ${carrier.planNLo} – ${carrier.planNHi}/mo
-            </span>
-          </div>
-          <div className={`rate-class-badge ${carrier.rateClass.badge}`}>
-            {carrier.rateClass.name} · Exact quote provided before enrollment
-          </div>
+    <div className={cls} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
+      <button type="button" className="slot-clear" onClick={onClear} aria-label="Remove pick">
+        ×
+      </button>
+      <div className="slot-head">
+        <ScoreRing score={group.bestScore} size={32} />
+        <div className="slot-medal-mini" aria-hidden="true">
+          {medal}
         </div>
-      ) : (
-        <div className="rate-est" style={{ textAlign: 'center' }}>
-          <div className="rate-est-label">Estimated premium</div>
-          <div style={{ fontSize: 12, color: 'var(--red-text)', fontWeight: 600 }}>
-            Unable to estimate — likely decline
+      </div>
+      <div className="slot-name">{group.parent}</div>
+      <div className="slot-prices">
+        {cG && (
+          <div className="slot-mini plan-g">
+            <span className="slot-mini-letter">G</span>
+            <span className="slot-mini-price">${cG.carrier.planGLo}</span>
           </div>
-        </div>
-      )}
-
-      <div className="cc-reason">{carrier.reason}</div>
-
-      {hasRange && (
-        <>
-          <div className="plan-toggle" role="radiogroup" aria-label={`Choose plan for ${carrier.name}`}>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={plan === 'G'}
-              className={`plan-toggle-opt${plan === 'G' ? ' selected' : ''}`}
-              onClick={() => setPlan('G')}
-            >
-              <span className="plan-toggle-letter">Plan G</span>
-              <span className="plan-toggle-price">
-                ${carrier.planGLo}–${carrier.planGHi}/mo
-              </span>
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={plan === 'N'}
-              className={`plan-toggle-opt${plan === 'N' ? ' selected' : ''}`}
-              onClick={() => setPlan('N')}
-            >
-              <span className="plan-toggle-letter">Plan N</span>
-              <span className="plan-toggle-price">
-                ${carrier.planNLo}–${carrier.planNHi}/mo
-              </span>
-            </button>
+        )}
+        {cN && (
+          <div className="slot-mini plan-n">
+            <span className="slot-mini-letter">N</span>
+            <span className="slot-mini-price">${cN.carrier.planNLo}</span>
           </div>
-          <button className="cc-cta select" onClick={() => onPick(plan)} type="button">
-            Select {carrier.name} Plan {plan} →
-          </button>
-        </>
-      )}
-
-      <div className="cc-disc">{carrier.discount} discount</div>
+        )}
+      </div>
+      {hhd && <div className="slot-hhd">{hhd}</div>}
     </div>
   );
+}
+
+function toneFor(value: number): 'high' | 'mid' | 'low' {
+  if (value >= 90) return 'high';
+  if (value >= 80) return 'mid';
+  return 'low';
 }
