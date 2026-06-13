@@ -243,69 +243,11 @@ export const DDL: Record<string, DdlEntry> = {
   fiasp: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
 };
 
-export interface DrugCatalogItem {
-  name: string;
-  detail: string;
-  dose: string;
-}
-
-export const DRUG_CATALOG: DrugCatalogItem[] = [
-  { name: 'Metformin', detail: 'Oral diabetes · 1000mg', dose: '1000mg' },
-  { name: 'Ozempic (semaglutide)', detail: 'GLP-1 · 1mg', dose: '1mg' },
-  { name: 'Jardiance', detail: 'SGLT2 · 25mg', dose: '25mg' },
-  { name: 'Trulicity', detail: 'GLP-1 · 1.5mg', dose: '1.5mg' },
-  { name: 'Januvia', detail: 'DPP-4 · 100mg', dose: '100mg' },
-  { name: 'Lantus (insulin glargine)', detail: 'Insulin · 20u', dose: '20u' },
-  { name: 'Novolog (insulin aspart)', detail: 'Insulin · 10u', dose: '10u' },
-  { name: 'Humalog (insulin lispro)', detail: 'Insulin · 10u', dose: '10u' },
-  { name: 'Basaglar', detail: 'Insulin · 20u', dose: '20u' },
-  { name: 'Tresiba', detail: 'Insulin · 20u', dose: '20u' },
-  { name: 'Levemir', detail: 'Insulin · 20u', dose: '20u' },
-  { name: 'Toujeo', detail: 'Insulin · 20u', dose: '20u' },
-  { name: 'Glipizide', detail: 'Sulfonylurea · 10mg', dose: '10mg' },
-  { name: 'Eliquis (apixaban)', detail: 'Anticoagulant · 5mg', dose: '5mg' },
-  { name: 'Xarelto', detail: 'Anticoagulant · 20mg', dose: '20mg' },
-  { name: 'Warfarin', detail: 'Anticoagulant · 5mg', dose: '5mg' },
-  { name: 'Pradaxa', detail: 'Anticoagulant · 150mg', dose: '150mg' },
-  { name: 'Plavix', detail: 'Antiplatelet · 75mg', dose: '75mg' },
-  { name: 'Lisinopril', detail: 'ACE inhibitor · 20mg', dose: '20mg' },
-  { name: 'Amlodipine', detail: 'CCB · 10mg', dose: '10mg' },
-  { name: 'Metoprolol', detail: 'Beta blocker · 50mg', dose: '50mg' },
-  { name: 'Carvedilol', detail: 'Beta blocker · 12.5mg', dose: '12.5mg' },
-  { name: 'Losartan', detail: 'ARB · 100mg', dose: '100mg' },
-  { name: 'Atorvastatin', detail: 'Statin · 40mg', dose: '40mg' },
-  { name: 'Furosemide (Lasix)', detail: 'Loop diuretic · 40mg', dose: '40mg' },
-  { name: 'Amiodarone', detail: 'Antiarrhythmic · 200mg', dose: '200mg' },
-  { name: 'Entresto', detail: 'Heart failure · 97/103mg', dose: '97/103' },
-  { name: 'Repatha', detail: 'PCSK9 inhibitor · 140mg', dose: '140mg' },
-  { name: 'Victoza', detail: 'GLP-1 · 1.8mg', dose: '1.8mg' },
-  { name: 'Gabapentin', detail: 'Neuropathy · 300mg', dose: '300mg' },
-  { name: 'Lyrica (pregabalin)', detail: 'Neuropathy · 75mg', dose: '75mg' },
-  { name: 'Cymbalta', detail: 'SNRI · 60mg', dose: '60mg' },
-  { name: 'Suboxone', detail: 'MAT · 8/2mg', dose: '8/2' },
-  { name: 'Trelegy Ellipta', detail: 'Severe COPD triple', dose: '100/62.5/25' },
-  { name: 'Nucala', detail: 'Severe asthma biologic · 100mg', dose: '100mg' },
-  { name: 'Humira (adalimumab)', detail: 'RA biologic · 40mg', dose: '40mg' },
-  { name: 'Enbrel', detail: 'RA biologic · 50mg', dose: '50mg' },
-  { name: 'Spiriva', detail: 'COPD inhaler · 18mcg', dose: '18mcg' },
-  { name: 'Breo Ellipta', detail: 'COPD inhaler', dose: '100/25' },
-  { name: 'Symbicort', detail: 'COPD inhaler', dose: '160/4.5' },
-  { name: 'Advair', detail: 'COPD inhaler', dose: '250/50' },
-  { name: 'Gleevec (imatinib)', detail: 'Cancer · 400mg', dose: '400mg' },
-  { name: 'Tamoxifen', detail: 'Cancer · 20mg', dose: '20mg' },
-  { name: 'Fentanyl patch', detail: 'Opioid · 25mcg', dose: '25mcg' },
-  { name: 'OxyContin', detail: 'Opioid · 20mg', dose: '20mg' },
-  { name: 'Abilify', detail: 'Antipsychotic · 10mg', dose: '10mg' },
-  { name: 'Depakote', detail: 'Mood stabilizer · 500mg', dose: '500mg' },
-  { name: 'Sinemet', detail: "Parkinson's · 25/100mg", dose: '25/100' },
-  { name: 'Aricept', detail: "Alzheimer's · 10mg", dose: '10mg' },
-  { name: 'Namenda', detail: "Alzheimer's · 10mg", dose: '10mg' },
-  { name: 'Copaxone', detail: 'MS · 40mg', dose: '40mg' },
-  { name: 'CellCept', detail: 'Transplant · 500mg', dose: '500mg' },
-];
-
-// Look up a DDL entry given a drug name from the catalog or a user-typed
-// string. Strategy: strip parentheses, take the first word, lowercase.
+// Look up a DDL entry given a user-typed or shared-library-returned
+// drug name. Strategy: strip parentheses, take the first word, lowercase.
+// Drug catalog search now lives in src/lib/drugSearch.ts (consumer
+// Plan Match shared library); this table is only the underwriting
+// classifier and stays local.
 export function ddlLookup(drugName: string): DdlEntry | undefined {
   const key = drugName.split('(')[0].trim().split(' ')[0].toLowerCase();
   return DDL[key];

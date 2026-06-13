@@ -1,22 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCameraStream } from '../hooks/useCameraStream';
 import { useLabelScan, type LabelScanResult } from '../hooks/useLabelScan';
-import { DRUG_CATALOG, type DrugCatalogItem } from '../lib/ddlData';
+import {
+  drugDisplayDetail,
+  drugDisplayName,
+  searchDrugs,
+  type DrugSearchResult,
+  MIN_SEARCH_CHARS,
+} from '../lib/drugSearch';
+
+const SEARCH_DEBOUNCE_MS = 200;
 
 // ─── Helpers ──────────────────────────────────────────────────────
-
-// First lowercase token — "Gabapentin" → "gabapentin",
-// "Ozempic (semaglutide)" → "ozempic". Mirrors ddlLookup so a
-// catalog hit and a DDL hit agree on the same key.
-function firstToken(name: string): string {
-  return name.toLowerCase().split(/[\s(]/)[0];
-}
-
-function findCatalogMatch(ocrName: string): DrugCatalogItem | null {
-  const key = firstToken(ocrName);
-  if (!key) return null;
-  return DRUG_CATALOG.find((d) => firstToken(d.name) === key) ?? null;
-}
 
 // Strip strength tokens + trailing brackets, then title-case. The OCR
 // result for "Gabapentin 300 MG Cap" should display as "Gabapentin".
@@ -65,10 +60,10 @@ interface Props {
 
 function labelToDrug(label: LabelScanResult): ScannedDrug | null {
   if (!label.drugName) return null;
-  const catalogHit = findCatalogMatch(label.drugName);
-  const displayName = catalogHit?.name ?? cleanDrugName(label.drugName);
-  const dose = label.strength ?? catalogHit?.dose ?? '';
-  return { name: displayName, dose };
+  return {
+    name: cleanDrugName(label.drugName),
+    dose: label.strength ?? '',
+  };
 }
 
 export function PillScanSheet({ onConfirm, onClose }: Props) {
@@ -76,6 +71,7 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
   const [queue, setQueue] = useState<ScanQueueItem[]>([]);
   const [flash, setFlash] = useState(false);
   const [typed, setTyped] = useState('');
+  const [matches, setMatches] = useState<DrugSearchResult[]>([]);
   const idCounter = useRef(0);
 
   const cameraActive = stage === 'capturing';
@@ -188,28 +184,36 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
   function confirmTyped() {
     const cleaned = cleanDrugName(typed);
     if (!cleaned) return;
-    const catalogHit = findCatalogMatch(cleaned);
-    onConfirm([
-      {
-        name: catalogHit?.name ?? cleaned,
-        dose: catalogHit?.dose ?? '',
-      },
-    ]);
+    onConfirm([{ name: cleaned, dose: '' }]);
   }
 
   function rescan() {
     setQueue([]);
     setTyped('');
+    setMatches([]);
     setStage('capturing');
   }
 
-  // Suggestions from DRUG_CATALOG when the user types in fallback mode.
-  const matches =
-    typed.trim().length >= 2
-      ? DRUG_CATALOG.filter((d) =>
-          d.name.toLowerCase().includes(typed.trim().toLowerCase()),
-        ).slice(0, 5)
-      : [];
+  // Debounced lookup against the shared library API for the fallback
+  // typing path. Same pattern as Meds.tsx — abort on query change so a
+  // slow response can't overwrite newer matches.
+  useEffect(() => {
+    const q = typed.trim();
+    if (q.length < MIN_SEARCH_CHARS) {
+      setMatches([]);
+      return;
+    }
+    const controller = new AbortController();
+    const t = window.setTimeout(() => {
+      searchDrugs(q, controller.signal, 5)
+        .then((drugs) => setMatches(drugs))
+        .catch(() => {});
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      controller.abort();
+      window.clearTimeout(t);
+    };
+  }, [typed]);
 
   const total = queue.length;
   const successCount = queue.filter((it) => it.status === 'success').length;
@@ -482,12 +486,14 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
             <div className="ac" style={{ marginTop: 6 }}>
               {matches.map((d) => (
                 <div
-                  key={d.name}
+                  key={d.rxcui}
                   className="ac-item"
-                  onClick={() => onConfirm([{ name: d.name, dose: d.dose }])}
+                  onClick={() =>
+                    onConfirm([{ name: drugDisplayName(d), dose: d.strength }])
+                  }
                 >
-                  <div className="ac-name">{d.name}</div>
-                  <div className="ac-detail">{d.detail}</div>
+                  <div className="ac-name">{drugDisplayName(d)}</div>
+                  <div className="ac-detail">{drugDisplayDetail(d)}</div>
                 </div>
               ))}
             </div>

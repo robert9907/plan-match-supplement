@@ -1,39 +1,66 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFlow } from '../context/FlowContext';
-import { DRUG_CATALOG, type DrugCatalogItem } from '../lib/ddlData';
+import {
+  drugDisplayDetail,
+  drugDisplayName,
+  searchDrugs,
+  type DrugSearchResult,
+  MIN_SEARCH_CHARS,
+} from '../lib/drugSearch';
 import { classifyMed, type MedItem } from '../lib/scoringEngine';
 import { BackRow, Frame } from './Frame';
 import { PillScanSheet } from './PillScanSheet';
+
+const SEARCH_DEBOUNCE_MS = 200;
 
 export function Meds() {
   const navigate = useNavigate();
   const flow = useFlow();
   const [query, setQuery] = useState('');
+  const [matches, setMatches] = useState<DrugSearchResult[]>([]);
   const [scanOpen, setScanOpen] = useState(false);
 
-  const matches = useMemo<DrugCatalogItem[]>(() => {
-    if (query.trim().length < 2) return [];
-    const q = query.toLowerCase();
-    return DRUG_CATALOG.filter((d) => d.name.toLowerCase().includes(q)).slice(0, 5);
+  // Debounced lookup against the shared library API. AbortController
+  // cancels in-flight fetches when the query changes so a slow response
+  // can't stomp a newer match list.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < MIN_SEARCH_CHARS) {
+      setMatches([]);
+      return;
+    }
+    const controller = new AbortController();
+    const t = window.setTimeout(() => {
+      searchDrugs(q, controller.signal, 5)
+        .then((drugs) => setMatches(drugs))
+        .catch(() => {
+          // Aborted or network error — keep prior matches rather than
+          // flicker the dropdown empty on transient failure.
+        });
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      controller.abort();
+      window.clearTimeout(t);
+    };
   }, [query]);
 
-  const addDrug = (d: DrugCatalogItem) => {
-    const classification = classifyMed(d.name);
+  const addDrug = (d: DrugSearchResult) => {
+    const name = drugDisplayName(d);
+    const classification = classifyMed(name);
     const med: MedItem = {
-      name: d.name,
-      dose: d.dose,
+      name,
+      dose: d.strength,
       ...classification,
     };
     flow.addMed(med);
     setQuery('');
+    setMatches([]);
   };
 
   // Single funnel for any add path (search pick, free-typed entry, or
-  // scan confirmation). DRUG_CATALOG dose wins when the user typed a
-  // catalog name without a strength; the OCR-extracted strength wins
-  // when the scan path passes one in. classifyMed runs the DDL lookup
-  // by first lowercased token, so this works for ad-hoc names too.
+  // scan confirmation). classifyMed runs the DDL lookup by first
+  // lowercased token, so this works for ad-hoc names too.
   const addByName = (name: string, dose: string) => {
     const classification = classifyMed(name);
     const med: MedItem = {
@@ -93,9 +120,9 @@ export function Meds() {
       {matches.length > 0 && (
         <div className="ac">
           {matches.map((d) => (
-            <div key={d.name} className="ac-item" onClick={() => addDrug(d)}>
-              <div className="ac-name">{d.name}</div>
-              <div className="ac-detail">{d.detail}</div>
+            <div key={d.rxcui} className="ac-item" onClick={() => addDrug(d)}>
+              <div className="ac-name">{drugDisplayName(d)}</div>
+              <div className="ac-detail">{drugDisplayDetail(d)}</div>
             </div>
           ))}
         </div>
