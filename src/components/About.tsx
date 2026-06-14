@@ -124,18 +124,15 @@ export function About() {
     if (flow.gender && flow.zip.length === 5) {
       void prefetchRates(flow.zip, flow.gender === 'Female' ? 'FEMALE' : 'MALE').catch(() => {});
     }
-    if (flow.prompt === 'Turning 65') {
-      // OEP bypass — skip Meds + Health, go straight to Results.
-      navigate('/embed/results');
-    } else {
-      navigate('/embed/meds');
-    }
+    // Everyone gets the rate projection next. OEP users still skip Meds +
+    // Health from there — RateProjection.tsx handles the branch on continue.
+    navigate('/embed/rates');
   };
 
   return (
     <Frame step={1}>
       <BackRow onClick={() => navigate(-1)} />
-      <div className="step-label">Step 1 of 4 · About you</div>
+      <div className="step-label">Step 1 of 5 · About you</div>
       <h1 className="headline">
         You deserve the right <em>coverage.</em>
       </h1>
@@ -280,7 +277,7 @@ export function About() {
       />
 
       <button className="btn" onClick={onContinue} disabled={!canContinue} type="button">
-        {flow.prompt === 'Turning 65' ? 'See your guaranteed plans →' : 'Continue to medications →'}
+        See your Plan G rate projection →
       </button>
 
       <div className="disclaimer">

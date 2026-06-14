@@ -90,9 +90,9 @@ export function HealthScreen() {
   };
 
   return (
-    <Frame step={3}>
+    <Frame step={4}>
       <BackRow onClick={() => navigate('/embed/meds')} />
-      <div className="step-label">Step 3 of 4 · Health screen</div>
+      <div className="step-label">Step 4 of 5 · Health screen</div>
       <h1 className="headline">
         Quick health <em>check.</em>
       </h1>

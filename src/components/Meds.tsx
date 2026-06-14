@@ -76,9 +76,9 @@ export function Meds() {
   const onContinue = () => navigate('/embed/health');
 
   return (
-    <Frame step={2}>
-      <BackRow onClick={() => navigate('/embed/about')} />
-      <div className="step-label">Step 2 of 4 · Medications</div>
+    <Frame step={3}>
+      <BackRow onClick={() => navigate('/embed/rates')} />
+      <div className="step-label">Step 3 of 5 · Medications</div>
       <h1 className="headline">
         What medications do <em>you</em> take?
       </h1>

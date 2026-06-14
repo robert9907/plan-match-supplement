@@ -248,9 +248,9 @@ export function Results() {
   if (!scoring) {
     const stale = !flow.gender || !flow.tobacco;
     return (
-      <Frame step={4}>
+      <Frame step={5}>
         <BackRow onClick={() => navigate('/embed/about')} />
-        <div className="step-label">Step 4 of 4 · Your results</div>
+        <div className="step-label">Step 5 of 5 · Your results</div>
         {stale ? (
           <>
             <h1 className="headline">Let's start from the beginning.</h1>
@@ -277,7 +277,7 @@ export function Results() {
     );
   }
 
-  const backTarget = flow.isOep ? '/embed/about' : '/embed/health';
+  const backTarget = flow.isOep ? '/embed/rates' : '/embed/health';
   const profile = `${flow.age} · ${flow.gender ?? '—'} · ZIP ${flow.zip}`;
   const factorScores = {
     meds: scoring.factorMeds,
@@ -288,9 +288,9 @@ export function Results() {
   const totalPlans = eligibleGroups.reduce((sum, g) => sum + g.variants.length, 0);
 
   return (
-    <Frame step={4}>
+    <Frame step={5}>
       <BackRow onClick={() => navigate(backTarget)} />
-      <div className="step-label">Step 4 of 4 · Your results</div>
+      <div className="step-label">Step 5 of 5 · Your results</div>
 
       <header className="results-header">
         <div className="results-header-row">

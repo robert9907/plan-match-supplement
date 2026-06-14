@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 
 interface FrameProps {
-  /** Which step dot is current (1-4). Pass null for no dots. */
-  step?: 1 | 2 | 3 | 4 | null;
+  /** Which step dot is current (1-5). Pass null for no dots. */
+  step?: 1 | 2 | 3 | 4 | 5 | null;
   /** Override the top-right tag. Default: "MEDICARE · SUPPLEMENT". */
   tag?: string;
-  /** If true, hides the 4 progress dots (used on application/handshake). */
+  /** If true, hides the 5 progress dots (used on application/handshake). */
   hideDots?: boolean;
   children: ReactNode;
 }
@@ -18,7 +18,7 @@ export function Frame({ step = 1, tag = 'MEDICARE · SUPPLEMENT', hideDots = fal
         <div className="topbar-name">Plan Match</div>
         {!hideDots && (
           <div className="topbar-dots">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
                 className={
