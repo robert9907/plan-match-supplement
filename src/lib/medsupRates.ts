@@ -35,6 +35,42 @@ export function stateLabel(state: string): string {
   return STATE_LABELS[state as SupportedState] ?? state;
 }
 
+// Carrier names as filed with CMS are verbose ("Aetna Health Insurance
+// Company", "Physicians Select Insurance Company (PSIC) - Innovative"). At
+// table-cell and stat-card sizes they wrap onto 2-3 lines and crowd out the
+// data. Explicit map for the carriers we know about; generic fallback strips
+// the common "Insurance Company"/"Life Insurance Company" suffixes so a new
+// carrier that lands in the DB still renders compactly until someone adds
+// a hand-tuned mapping.
+const SHORT_NAME_MAP: Record<string, string> = {
+  'AARP/UnitedHealthcare Insurance Company': 'AARP/UHC',
+  'AARP/UnitedHealthcare Insurance Company (Select)': 'AARP/UHC Select',
+  'AARP/UnitedHealthcare Insurance Company of America': 'AARP/UHC America',
+  'Aetna Health Insurance Company': 'Aetna',
+  'Aflac': 'Aflac',
+  'AHIC': 'AHIC',
+  'Blue Medicare Supplement (BCBSNC)': 'BCBSNC',
+  'Cigna National Health Insurance Company': 'Cigna',
+  'GPM Health and Life Insurance Company': 'GPM Health',
+  'Humana Achieve Medicare Supplement': 'Humana Achieve',
+  'Humana Medicare Supplement': 'Humana',
+  'Medico Insurance Company': 'Medico',
+  'Physicians Select Insurance Company (PSIC)': 'PSIC',
+  'Physicians Select Insurance Company (PSIC) - Innovative': 'PSIC Innovative',
+};
+
+export function carrierShortName(name: string): string {
+  if (name in SHORT_NAME_MAP) return SHORT_NAME_MAP[name];
+  return name
+    .replace(/\s+Life Insurance Company\b/gi, '')
+    .replace(/\s+Insurance Company\b/gi, '')
+    .replace(/\s+Insurance Co\.?\b/gi, '')
+    .replace(/\s+Medicare Supplement\b/gi, '')
+    .replace(/\s+\(.*?\)/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 interface RatesResponse {
   ok: boolean;
   state?: string;

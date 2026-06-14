@@ -23,6 +23,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import {
+  carrierShortName,
   fetchMedsupCarriers,
   stateLabel,
   type MedsupCarrier,
@@ -324,7 +325,7 @@ export function RateProjectionWidget({
           <span className="ms-per">/mo</span>
         </div>
         <div className="ms-stat-carrier">
-          {cheapest.n} · Age {age}
+          {carrierShortName(cheapest.n)} · Age {age}
         </div>
       </div>
 
@@ -378,7 +379,7 @@ export function RateProjectionWidget({
             {fmt(cheapest.p)}
             <span>/mo</span>
           </div>
-          <div className="ms-c-sub">{cheapest.n}</div>
+          <div className="ms-c-sub" title={cheapest.n}>{carrierShortName(cheapest.n)}</div>
         </div>
         <div className="ms-card">
           <div className="ms-c-label">Lowest at {targetAge}</div>
@@ -386,12 +387,12 @@ export function RateProjectionWidget({
             {fmt(cheapestAtTarget.p)}
             <span>/mo</span>
           </div>
-          <div className="ms-c-sub">{cheapestAtTarget.n}</div>
+          <div className="ms-c-sub" title={cheapestAtTarget.n}>{carrierShortName(cheapestAtTarget.n)}</div>
         </div>
         <div className="ms-card">
           <div className="ms-c-label">Lowest 20yr total</div>
           <div className="ms-c-val">{fmt(lowestTotal.t)}</div>
-          <div className="ms-c-sub">{lowestTotal.n}</div>
+          <div className="ms-c-sub" title={lowestTotal.n}>{carrierShortName(lowestTotal.n)}</div>
         </div>
         <div className="ms-card">
           <div className="ms-c-label">Avg increase</div>
@@ -414,9 +415,10 @@ export function RateProjectionWidget({
               type="button"
               className={`ms-leg${on ? ' ms-on' : ''}`}
               onClick={() => toggleCarrier(c.n)}
+              title={c.n}
             >
               <span className="ms-d" style={{ background: c.c }} />
-              {c.n}
+              {carrierShortName(c.n)}
               {p ? ` ${fmt(p)}` : ''}
             </button>
           );
@@ -435,9 +437,11 @@ export function RateProjectionWidget({
             <tr>
               <th>Age</th>
               {visible.map((c) => (
-                <th key={c.n}>{c.n}</th>
+                <th key={c.n} title={c.n}>
+                  <span className="ms-th-name">{carrierShortName(c.n)}</span>
+                </th>
               ))}
-              <th>Cheapest</th>
+              <th className="ms-th-best">Best</th>
             </tr>
           </thead>
           <tbody>
@@ -464,7 +468,9 @@ export function RateProjectionWidget({
                 <tr key={a} className={a === age ? 'ms-current' : ''}>
                   <td style={{ fontWeight: 600 }}>{a}</td>
                   {cells}
-                  <td className="ms-cheapest">{best.n}</td>
+                  <td className="ms-cheapest" title={best.n}>
+                    {carrierShortName(best.n)}
+                  </td>
                 </tr>
               );
             })}

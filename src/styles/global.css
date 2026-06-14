@@ -3747,15 +3747,15 @@ textarea {
 /* ── Stats cards: 2x2 mobile → 4 across desktop ─────────────────────── */
 .gh-ms .ms-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
   padding: 20px 20px 16px;
 }
 @media (min-width: 768px) {
   .gh-ms .ms-cards {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    padding: 32px 32px 20px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    padding: 28px 32px 20px;
   }
 }
 .gh-ms .ms-card {
@@ -3764,46 +3764,52 @@ textarea {
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid var(--ms-glass-border);
   border-radius: var(--ms-radius);
-  padding: 16px 18px;
+  padding: 12px 14px;
   box-shadow: var(--ms-glass-shadow);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
+  min-width: 0; /* let grid track shrink so flex/text-overflow can ellipsis */
 }
 .gh-ms .ms-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(10, 22, 40, 0.08), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 .gh-ms .ms-card .ms-c-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--ms-light-muted);
   letter-spacing: 0.3px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .gh-ms .ms-card .ms-c-val {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--ms-navy);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 @media (min-width: 768px) {
   .gh-ms .ms-card .ms-c-val {
-    font-size: 26px;
+    font-size: 24px;
   }
 }
 .gh-ms .ms-card .ms-c-val span {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--ms-muted);
 }
 .gh-ms .ms-card .ms-c-sub {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ms-teal);
   font-weight: 500;
-  margin-top: 4px;
+  margin-top: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* ── Legend — single row, wraps if needed ───────────────────────────── */
@@ -3879,7 +3885,14 @@ textarea {
   }
 }
 
-/* ── Comparison table — sticky Age column on mobile ─────────────────── */
+/* ── Comparison table ───────────────────────────────────────────────────
+ * Mobile: horizontal scroll with sticky Age column.
+ * Desktop: tries to fit (short carrier names + 90px min col); falls back
+ * to scroll if user keeps many carriers visible.
+ *
+ * Zebra rows + teal-tinted Best column give the eye an anchor when
+ * scanning a dense numeric grid.
+ */
 .gh-ms .ms-tbl-wrap {
   padding: 8px 0 24px;
   overflow-x: auto;
@@ -3892,41 +3905,75 @@ textarea {
 }
 .gh-ms .ms-tbl {
   width: 100%;
-  min-width: 480px;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 13px;
+  font-size: 12px;
+}
+.gh-ms .ms-tbl th,
+.gh-ms .ms-tbl td {
+  min-width: 90px;
+}
+.gh-ms .ms-tbl th:first-child,
+.gh-ms .ms-tbl td:first-child {
+  min-width: 56px;
 }
 .gh-ms .ms-tbl th {
   text-align: left;
-  padding: 12px 14px;
-  font-weight: 500;
+  padding: 10px 10px;
+  font-weight: 600;
   color: var(--ms-light-muted);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   border-bottom: 1px solid var(--ms-surface);
   background: #fff;
   white-space: nowrap;
 }
+.gh-ms .ms-tbl .ms-th-name {
+  display: inline-block;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
 .gh-ms .ms-tbl td {
-  padding: 12px 14px;
+  padding: 8px 6px;
   border-bottom: 1px solid var(--ms-surface);
   font-variant-numeric: tabular-nums;
   transition: background 0.2s;
   background: #fff;
   white-space: nowrap;
 }
-.gh-ms .ms-tbl tr:hover td {
-  background: rgba(0, 212, 170, 0.04);
+@media (min-width: 768px) {
+  .gh-ms .ms-tbl th {
+    padding: 12px 10px;
+  }
+  .gh-ms .ms-tbl td {
+    padding: 11px 10px;
+    font-size: 13px;
+  }
+  .gh-ms .ms-tbl .ms-th-name {
+    max-width: 140px;
+  }
+}
+
+/* Zebra rows — odd rows tinted so the eye tracks horizontally without
+ * losing the line. Even rows stay pure white. Hover + current override. */
+.gh-ms .ms-tbl tbody tr:nth-child(odd) td {
+  background: #fafbfc;
+}
+.gh-ms .ms-tbl tbody tr:hover td {
+  background: rgba(0, 212, 170, 0.06);
 }
 .gh-ms .ms-tbl tr.ms-current td {
-  background: rgba(0, 212, 170, 0.08);
-  font-weight: 500;
+  background: rgba(0, 212, 170, 0.1);
+  font-weight: 600;
 }
+
 /* Sticky Age column — required on mobile so user keeps their bearing
- * while horizontally scrolling carrier columns. Desktop keeps it sticky
- * too; it just rarely scrolls there. */
+ * while horizontally scrolling carrier columns. Background mirrors the
+ * zebra/hover/current rules so the sticky cell never reveals what's
+ * scrolling beneath it. */
 .gh-ms .ms-tbl th:first-child,
 .gh-ms .ms-tbl td:first-child {
   position: sticky;
@@ -3934,21 +3981,43 @@ textarea {
   z-index: 2;
   box-shadow: 1px 0 0 var(--ms-surface);
 }
-.gh-ms .ms-tbl tr:hover td:first-child {
-  background: rgba(0, 212, 170, 0.04);
+.gh-ms .ms-tbl tbody tr:nth-child(odd) td:first-child {
+  background: #fafbfc;
+}
+.gh-ms .ms-tbl tbody tr:hover td:first-child {
+  background: rgba(0, 212, 170, 0.06);
 }
 .gh-ms .ms-tbl tr.ms-current td:first-child {
-  background: rgba(0, 212, 170, 0.12);
+  background: rgba(0, 212, 170, 0.14);
 }
-.gh-ms .ms-inc {
-  color: var(--ms-danger);
-  font-size: 11px;
-  font-weight: 500;
+
+/* Best column — last cell in every row + the th. Tinted teal so the
+ * winning carrier per row reads at a glance. Same sticky-aware overrides
+ * as the Age column. */
+.gh-ms .ms-tbl .ms-th-best {
+  color: var(--ms-teal);
+  background: rgba(0, 212, 170, 0.06);
 }
-.gh-ms .ms-cheapest {
+.gh-ms .ms-tbl tbody td.ms-cheapest {
+  background: rgba(0, 212, 170, 0.06);
   color: var(--ms-teal);
   font-weight: 600;
-  font-size: 11px;
+  font-size: 12px;
+}
+.gh-ms .ms-tbl tbody tr:nth-child(odd) td.ms-cheapest {
+  background: rgba(0, 212, 170, 0.1);
+}
+.gh-ms .ms-tbl tbody tr:hover td.ms-cheapest {
+  background: rgba(0, 212, 170, 0.16);
+}
+.gh-ms .ms-tbl tr.ms-current td.ms-cheapest {
+  background: rgba(0, 212, 170, 0.2);
+}
+
+.gh-ms .ms-inc {
+  color: var(--ms-danger);
+  font-size: 10px;
+  font-weight: 500;
 }
 
 /* ── Fallback / loading ─────────────────────────────────────────────── */
