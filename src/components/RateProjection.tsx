@@ -32,32 +32,34 @@ export function RateProjection() {
 
   return (
     <Frame step={2}>
-      <BackRow onClick={() => navigate('/embed/about')} />
-      <div className="step-label">Step 2 of 5 · Your rate projection</div>
-      <h1 className="headline">
-        Here's what Plan G <em>costs you</em> over time.
-      </h1>
-      <div className="sub-text">
-        Toggle gender, slide your age, and click carriers in the legend to compare. The lowest
-        20-year total often isn't the cheapest carrier today.
-      </div>
+      <div className="rate-projection-page">
+        <BackRow onClick={() => navigate('/embed/about')} />
+        <div className="step-label">Step 2 of 5 · Your rate projection</div>
+        <h1 className="headline">
+          Here's what Plan G <em>costs you</em> over time.
+        </h1>
+        <div className="sub-text">
+          Toggle gender, slide your age, and click carriers in the legend to compare. The lowest
+          20-year total often isn't the cheapest carrier today.
+        </div>
 
-      <RateProjectionWidget
-        state={state}
-        zip={flow.zip}
-        initialGender={initialGender}
-        initialAge={initialAge}
-      />
+        <RateProjectionWidget
+          state={state}
+          zip={flow.zip}
+          initialGender={initialGender}
+          initialAge={initialAge}
+        />
 
-      <button className="btn" onClick={onContinue} type="button">
-        {flow.isOep ? 'See your guaranteed plans →' : 'Continue to medications →'}
-      </button>
+        <button className="btn" onClick={onContinue} type="button">
+          {flow.isOep ? 'See your guaranteed plans →' : 'Continue to medications →'}
+        </button>
 
-      <div className="disclaimer">
-        <span className="privacy-badge">🔒 Rates are estimates</span>
-        <br />
-        Sourced from carrier filings. Actual premiums vary by exact birth date, health history, and
-        carrier discounts.
+        <div className="disclaimer">
+          <span className="privacy-badge">🔒 Rates are estimates</span>
+          <br />
+          Sourced from carrier filings. Actual premiums vary by exact birth date, health history,
+          and carrier discounts.
+        </div>
       </div>
     </Frame>
   );

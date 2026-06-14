@@ -3443,52 +3443,86 @@ textarea {
   }
 }
 
+
 /* ── GH Medicare Supplement Plan G Rate Widget ──────────────────────────
  * Ported from gh-cc-v4 src/lib/medsupTemplate.js. All selectors stay under
  * .gh-ms so the widget's colors and typography can't leak into the rest
  * of the consumer flow (which uses its own --navy / --seafoam palette).
+ *
+ * The host Frame is normally locked to 420px; the .frame:has() rule below
+ * lets this single page breathe to 1100px on desktop, matching the
+ * Results-screen exception at line 121. Mobile (≤430px) stays full-width.
  */
+
+/* Frame-width exception: rate-projection page goes wide on desktop.
+ * Lives outside .gh-ms because it targets the wrapping .frame. */
+@media (min-width: 768px) {
+  .frame:has(.rate-projection-page) {
+    width: 100%;
+    max-width: 1100px;
+    padding: 0;
+  }
+}
+
 .gh-ms {
   --ms-navy: #0a1628;
   --ms-teal: #00d4aa;
   --ms-teal-glow: rgba(0, 212, 170, 0.15);
   --ms-surface: #f5f7fa;
-  --ms-glass: rgba(255, 255, 255, 0.72);
-  --ms-glass-border: rgba(255, 255, 255, 0.18);
+  --ms-glass: rgba(255, 255, 255, 0.78);
+  --ms-glass-border: rgba(255, 255, 255, 0.6);
+  --ms-glass-shadow: 0 8px 32px rgba(10, 22, 40, 0.05), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
   --ms-text: #1a1d23;
   --ms-muted: #6b7280;
   --ms-light-muted: #9ca3af;
   --ms-danger: #ef4444;
   --ms-radius: 16px;
+  --ms-radius-lg: 20px;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: var(--ms-text);
-  max-width: 860px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 24px 0 32px;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+  border-radius: var(--ms-radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(10, 22, 40, 0.06);
 }
 
+/* ── Hero ───────────────────────────────────────────────────────────── */
 .gh-ms .ms-hero {
   text-align: center;
-  padding: 32px 16px 24px;
+  padding: 40px 20px 28px;
   position: relative;
   overflow: hidden;
+}
+@media (min-width: 768px) {
+  .gh-ms .ms-hero {
+    padding: 64px 32px 40px;
+  }
 }
 .gh-ms .ms-hero::before {
   content: '';
   position: absolute;
-  top: -120px;
+  top: -160px;
   left: 50%;
   transform: translateX(-50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, var(--ms-teal-glow) 0%, transparent 70%);
+  width: 720px;
+  height: 720px;
+  background: radial-gradient(circle, var(--ms-teal-glow) 0%, transparent 65%);
   pointer-events: none;
   animation: ms-pulse 6s ease-in-out infinite;
+  z-index: 0;
+}
+.gh-ms .ms-hero > * {
+  position: relative;
+  z-index: 1;
 }
 @keyframes ms-pulse {
-  0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(1); }
-  50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
+  0%, 100% { opacity: 0.35; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.65; transform: translateX(-50%) scale(1.1); }
 }
 .gh-ms .ms-eyebrow {
   font-size: 11px;
@@ -3496,23 +3530,29 @@ textarea {
   letter-spacing: 2.5px;
   text-transform: uppercase;
   color: var(--ms-teal);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   display: inline-block;
 }
 .gh-ms .ms-hero h2 {
-  font-size: clamp(22px, 4.5vw, 32px);
+  font-size: clamp(24px, 4.5vw, 42px);
   font-weight: 700;
-  letter-spacing: -1px;
-  line-height: 1.15;
-  margin: 0 0 12px;
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+  margin: 0 0 16px;
   color: var(--ms-navy);
 }
 .gh-ms .ms-hero p {
   font-size: 14px;
   color: var(--ms-muted);
-  line-height: 1.5;
-  max-width: 460px;
+  line-height: 1.55;
+  max-width: 520px;
   margin: 0 auto;
+}
+@media (min-width: 768px) {
+  .gh-ms .ms-hero p {
+    font-size: 16px;
+    line-height: 1.6;
+  }
 }
 
 .gh-ms .ms-big-stat {
@@ -3520,25 +3560,31 @@ textarea {
   align-items: baseline;
   justify-content: center;
   gap: 6px;
-  margin: 20px 0 6px;
+  margin: 28px 0 8px;
 }
 .gh-ms .ms-big-stat .ms-dollar {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 400;
   color: var(--ms-teal);
   line-height: 1;
 }
 .gh-ms .ms-big-stat .ms-amount {
-  font-size: 56px;
+  font-size: 64px;
   font-weight: 700;
-  letter-spacing: -2px;
+  letter-spacing: -2.5px;
   line-height: 1;
   color: var(--ms-navy);
   font-variant-numeric: tabular-nums;
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
+@media (min-width: 768px) {
+  .gh-ms .ms-big-stat .ms-amount {
+    font-size: 84px;
+    letter-spacing: -3.5px;
+  }
+}
 .gh-ms .ms-big-stat .ms-per {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   color: var(--ms-muted);
   margin-left: 4px;
@@ -3548,26 +3594,29 @@ textarea {
   color: var(--ms-light-muted);
   text-align: center;
   margin-bottom: 4px;
+  letter-spacing: 0.3px;
 }
 .gh-ms .ms-stat-carrier {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ms-teal);
   font-weight: 500;
   text-align: center;
-  min-height: 18px;
+  min-height: 20px;
+  margin-top: 4px;
 }
 
+/* ── Controls (gender pills) — fatter touch target on mobile ────────── */
 .gh-ms .ms-controls {
   display: flex;
   justify-content: center;
   gap: 8px;
-  padding: 16px 16px 4px;
+  padding: 24px 20px 8px;
   flex-wrap: wrap;
 }
 .gh-ms .ms-ctrl-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   align-items: center;
 }
 .gh-ms .ms-ctrl-label {
@@ -3580,110 +3629,148 @@ textarea {
 .gh-ms .ms-pill-group {
   display: flex;
   background: var(--ms-surface);
-  border-radius: 10px;
-  padding: 3px;
+  border-radius: 12px;
+  padding: 4px;
   gap: 2px;
 }
 .gh-ms .ms-pill {
-  padding: 7px 14px;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 14px 26px;
+  border-radius: 9px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--ms-muted);
   cursor: pointer;
   border: none;
   background: none;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 84px;
+  min-height: 44px;
 }
 .gh-ms .ms-pill.ms-active {
   background: #fff;
   color: var(--ms-navy);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  font-weight: 600;
 }
 .gh-ms .ms-pill:hover:not(.ms-active) {
   color: var(--ms-navy);
 }
 
+/* ── Age slider — bigger thumb + invisible track padding for thumb tap ── */
 .gh-ms .ms-slider-wrap {
-  padding: 0 16px 8px;
+  padding: 16px 20px 12px;
   text-align: center;
 }
 .gh-ms .ms-age-display {
   font-size: 13px;
   color: var(--ms-muted);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 .gh-ms .ms-age-display strong {
   color: var(--ms-navy);
-  font-weight: 600;
-  font-size: 15px;
+  font-weight: 700;
+  font-size: 17px;
+  margin-left: 4px;
 }
 .gh-ms .ms-slider {
   -webkit-appearance: none;
+  appearance: none;
   width: 100%;
-  max-width: 500px;
-  height: 4px;
+  max-width: 560px;
+  height: 28px; /* tall hit area; visible track is drawn via background */
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+.gh-ms .ms-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 4px;
   background: linear-gradient(
     to right,
     var(--ms-teal),
     var(--ms-teal) var(--pct, 0%),
     var(--ms-surface) var(--pct, 0%)
   );
+}
+.gh-ms .ms-slider::-moz-range-track {
+  height: 6px;
   border-radius: 4px;
-  outline: none;
-  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--ms-teal),
+    var(--ms-teal) var(--pct, 0%),
+    var(--ms-surface) var(--pct, 0%)
+  );
 }
 .gh-ms .ms-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 22px;
-  height: 22px;
+  appearance: none;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #fff;
   border: 2px solid var(--ms-teal);
-  box-shadow: 0 2px 8px rgba(0, 212, 170, 0.3);
+  box-shadow: 0 2px 12px rgba(0, 212, 170, 0.4);
   cursor: pointer;
   transition: transform 0.15s;
+  margin-top: -11px;
 }
-.gh-ms .ms-slider::-webkit-slider-thumb:hover {
+.gh-ms .ms-slider::-webkit-slider-thumb:hover,
+.gh-ms .ms-slider::-webkit-slider-thumb:active {
   transform: scale(1.15);
+}
+.gh-ms .ms-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--ms-teal);
+  box-shadow: 0 2px 12px rgba(0, 212, 170, 0.4);
+  cursor: pointer;
 }
 .gh-ms .ms-age-marks {
   display: flex;
   justify-content: space-between;
-  max-width: 500px;
-  margin: 4px auto 0;
-  padding: 0 4px;
+  max-width: 560px;
+  margin: 6px auto 0;
+  padding: 0 6px;
 }
 .gh-ms .ms-age-marks span {
   font-size: 10px;
   color: var(--ms-light-muted);
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
 }
 
+/* ── Stats cards: 2x2 mobile → 4 across desktop ─────────────────────── */
 .gh-ms .ms-cards {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 20px 20px 16px;
 }
-@media (min-width: 600px) {
+@media (min-width: 768px) {
   .gh-ms .ms-cards {
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    padding: 32px 32px 20px;
   }
 }
 .gh-ms .ms-card {
   background: var(--ms-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid var(--ms-glass-border);
   border-radius: var(--ms-radius);
-  padding: 12px 14px;
+  padding: 16px 18px;
+  box-shadow: var(--ms-glass-shadow);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
 }
 .gh-ms .ms-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 32px rgba(10, 22, 40, 0.08), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 .gh-ms .ms-card .ms-c-label {
   font-size: 11px;
@@ -3699,6 +3786,11 @@ textarea {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.5px;
 }
+@media (min-width: 768px) {
+  .gh-ms .ms-card .ms-c-val {
+    font-size: 26px;
+  }
+}
 .gh-ms .ms-card .ms-c-val span {
   font-size: 13px;
   font-weight: 400;
@@ -3708,50 +3800,41 @@ textarea {
   font-size: 12px;
   color: var(--ms-teal);
   font-weight: 500;
-  margin-top: 3px;
-}
-
-.gh-ms .ms-chart-section {
-  padding: 8px 16px 12px;
-}
-.gh-ms .ms-chart-wrap {
-  position: relative;
-  height: 260px;
-  background: var(--ms-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--ms-glass-border);
-  border-radius: var(--ms-radius);
-  padding: 12px;
+  margin-top: 4px;
+  white-space: nowrap;
   overflow: hidden;
-}
-@media (min-width: 600px) {
-  .gh-ms .ms-chart-wrap {
-    height: 320px;
-    padding: 16px;
-  }
+  text-overflow: ellipsis;
 }
 
+/* ── Legend — single row, wraps if needed ───────────────────────────── */
 .gh-ms .ms-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 16px 20px 8px;
   justify-content: center;
+}
+@media (min-width: 768px) {
+  .gh-ms .ms-legend {
+    padding: 24px 32px 8px;
+    gap: 8px;
+  }
 }
 .gh-ms .ms-leg {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-size: 11px;
   color: var(--ms-muted);
   cursor: pointer;
-  padding: 4px 10px;
-  border-radius: 20px;
+  padding: 6px 12px;
+  border-radius: 999px;
   border: 1px solid transparent;
   background: none;
   transition: all 0.2s;
-  opacity: 0.4;
+  opacity: 0.45;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 .gh-ms .ms-leg.ms-on {
   opacity: 1;
@@ -3762,82 +3845,144 @@ textarea {
   opacity: 1;
 }
 .gh-ms .ms-leg .ms-d {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
+/* ── Chart ──────────────────────────────────────────────────────────── */
+.gh-ms .ms-chart-section {
+  padding: 12px 20px 20px;
+}
+@media (min-width: 768px) {
+  .gh-ms .ms-chart-section {
+    padding: 16px 32px 28px;
+  }
+}
+.gh-ms .ms-chart-wrap {
+  position: relative;
+  height: 280px;
+  background: var(--ms-glass);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--ms-glass-border);
+  border-radius: var(--ms-radius);
+  padding: 16px;
+  overflow: hidden;
+  box-shadow: var(--ms-glass-shadow);
+}
+@media (min-width: 768px) {
+  .gh-ms .ms-chart-wrap {
+    height: 440px;
+    padding: 24px;
+  }
+}
+
+/* ── Comparison table — sticky Age column on mobile ─────────────────── */
 .gh-ms .ms-tbl-wrap {
-  padding: 12px 16px;
+  padding: 8px 0 24px;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 768px) {
+  .gh-ms .ms-tbl-wrap {
+    padding: 16px 32px 40px;
+  }
 }
 .gh-ms .ms-tbl {
   width: 100%;
+  min-width: 480px;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 12px;
+  font-size: 13px;
 }
 .gh-ms .ms-tbl th {
   text-align: left;
-  padding: 10px 10px;
+  padding: 12px 14px;
   font-weight: 500;
   color: var(--ms-light-muted);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   border-bottom: 1px solid var(--ms-surface);
+  background: #fff;
+  white-space: nowrap;
 }
 .gh-ms .ms-tbl td {
-  padding: 10px 10px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--ms-surface);
   font-variant-numeric: tabular-nums;
   transition: background 0.2s;
+  background: #fff;
+  white-space: nowrap;
 }
 .gh-ms .ms-tbl tr:hover td {
-  background: var(--ms-teal-glow);
+  background: rgba(0, 212, 170, 0.04);
 }
 .gh-ms .ms-tbl tr.ms-current td {
   background: rgba(0, 212, 170, 0.08);
   font-weight: 500;
 }
+/* Sticky Age column — required on mobile so user keeps their bearing
+ * while horizontally scrolling carrier columns. Desktop keeps it sticky
+ * too; it just rarely scrolls there. */
+.gh-ms .ms-tbl th:first-child,
+.gh-ms .ms-tbl td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  box-shadow: 1px 0 0 var(--ms-surface);
+}
+.gh-ms .ms-tbl tr:hover td:first-child {
+  background: rgba(0, 212, 170, 0.04);
+}
+.gh-ms .ms-tbl tr.ms-current td:first-child {
+  background: rgba(0, 212, 170, 0.12);
+}
 .gh-ms .ms-inc {
   color: var(--ms-danger);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
 }
 .gh-ms .ms-cheapest {
   color: var(--ms-teal);
   font-weight: 600;
-  font-size: 10px;
+  font-size: 11px;
 }
 
+/* ── Fallback / loading ─────────────────────────────────────────────── */
 .gh-ms .ms-fallback {
-  margin: 16px;
-  padding: 24px 20px;
-  background: var(--ms-surface);
+  margin: 24px 20px;
+  padding: 32px 24px;
+  background: var(--ms-glass);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid var(--ms-glass-border);
   border-radius: var(--ms-radius);
   text-align: center;
+  box-shadow: var(--ms-glass-shadow);
 }
 .gh-ms .ms-fallback-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
+  font-size: 36px;
+  margin-bottom: 10px;
 }
 .gh-ms .ms-fallback-title {
   font-weight: 600;
   color: var(--ms-navy);
-  font-size: 15px;
-  margin-bottom: 6px;
+  font-size: 16px;
+  margin-bottom: 8px;
 }
 .gh-ms .ms-fallback-body {
   font-size: 13px;
   color: var(--ms-muted);
-  line-height: 1.5;
+  line-height: 1.55;
+  max-width: 420px;
+  margin: 0 auto;
 }
 
 .gh-ms .ms-loading {
-  padding: 60px 20px;
+  padding: 80px 20px;
   text-align: center;
   color: var(--ms-light-muted);
   font-size: 13px;
