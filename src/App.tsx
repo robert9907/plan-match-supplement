@@ -36,7 +36,9 @@ export default function App() {
         <Route path="/embed/results" element={<Results />} />
         <Route path="/embed/apply" element={<Application />} />
         <Route path="/embed/submitted" element={<Handshake />} />
+        <Route path="/" element={<Navigate to="/embed/about" replace />} />
         <Route path="/embed" element={<Navigate to="/embed/about" replace />} />
+        <Route path="/embed/" element={<Navigate to="/embed/about" replace />} />
         <Route path="*" element={<Navigate to="/embed/about" replace />} />
       </Routes>
     </FlowProvider>

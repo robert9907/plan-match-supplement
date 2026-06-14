@@ -6,7 +6,7 @@
 // on flow.isOep: OEP users skip Meds + Health straight to Results (same
 // bypass About.tsx implements), everyone else continues to Meds.
 
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useFlow } from '../context/FlowContext';
 import { stateForZip } from '../lib/medsupRates';
 import { BackRow, Frame } from './Frame';
@@ -15,6 +15,13 @@ import { RateProjectionWidget } from './RateProjectionWidget';
 export function RateProjection() {
   const navigate = useNavigate();
   const flow = useFlow();
+
+  // Guard: this page seeds the widget from flow state set in About. If the
+  // user lands here without going through About (bookmark, refresh, external
+  // link, stale URL), redirect to About so they enter the funnel from step 1.
+  if (flow.zip.length !== 5 || !flow.gender) {
+    return <Navigate to="/embed/about" replace />;
+  }
 
   const state = stateForZip(flow.zip);
   const initialGender: 'M' | 'F' = flow.gender === 'Female' ? 'F' : 'M';
