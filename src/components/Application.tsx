@@ -4,6 +4,7 @@ import { formatDob, useFlow } from '../context/FlowContext';
 import { heightLabel } from '../lib/buildChart';
 import { submitApplication } from '../lib/submitApplication';
 import { BackRow, Frame } from './Frame';
+import { MbiCardScan, type MbiScanResult } from './MbiCardScan';
 
 type Stage = 'review' | 'details' | 'sign';
 
@@ -305,22 +306,6 @@ function isValidDate(s: string): boolean {
   return dt.getUTCFullYear() === yy && dt.getUTCMonth() === mm - 1 && dt.getUTCDate() === dd;
 }
 
-// A plausible MBI that passes the CMS regex in /api/enroll. Used as the
-// mock "scan result" until real OCR is wired in.
-function mockScannedMbi(): string {
-  const alpha = 'ACDEFGHJKMNPQRTVWXY';
-  const alphanum = 'ACDEFGHJKMNPQRTVWXY0123456789';
-  const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
-  const digit = () => String(Math.floor(Math.random() * 9) + 1);
-  return (
-    digit() + pick(alpha) + pick(alphanum) + digit() +
-    pick(alpha) + pick(alphanum) + digit() +
-    pick(alpha) + pick(alpha) + digit() + digit()
-  );
-}
-
-const MBI_SCAN_STAGES = ['Hold steady…', 'Reading Medicare ID…', 'Captured'];
-
 function DetailsStage({ onNext, onBack }: DetailsStageProps) {
   const flow = useFlow();
   const app = flow.application;
@@ -336,53 +321,19 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── MBI camera scan (mock) ──────────────────────────────────────
-  // The sheet captures three fields at once — MBI + Part A effective
-  // + Part B effective — matching the three pieces of info printed
-  // on a Medicare card. Today the MBI is the mock OCR output and the
-  // dates are placeholder values the user edits; real OCR will read
-  // all three from a single photo.
-  const [scanOpen, setScanOpen] = useState(false);
-  const [scanStage, setScanStage] = useState(0);
-  const [scanResult, setScanResult] = useState<string | null>(null);
-  const [scanPartA, setScanPartA] = useState('');
-  const [scanPartB, setScanPartB] = useState('');
-
-  useEffect(() => {
-    if (!scanOpen) return;
-    setScanStage(0);
-    setScanResult(null);
-    const t1 = setTimeout(() => setScanStage(1), 900);
-    const t2 = setTimeout(() => setScanStage(2), 1800);
-    const t3 = setTimeout(() => {
-      setScanResult(mockScannedMbi());
-      // Seed placeholder dates the user can edit. If the applicant has
-      // already typed dates on the form, preserve those — otherwise fall
-      // back to a plausible Medicare start date (Jun 1, 2023).
-      setScanPartA(app.partAEffective || '06/01/2023');
-      setScanPartB(app.partBEffective || '06/01/2023');
-    }, 2600);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scanOpen]);
-
-  const scanPartAValid = isValidDate(scanPartA);
-  const scanPartBValid = isValidDate(scanPartB);
-  const scanCanConfirm = !!scanResult && scanPartAValid && scanPartBValid;
-
-  const confirmScan = () => {
-    if (!scanCanConfirm || !scanResult) return;
+  // ─── MBI camera scan (Claude Vision) ─────────────────────────────
+  // <MbiCardScan> owns the entire flow: viewfinder → shutter →
+  // POST /api/scan-mbi → confirm sheet → onConfirm callback. The
+  // server returns month/year separately; we compose the MM/DD/YYYY
+  // string enroll.ts expects (regex at api/enroll.ts:328 is strictly
+  // /^(\d{2})\/\d{2}\/(\d{4})$/ — day digits are captured but ignored,
+  // so "01" is the safe default).
+  const handleScanConfirm = (r: MbiScanResult) => {
     flow.updateApplication({
-      mbi: formatMBI(scanResult),
-      partAEffective: scanPartA,
-      partBEffective: scanPartB,
+      mbi: formatMBI(r.mbi),
+      partAEffective: `${r.partAMonth}/01/${r.partAYear}`,
+      partBEffective: `${r.partBMonth}/01/${r.partBYear}`,
     });
-    setScanOpen(false);
-    setScanResult(null);
   };
 
   // ─── Validation ──────────────────────────────────────────────────
@@ -438,18 +389,7 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
 
       <div className="sec-label">Medicare Beneficiary Identifier (MBI)</div>
 
-      <button className="scan-card-btn" onClick={() => setScanOpen(true)} type="button">
-        <span className="scan-card-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <rect x="2" y="4" width="20" height="16" rx={2} />
-            <circle cx="12" cy="12" r={3} />
-          </svg>
-        </span>
-        <span className="scan-card-label">
-          <span className="scan-card-title">Scan your Medicare card</span>
-          <span className="scan-card-sub">Fastest — we'll read the MBI from your card</span>
-        </span>
-      </button>
+      <MbiCardScan onConfirm={handleScanConfirm} className="scan-card-btn" />
 
       <div className="scan-or">or type it manually</div>
 
@@ -589,73 +529,6 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
         </div>
       )}
 
-      {scanOpen && (
-        <div className="scan-overlay" role="dialog" aria-label="Medicare card scanner">
-          <button className="scan-close" onClick={() => setScanOpen(false)} type="button">
-            Cancel
-          </button>
-          <div className="scan-frame card">
-            <div className="scan-sweep" />
-          </div>
-          <div className="scan-status">
-            {scanResult ? 'Captured' : MBI_SCAN_STAGES[scanStage]}
-          </div>
-
-          {scanResult && (
-            <div className="scan-sheet" role="dialog" aria-label="Confirm detected card details">
-              <div className="scan-sheet-handle" />
-              <div className="scan-sheet-title">Detected from your card</div>
-              <div className="scan-sheet-mbi">{formatMBI(scanResult)}</div>
-
-              <div className="scan-sheet-field-label">Part A effective</div>
-              <input
-                className="scan-sheet-input mono"
-                placeholder="06/01/2023"
-                inputMode="numeric"
-                maxLength={10}
-                value={scanPartA}
-                onChange={(e) => setScanPartA(formatDate(e.target.value))}
-              />
-              <div className="scan-sheet-field-label" style={{ marginTop: 10 }}>
-                Part B effective
-              </div>
-              <input
-                className="scan-sheet-input mono"
-                placeholder="06/01/2023"
-                inputMode="numeric"
-                maxLength={10}
-                value={scanPartB}
-                onChange={(e) => setScanPartB(formatDate(e.target.value))}
-              />
-
-              <div className="scan-sheet-hint">
-                Double-check these against your card. You can still edit them on the form.
-              </div>
-              <button
-                className="btn"
-                onClick={confirmScan}
-                disabled={!scanCanConfirm}
-                type="button"
-              >
-                Confirm &amp; fill application →
-              </button>
-              <button
-                className="scan-sheet-retry"
-                onClick={() => {
-                  setScanResult(null);
-                  setScanStage(0);
-                  // re-trigger the scan animation
-                  setScanOpen(false);
-                  setTimeout(() => setScanOpen(true), 50);
-                }}
-                type="button"
-              >
-                Scan again
-              </button>
-            </div>
-          )}
-        </div>
-      )}
     </Frame>
   );
 }
