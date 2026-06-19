@@ -13,6 +13,7 @@
 //     remains available as the fallback.
 
 import { useEffect, useState } from 'react';
+import { useAutoAdvance } from '../hooks/useAutoAdvance';
 import { useCameraStream } from '../hooks/useCameraStream';
 import { useMbiScan } from '../hooks/useMbiScan';
 import { normalizeMbi } from '../lib/mbiValidation';
@@ -92,6 +93,10 @@ export function MbiCardScan({ onConfirm, className }: Props) {
   const [partAYear, setPartAYear] = useState('');
   const [partBMonth, setPartBMonth] = useState('');
   const [partBYear, setPartBYear] = useState('');
+
+  // Auto-advance chain for the MBI + Part A/B fields in the bottom sheet.
+  // Programmatic Vision-scan fills don't trigger advancement (no onChange).
+  const { register, maybeAdvance } = useAutoAdvance();
 
   // True after we've called /api/scan-mbi and Vision returned low
   // confidence (or failed entirely). Drives the "Couldn't read your
@@ -263,7 +268,13 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                   autoCapitalize="characters"
                   placeholder="1ABC-DE2-FG34"
                   value={formatForDisplay(mbi)}
-                  onChange={(e) => setMbi(sanitizeMbiInput(e.target.value))}
+                  ref={register('mbi')}
+                  onChange={(e) => {
+                    const next = sanitizeMbiInput(e.target.value);
+                    // Normalized MBI is 11 chars (no dashes); compare raw lengths.
+                    maybeAdvance(mbi, next, 11, 'partAMonth');
+                    setMbi(next);
+                  }}
                   aria-label="MBI"
                   style={{ fontSize: 18, marginTop: 6, letterSpacing: '0.08em' }}
                 />
@@ -279,7 +290,12 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                       inputMode="numeric"
                       maxLength={2}
                       value={partAMonth}
-                      onChange={(e) => setPartAMonth(sanitizeMonth(e.target.value))}
+                      ref={register('partAMonth')}
+                      onChange={(e) => {
+                        const next = sanitizeMonth(e.target.value);
+                        maybeAdvance(partAMonth, next, 2, 'partAYear');
+                        setPartAMonth(next);
+                      }}
                       aria-label="Part A month"
                     />
                     <input
@@ -288,7 +304,12 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                       inputMode="numeric"
                       maxLength={4}
                       value={partAYear}
-                      onChange={(e) => setPartAYear(sanitizeYear(e.target.value))}
+                      ref={register('partAYear')}
+                      onChange={(e) => {
+                        const next = sanitizeYear(e.target.value);
+                        maybeAdvance(partAYear, next, 4, 'partBMonth');
+                        setPartAYear(next);
+                      }}
                       aria-label="Part A year"
                     />
                   </div>
@@ -302,7 +323,12 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                       inputMode="numeric"
                       maxLength={2}
                       value={partBMonth}
-                      onChange={(e) => setPartBMonth(sanitizeMonth(e.target.value))}
+                      ref={register('partBMonth')}
+                      onChange={(e) => {
+                        const next = sanitizeMonth(e.target.value);
+                        maybeAdvance(partBMonth, next, 2, 'partBYear');
+                        setPartBMonth(next);
+                      }}
                       aria-label="Part B month"
                     />
                     <input
@@ -311,6 +337,7 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                       inputMode="numeric"
                       maxLength={4}
                       value={partBYear}
+                      ref={register('partBYear')}
                       onChange={(e) => setPartBYear(sanitizeYear(e.target.value))}
                       aria-label="Part B year"
                     />

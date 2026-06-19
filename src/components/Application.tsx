@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDob, useFlow } from '../context/FlowContext';
+import { useAutoAdvance } from '../hooks/useAutoAdvance';
 import { heightLabel } from '../lib/buildChart';
 import { submitApplication } from '../lib/submitApplication';
 import { BackRow, Frame } from './Frame';
@@ -309,6 +310,7 @@ function isValidDate(s: string): boolean {
 function DetailsStage({ onNext, onBack }: DetailsStageProps) {
   const flow = useFlow();
   const app = flow.application;
+  const { register, maybeAdvance } = useAutoAdvance();
 
   // Pre-fill ZIP from the About screen's flow.zip. The input previously
   // *displayed* flow.zip via an `||` fallback but never wrote it to app.zip,
@@ -402,7 +404,12 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
           autoCorrect="off"
           spellCheck={false}
           value={app.mbi}
-          onChange={(e) => flow.updateApplication({ mbi: formatMBI(e.target.value) })}
+          ref={register('mbi')}
+          onChange={(e) => {
+            const v = formatMBI(e.target.value);
+            maybeAdvance(app.mbi, v, 13, 'securityPin');
+            flow.updateApplication({ mbi: v });
+          }}
         />
         <div className="medicare-id-hint">
           Find this on your red, white, and blue Medicare card. It's 11 characters — letters and numbers.
@@ -418,9 +425,12 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
         placeholder="••••"
         maxLength={4}
         value={app.securityPin}
-        onChange={(e) =>
-          flow.updateApplication({ securityPin: e.target.value.replace(/\D/g, '').slice(0, 4) })
-        }
+        ref={register('securityPin')}
+        onChange={(e) => {
+          const v = e.target.value.replace(/\D/g, '').slice(0, 4);
+          maybeAdvance(app.securityPin, v, 4, 'partAEffective');
+          flow.updateApplication({ securityPin: v });
+        }}
       />
       <div className="fi-hint">
         This PIN protects your Medicare ID. You'll need it if you call us about this application.
@@ -435,7 +445,12 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
             placeholder="06/01/2026"
             maxLength={10}
             value={app.partAEffective}
-            onChange={(e) => flow.updateApplication({ partAEffective: formatDate(e.target.value) })}
+            ref={register('partAEffective')}
+            onChange={(e) => {
+              const v = formatDate(e.target.value);
+              maybeAdvance(app.partAEffective, v, 10, 'partBEffective');
+              flow.updateApplication({ partAEffective: v });
+            }}
           />
         </div>
         <div style={{ flex: 1 }}>
@@ -445,7 +460,12 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
             placeholder="06/01/2026"
             maxLength={10}
             value={app.partBEffective}
-            onChange={(e) => flow.updateApplication({ partBEffective: formatDate(e.target.value) })}
+            ref={register('partBEffective')}
+            onChange={(e) => {
+              const v = formatDate(e.target.value);
+              maybeAdvance(app.partBEffective, v, 10, 'phone');
+              flow.updateApplication({ partBEffective: v });
+            }}
           />
         </div>
       </div>
@@ -458,7 +478,12 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
         inputMode="tel"
         maxLength={14}
         value={app.phone}
-        onChange={(e) => flow.updateApplication({ phone: formatPhone(e.target.value) })}
+        ref={register('phone')}
+        onChange={(e) => {
+          const v = formatPhone(e.target.value);
+          maybeAdvance(app.phone, v, 14, 'email');
+          flow.updateApplication({ phone: v });
+        }}
       />
       <div className="fi-label" style={{ marginTop: 10 }}>
         Email
@@ -468,6 +493,7 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
         placeholder="james@email.com"
         type="email"
         value={app.email}
+        ref={register('email')}
         onChange={(e) => flow.updateApplication({ email: e.target.value })}
       />
       <div className="fi-label" style={{ marginTop: 10 }}>
@@ -494,7 +520,12 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
             placeholder="NC"
             maxLength={2}
             value={app.state}
-            onChange={(e) => flow.updateApplication({ state: e.target.value.toUpperCase() })}
+            ref={register('state')}
+            onChange={(e) => {
+              const v = e.target.value.toUpperCase();
+              maybeAdvance(app.state, v, 2, 'zip');
+              flow.updateApplication({ state: v });
+            }}
           />
         </div>
         <div style={{ flex: 1 }}>
@@ -504,6 +535,7 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
             inputMode="numeric"
             maxLength={5}
             value={app.zip}
+            ref={register('zip')}
             onChange={(e) =>
               flow.updateApplication({ zip: e.target.value.replace(/\D/g, '').slice(0, 5) })
             }
