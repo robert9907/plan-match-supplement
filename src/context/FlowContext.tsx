@@ -53,6 +53,9 @@ export interface FlowState {
   // Meds
   meds: MedItem[];
 
+  // Providers (no networks for supplements — collected for file only)
+  providers: Array<{ name: string; npi?: string }>;
+
   // Health + build
   health: HealthAnswers;
   heightIn: number | null;
@@ -76,6 +79,9 @@ interface FlowContextValue extends FlowState {
   addMed: (m: MedItem) => void;
   removeMed: (index: number) => void;
   setMeds: (m: MedItem[]) => void;
+  addProvider: (p: { name: string; npi?: string }) => void;
+  removeProvider: (index: number) => void;
+  setProviders: (p: Array<{ name: string; npi?: string }>) => void;
   setHealth: (updater: (prev: HealthAnswers) => HealthAnswers) => void;
   setHeight: (inches: number | null) => void;
   setWeight: (lbs: number | null) => void;
@@ -144,6 +150,7 @@ const EMPTY_STATE: FlowState = {
   tobacco: null,
   zip: '',
   meds: [],
+  providers: [],
   health: emptyHealthAnswers(),
   heightIn: null,
   weightLbs: null,
@@ -178,6 +185,22 @@ export function FlowProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, meds: s.meds.filter((_, i) => i !== index) }));
   }, []);
   const setMeds = useCallback((meds: MedItem[]) => setState((s) => ({ ...s, meds })), []);
+
+  const addProvider = useCallback((p: { name: string; npi?: string }) => {
+    setState((s) => {
+      const name = p.name.trim();
+      if (!name) return s;
+      if (s.providers.some((x) => x.name.toLowerCase() === name.toLowerCase())) return s;
+      return { ...s, providers: [...s.providers, { ...p, name }] };
+    });
+  }, []);
+  const removeProvider = useCallback((index: number) => {
+    setState((s) => ({ ...s, providers: s.providers.filter((_, i) => i !== index) }));
+  }, []);
+  const setProviders = useCallback(
+    (providers: Array<{ name: string; npi?: string }>) => setState((s) => ({ ...s, providers })),
+    [],
+  );
 
   const setHealth = useCallback(
     (updater: (prev: HealthAnswers) => HealthAnswers) =>
@@ -230,6 +253,9 @@ export function FlowProvider({ children }: { children: ReactNode }) {
     addMed,
     removeMed,
     setMeds,
+    addProvider,
+    removeProvider,
+    setProviders,
     setHealth,
     setHeight,
     setWeight,

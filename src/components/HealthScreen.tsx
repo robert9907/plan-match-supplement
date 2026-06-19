@@ -91,8 +91,8 @@ export function HealthScreen() {
 
   return (
     <Frame step={4}>
-      <BackRow onClick={() => navigate('/embed/meds')} />
-      <div className="step-label">Step 4 of 5 · Health screen</div>
+      <BackRow onClick={() => navigate('/embed/providers')} />
+      <div className="step-label">Step 5 of 6 · Health screen</div>
       <h1 className="headline">
         Quick health <em>check.</em>
       </h1>

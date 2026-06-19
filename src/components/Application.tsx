@@ -224,6 +224,26 @@ function ReviewStage({ onNext, onBack, planLetter, rateRange, rateClassName, car
 
       <div className="prefill-card">
         <div className="prefill-header">
+          <span className="prefill-title">Providers</span>
+          <span className="prefill-badge">✓ Pre-filled</span>
+        </div>
+        {flow.providers.length === 0 ? (
+          <div className="prefill-row">
+            <span className="prefill-label">None reported</span>
+            <span className="prefill-value">—</span>
+          </div>
+        ) : (
+          flow.providers.map((p, i) => (
+            <div key={`${p.name}-${i}`} className="prefill-row">
+              <span className="prefill-label">{p.name}</span>
+              <span className="prefill-value">{p.npi ? `NPI ${p.npi}` : 'On file'}</span>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="prefill-card">
+        <div className="prefill-header">
           <span className="prefill-title">Health questions</span>
           <span className="prefill-badge">✓ Pre-filled</span>
         </div>

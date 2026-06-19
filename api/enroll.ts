@@ -83,7 +83,7 @@ interface EnrollPayload {
     clusterCounts?: Record<string, number>;
     comboFlags?: string[];
     escalationPattern?: string | null;
-    providers?: Array<{ name: string }>;
+    providers?: Array<{ name: string; npi?: string }>;
   };
 }
 
@@ -456,15 +456,23 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
 
   // ─── leads · always insert ──────────────────────────────────────────
   try {
-    const medicationNames = (p.context?.medications ?? [])
-      .map((m) => {
-        if (!m?.name?.trim()) return null;
-        const parts = [m.name.trim()];
-        if (m.dose?.trim()) parts.push(m.dose.trim());
-        if (m.statusText?.trim()) parts.push(m.statusText.trim());
-        return parts.join(' · ');
-      })
-      .filter((s): s is string => !!s);
+    // Send full medication objects so AgentBase can access .name, .dose, etc.
+    // Previous code flattened these to strings which broke CRM rendering.
+    const medicationObjects = (p.context?.medications ?? [])
+      .filter((m) => m?.name?.trim())
+      .map((m) => ({
+        name: m.name.trim(),
+        dose: m.dose?.trim() || null,
+        status: m.status || null,
+        statusText: m.statusText?.trim() || null,
+      }));
+
+    const providerObjects = (p.context?.providers ?? [])
+      .filter((pr) => pr?.name?.trim())
+      .map((pr) => ({
+        name: pr.name.trim(),
+        ...(pr.npi ? { npi: pr.npi } : {}),
+      }));
 
     const leadRow = {
       first_name: p.firstName,
@@ -498,12 +506,12 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
         part_a_effective: p.partAEffective ?? null,
         part_b_effective: p.partBEffective ?? null,
         enrollment_id: submissionId,
-        medications: medicationNames,
+        medications: medicationObjects,
         health_answers: p.context?.healthAnswers ?? {},
         cluster_counts: p.context?.clusterCounts ?? {},
         combo_flags: p.context?.comboFlags ?? [],
         escalation_pattern: p.context?.escalationPattern ?? null,
-        providers: p.context?.providers ?? [],
+        providers: providerObjects,
       },
     };
     const leadResp = await fetch(`${base}/rest/v1/leads`, {

@@ -250,7 +250,7 @@ export function Results() {
     return (
       <Frame step={5}>
         <BackRow onClick={() => navigate('/embed/about')} />
-        <div className="step-label">Step 5 of 5 · Your results</div>
+        <div className="step-label">Step 6 of 6 · Your results</div>
         {stale ? (
           <>
             <h1 className="headline">Let's start from the beginning.</h1>
@@ -290,7 +290,7 @@ export function Results() {
   return (
     <Frame step={5}>
       <BackRow onClick={() => navigate(backTarget)} />
-      <div className="step-label">Step 5 of 5 · Your results</div>
+      <div className="step-label">Step 6 of 6 · Your results</div>
 
       <header className="results-header">
         <div className="results-header-row">

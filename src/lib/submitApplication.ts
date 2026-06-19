@@ -84,7 +84,10 @@ export async function submitApplication(flow: FlowState, age: number): Promise<S
       comboFlags: flow.scoring.comboFlags,
       escalationPattern:
         flow.scoring.comboFlags.find((f) => f.toLowerCase().includes('escalation')) ?? null,
-      providers: [] as Array<{ name: string }>,
+      providers: flow.providers.map((p) => ({
+        name: p.name,
+        ...(p.npi ? { npi: p.npi } : {}),
+      })),
     },
   };
 

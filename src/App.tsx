@@ -6,6 +6,7 @@ import { FlowProvider } from './context/FlowContext';
 import { Handshake } from './components/Handshake';
 import { HealthScreen } from './components/HealthScreen';
 import { Meds } from './components/Meds';
+import { Providers } from './components/Providers';
 import { RateProjection } from './components/RateProjection';
 import { Results } from './components/Results';
 
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/embed/about" element={<About />} />
         <Route path="/embed/rates" element={<RateProjection />} />
         <Route path="/embed/meds" element={<Meds />} />
+        <Route path="/embed/providers" element={<Providers />} />
         <Route path="/embed/health" element={<HealthScreen />} />
         <Route path="/embed/results" element={<Results />} />
         <Route path="/embed/apply" element={<Application />} />
