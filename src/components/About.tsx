@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFlow, type PromptReason } from '../context/FlowContext';
 import { prefetchRates } from '../lib/cmsPremiums';
+import { deriveLicensedStateOrUndefined } from '../lib/licensedStates';
 import { BackRow, Frame } from './Frame';
 import { MedigapExplainer } from './MedigapExplainer';
 
@@ -92,6 +93,14 @@ export function About() {
   const flow = useFlow();
   const [maDismissed, setMaDismissed] = useState(false);
 
+  // Rob is licensed in NC/TX/GA only. api/rates.ts:stateForZip silently
+  // defaults to NC for any unmapped prefix, which would otherwise surface
+  // NC carrier rates to an OOS consumer and feed a misrated application.
+  // Gate the Continue button here so the flow never starts for OOS ZIPs.
+  const licensedZipState =
+    flow.zip.length === 5 ? deriveLicensedStateOrUndefined(flow.zip) : undefined;
+  const unlicensed = flow.zip.length === 5 && licensedZipState === undefined;
+
   const canContinue =
     flow.prompt !== null &&
     flow.dob.month !== '' &&
@@ -99,7 +108,8 @@ export function About() {
     flow.dob.year !== '' &&
     flow.gender !== null &&
     flow.tobacco !== null &&
-    flow.zip.length === 5;
+    flow.zip.length === 5 &&
+    !unlicensed;
 
   const ageMessage = useMemo(() => {
     if (flow.age <= 0) return null;
@@ -275,6 +285,21 @@ export function About() {
         value={flow.zip}
         onChange={(e) => flow.setZip(e.target.value.replace(/\D/g, ''))}
       />
+
+      {unlicensed && (
+        <div className="info-callout" role="region" aria-label="Out-of-state notice">
+          <span className="info-icon">📍</span>
+          <span className="info-text">
+            <strong>We're not licensed in your state yet.</strong> Rob is currently
+            licensed to help Medicare Supplement applicants in North Carolina, Texas,
+            and Georgia. For Medigap in your state, call 1-800-MEDICARE
+            (1-800-633-4227, TTY: 1-877-486-2048) or visit{' '}
+            <a href="https://www.medicare.gov/" target="_blank" rel="noopener noreferrer">
+              medicare.gov
+            </a>.
+          </span>
+        </div>
+      )}
 
       <button className="btn" onClick={onContinue} disabled={!canContinue} type="button">
         See your Plan G rate projection →
