@@ -11,6 +11,7 @@
 // supplement_applications row is the authoritative record.
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { applyCors } from './_lib/cors';
 
 // CMS Medicare Beneficiary Identifier — 11 chars, digits 1-9 in position 1,
 // no S/L/O/I/B/Z in alpha positions (same regex as plan-match).
@@ -95,8 +96,8 @@ interface ValidationError {
 // ─── Handler ────────────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  applyCors(req, res);
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     return res.status(204).end();

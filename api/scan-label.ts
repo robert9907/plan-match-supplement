@@ -19,6 +19,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
+import { applyCors } from './_lib/cors';
 
 export const config = {
   api: {
@@ -56,8 +57,8 @@ interface LabelResult {
   confidence: 'high' | 'medium' | 'low';
 }
 
-function setCors(res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+function setCors(req: VercelRequest, res: VercelResponse) {
+  applyCors(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
@@ -133,7 +134,7 @@ function anthropic(): Anthropic {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  setCors(res);
+  setCors(req, res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST required' });
 
