@@ -14,6 +14,7 @@ import { Building } from './Building';
 import { PriceSpectrum } from './PriceSpectrum';
 import { CompareModal } from './CompareModal';
 import { BackRow, Frame } from './Frame';
+import { MedigapDisclosures } from './MedigapDisclosures';
 
 // Number of ranked picks the user can drop into the top-3 slot row.
 const SLOT_COUNT = 3;
@@ -431,6 +432,13 @@ export function Results() {
         We do not offer every plan available in your area. Contact Medicare.gov or 1-800-MEDICARE for a complete listing.
         This tool does not provide medical advice. Medicare Supplement plans do not cover prescription drugs.
       </div>
+
+      {/* Guaranteed Issue Rights enumeration + state-specific rating
+          methodology explainer — required by CMS Medigap Guide §3 + 42
+          CFR § 403.205 (GI) and NAIC Model Act §13 (rating methodology).
+          Mounted on Results so the consumer sees them next to the rates
+          they're being asked to compare. */}
+      <MedigapDisclosures />
 
       <div className="results-footer-tel">
         <a href="tel:+18287613326">Questions? Call (828) 761-3326</a>
