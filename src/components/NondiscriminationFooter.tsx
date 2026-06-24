@@ -24,7 +24,28 @@ export function NondiscriminationFooter() {
         color: 'rgba(0,0,0,0.65)',
       }}
     >
-      <p style={{ margin: 0, fontWeight: 600 }}>Nondiscrimination Notice</p>
+      {/* Marketing-material attribution + CMS-not-reviewed clause. The
+          Supplement (Medigap) flow is independent-broker tooling — not
+          a CMS-reviewed plan-sponsor piece — so the data-sourcing and
+          "official information" pointer is required up-front. */}
+      <p style={{ margin: 0 }}>
+        This website is operated by GenerationHealth.me, a licensed
+        independent insurance agency (NPN 10447418). Plan details,
+        benefits, and costs shown are sourced from CMS public data and
+        are believed accurate but have not been reviewed or approved by
+        CMS or any Medicare plan. For official plan information, visit{' '}
+        <a
+          href="https://www.medicare.gov"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Medicare.gov
+        </a>{' '}
+        or call 1-800-MEDICARE (1-800-633-4227), 24 hours a day, 7 days
+        a week. TTY users call 1-877-486-2048.
+      </p>
+
+      <p style={{ margin: '12px 0 0', fontWeight: 600 }}>Nondiscrimination Notice</p>
       <p style={{ margin: '4px 0 0' }}>
         GenerationHealth.me complies with applicable Federal civil rights laws
         and does not discriminate on the basis of race, color, national origin,
