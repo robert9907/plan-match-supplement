@@ -108,6 +108,22 @@ export function Handshake() {
         </span>
       </div>
 
+      {/* W3 Fix 6: NAIC Medicare Supplement Insurance Minimum Standards
+          Model Act §16 requires disclosure that an Outline of Coverage
+          must be delivered no later than at policy delivery. Sits below
+          the payment block so the consumer sees both the next-step
+          payment flow and the carrier paperwork they should expect. */}
+      <div className="info-callout">
+        <span className="info-icon">📄</span>
+        <span className="info-text">
+          <strong>About your Outline of Coverage:</strong> {carrierName} will deliver an
+          Outline of Coverage to you no later than when your policy is delivered. The
+          Outline of Coverage summarizes your policy's benefits, limitations, and exclusions
+          — review it carefully and call Rob with any questions before your free-look period
+          ends.
+        </span>
+      </div>
+
       <a href="tel:+18287613326" className="call-rob-link">
         📞 Can't wait? Call (828) 761-3326
       </a>
