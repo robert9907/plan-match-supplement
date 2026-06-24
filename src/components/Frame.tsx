@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { NondiscriminationFooter } from './NondiscriminationFooter';
 
 interface FrameProps {
   /** Which step dot is current (1-5). Pass null for no dots. */
@@ -36,7 +37,10 @@ export function Frame({ step = 1, tag = 'MEDICARE · SUPPLEMENT', hideDots = fal
         )}
         <div className="topbar-tag">{tag}</div>
       </div>
-      <div className="scr">{children}</div>
+      <div className="scr">
+        {children}
+        <NondiscriminationFooter />
+      </div>
     </div>
   );
 }
