@@ -12,6 +12,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { applyCors } from './_lib/cors';
+import { encrypt, hashPin, maskMbi } from './_lib/crypto';
 
 // CMS Medicare Beneficiary Identifier — 11 chars, digits 1-9 in position 1,
 // no S/L/O/I/B/Z in alpha positions (same regex as plan-match).
@@ -270,8 +271,18 @@ async function persistToSupabase(p: EnrollPayload): Promise<string> {
     qualification_score: p.qualificationScore ?? null,
     rate_range_low: p.rateRangeLow ?? null,
     rate_range_high: p.rateRangeHigh ?? null,
-    mbi_number: cleanMbi,
-    security_pin: p.securityPin || null,
+    // W3 Fix 3: encrypt MBI + hash security PIN at rest. Migration
+    // 004_mbi_encryption.sql adds the new columns. The legacy mbi_number
+    // + security_pin columns are left in place for one OEP cycle so a
+    // backfill / rollback path stays open; new writes only populate the
+    // encrypted forms. HIPAA §164.312(a)(2)(iv); NIST SP 800-63B
+    // Appendix A.3.
+    mbi_number: null,
+    security_pin: null,
+    encrypted_mbi: cleanMbi ? encrypt(cleanMbi) : null,
+    mbi_last4: cleanMbi ? cleanMbi.slice(-4) : null,
+    mbi_masked: cleanMbi ? maskMbi(cleanMbi) : null,
+    pin_hash: p.securityPin ? hashPin(String(p.securityPin)) : null,
     part_a_effective: p.partAEffective ?? null,
     part_b_effective: p.partBEffective ?? null,
     dob_month: p.dobMonth || null,
@@ -499,8 +510,14 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
       age: p.age ?? null,
       source: 'plan_match_supplement',
       product: 'supplement',
-      medicare_id: cleanMbi || null,
-      security_pin: p.securityPin || null,
+      // W3 Fix 3: leads.context on AgentBase carries the same
+      // encrypted bundle as supplement_applications. The agent UI uses
+      // medicare_id_last4 + medicare_id_masked for caller verification;
+      // full MBI is decrypt-on-demand at carrier submission time.
+      medicare_id_encrypted: cleanMbi ? encrypt(cleanMbi) : null,
+      medicare_id_last4: cleanMbi ? cleanMbi.slice(-4) : null,
+      medicare_id_masked: cleanMbi ? maskMbi(cleanMbi) : null,
+      security_pin_hash: p.securityPin ? hashPin(String(p.securityPin)) : null,
       context: {
         carrier: p.carrier,
         plan_letter: p.planLetter,
