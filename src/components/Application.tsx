@@ -615,8 +615,13 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
       </>,
       <>
         I understand that <strong>this application is subject to underwriting</strong> and acceptance is not guaranteed.
-        My final premium will be determined by {carrierName} based on their underwriting review. I consent to being
-        contacted by Rob Simm via phone, text, or email regarding this application.
+        My final premium will be determined by {carrierName} based on their underwriting review.
+      </>,
+      <>
+        <strong>TCPA prior express written consent.</strong> By checking this box I expressly consent to receive
+        autodialed and/or prerecorded calls and text messages from <strong>Rob Simm / GenerationHealth (NPN #10447418)</strong> at
+        the number provided regarding my Medicare Supplement application. Consent is not a condition of purchase.
+        Msg frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help.
       </>,
     ],
     [carrierName],
@@ -671,7 +676,7 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
       <div className="sub-text">These authorizations are required by the carrier before your application can be submitted.</div>
 
       {authLines.map((line, i) => (
-        <div key={i} className="auth-check" onClick={() => flow.toggleAuthCheck(i as 0 | 1 | 2 | 3)}>
+        <div key={i} className="auth-check" onClick={() => flow.toggleAuthCheck(i as 0 | 1 | 2 | 3 | 4)}>
           <div className={`auth-checkbox${app.authChecks[i] ? ' checked' : ''}`} />
           <div className="auth-text">{line}</div>
         </div>

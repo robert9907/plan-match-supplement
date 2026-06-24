@@ -38,7 +38,14 @@ export interface ApplicationData {
   city: string;
   state: string;
   zip: string;
-  authChecks: [boolean, boolean, boolean, boolean];
+  // 5-tuple as of W2 Fix 4: indices 0-3 are the carrier underwriting
+  // authorizations; index 4 is the TCPA prior-express-written-consent
+  // block (split out of the prior composite #3 per FCC One-to-One
+  // Consent rule eff. 2025-01-27). 47 USC 227 + 47 CFR 64.1200(f)(9).
+  authChecks: [boolean, boolean, boolean, boolean, boolean];
+  /** ISO timestamp captured when authChecks[4] (TCPA) flipped true.
+   *  Burden-of-proof evidence; cleared back to null on untoggle. */
+  tcpaConsentAt: string | null;
   signedAt: string | null;
 }
 
@@ -88,7 +95,7 @@ interface FlowContextValue extends FlowState {
   setScoring: (s: ScoringResult) => void;
   selectCarrier: (c: CarrierResult, plan: 'G' | 'N') => void;
   updateApplication: (patch: Partial<ApplicationData>) => void;
-  toggleAuthCheck: (index: 0 | 1 | 2 | 3) => void;
+  toggleAuthCheck: (index: 0 | 1 | 2 | 3 | 4) => void;
   sign: () => void;
   age: number;
   isOep: boolean;
@@ -138,7 +145,8 @@ function emptyApplication(): ApplicationData {
     city: '',
     state: 'NC',
     zip: '',
-    authChecks: [false, false, false, false],
+    authChecks: [false, false, false, false, false],
+    tcpaConsentAt: null,
     signedAt: null,
   };
 }
@@ -223,11 +231,28 @@ export function FlowProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, application: { ...s.application, ...patch } }));
   }, []);
 
-  const toggleAuthCheck = useCallback((index: 0 | 1 | 2 | 3) => {
+  const toggleAuthCheck = useCallback((index: 0 | 1 | 2 | 3 | 4) => {
     setState((s) => {
-      const next = [...s.application.authChecks] as [boolean, boolean, boolean, boolean];
+      const next = [...s.application.authChecks] as [
+        boolean,
+        boolean,
+        boolean,
+        boolean,
+        boolean,
+      ];
       next[index] = !next[index];
-      return { ...s, application: { ...s.application, authChecks: next } };
+      // Stamp / clear the TCPA timestamp alongside the index-4 toggle.
+      // Burden-of-proof evidence under FCC One-to-One Consent rule.
+      const tcpaConsentAt =
+        index === 4
+          ? next[4]
+            ? new Date().toISOString()
+            : null
+          : s.application.tcpaConsentAt;
+      return {
+        ...s,
+        application: { ...s.application, authChecks: next, tcpaConsentAt },
+      };
     });
   }, []);
 

@@ -74,7 +74,15 @@ interface EnrollPayload {
   enrollmentPrompt?: string | null;
 
   // Auth + sig
-  authChecks: [boolean, boolean, boolean, boolean];
+  // 5-tuple as of W2 Fix 4. Index 4 is the TCPA prior-express-written-
+  // consent block (split out of the prior composite #3 per FCC One-to-One
+  // Consent rule eff. 2025-01-27). Older clients may still submit a
+  // 4-tuple — see validateBody for the back-compat path.
+  authChecks: [boolean, boolean, boolean, boolean] | [boolean, boolean, boolean, boolean, boolean];
+  /** ISO timestamp captured client-side at the moment authChecks[4]
+   *  flipped true. Burden-of-proof evidence under TCPA 47 USC 227 +
+   *  47 CFR 64.1200(f)(9). Optional so legacy clients can still submit. */
+  tcpaConsentAt?: string | null;
   signedAt: string | null;
 
   // Full screening context
@@ -146,8 +154,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 function validate(p: Partial<EnrollPayload>): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  if (!Array.isArray(p.authChecks) || p.authChecks.length !== 4 || p.authChecks.some((c) => c !== true)) {
-    errors.push({ field: 'authChecks', message: 'All four authorizations must be checked.' });
+  if (
+    !Array.isArray(p.authChecks) ||
+    (p.authChecks.length !== 4 && p.authChecks.length !== 5) ||
+    p.authChecks.some((c) => c !== true)
+  ) {
+    errors.push({
+      field: 'authChecks',
+      message: 'All authorizations must be checked.',
+    });
   }
   if (!p.signedAt) {
     errors.push({ field: 'signedAt', message: 'Electronic signature required.' });
