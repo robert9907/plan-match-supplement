@@ -599,6 +599,15 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Carrier authorizations (indices 0–3). The TCPA consent item that
+  // used to live at index 4 has been broken out into its own
+  // conspicuously-labelled block below — FCC One-to-One Consent rule
+  // (47 CFR 64.1200(f)(9), eff. 2025-01-27) requires TCPA consent to
+  // be "separately and conspicuously" identified, not bundled with
+  // other authorizations as a single composite click. The state
+  // plumbing in FlowContext keeps the index-4 slot for TCPA so
+  // tcpaConsentAt continues to stamp independently of the carrier
+  // auths; only the rendering has changed.
   const authLines = useMemo(
     () => [
       <>
@@ -616,12 +625,6 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
       <>
         I understand that <strong>this application is subject to underwriting</strong> and acceptance is not guaranteed.
         My final premium will be determined by {carrierName} based on their underwriting review.
-      </>,
-      <>
-        <strong>TCPA prior express written consent.</strong> By checking this box I expressly consent to receive
-        autodialed and/or prerecorded calls and text messages from <strong>Rob Simm / GenerationHealth (NPN #10447418)</strong> at
-        the number provided regarding my Medicare Supplement application. Consent is not a condition of purchase.
-        Msg frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help.
       </>,
     ],
     [carrierName],
@@ -676,11 +679,83 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
       <div className="sub-text">These authorizations are required by the carrier before your application can be submitted.</div>
 
       {authLines.map((line, i) => (
-        <div key={i} className="auth-check" onClick={() => flow.toggleAuthCheck(i as 0 | 1 | 2 | 3 | 4)}>
+        <div key={i} className="auth-check" onClick={() => flow.toggleAuthCheck(i as 0 | 1 | 2 | 3)}>
           <div className={`auth-checkbox${app.authChecks[i] ? ' checked' : ''}`} />
           <div className="auth-text">{line}</div>
         </div>
       ))}
+
+      {/* TCPA consent — separately + conspicuously identified per FCC
+          One-to-One Consent rule (47 CFR 64.1200(f)(9), eff. 2025-01-27).
+          Visually distinct from the carrier auths above (own heading,
+          background tint, padding) so a single composite click cannot
+          be construed as TCPA consent. The toggle still hits index 4
+          to keep tcpaConsentAt logging in FlowContext working. */}
+      <div
+        style={{
+          marginTop: 20,
+          padding: '14px 16px',
+          background: 'rgba(13,47,94,0.04)',
+          border: '1px solid rgba(13,47,94,0.12)',
+          borderRadius: 10,
+        }}
+      >
+        <div
+          className="sec-label"
+          style={{
+            margin: 0,
+            color: '#0d2f5e',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+          }}
+        >
+          TCPA Communication Consent
+        </div>
+        <div
+          className="sub-text"
+          style={{ marginTop: 4, marginBottom: 10 }}
+        >
+          Required separately by the FCC One-to-One Consent rule. Not a
+          condition of purchase.
+        </div>
+        <div
+          className="auth-check"
+          onClick={() => flow.toggleAuthCheck(4)}
+          style={{ marginTop: 0 }}
+        >
+          <div
+            className={`auth-checkbox${app.authChecks[4] ? ' checked' : ''}`}
+          />
+          <div className="auth-text">
+            I expressly consent to be contacted by{' '}
+            <strong>Rob Simm / GenerationHealth.me (NPN #10447418)</strong>{' '}
+            regarding Medicare Supplement insurance options via
+            autodialed and/or prerecorded calls, text messages, and
+            email at the contact information I have provided. Msg
+            frequency varies. Msg &amp; data rates may apply. Reply STOP
+            to opt out, HELP for help.
+          </div>
+        </div>
+        {app.tcpaConsentAt && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 11,
+              color: 'rgba(13,47,94,0.55)',
+            }}
+          >
+            Consent recorded{' '}
+            {new Date(app.tcpaConsentAt).toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
+          </div>
+        )}
+      </div>
 
       <div className="sec-label" style={{ marginTop: 24 }}>
         Electronic signature
