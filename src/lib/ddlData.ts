@@ -23,6 +23,18 @@ export type DdlCluster =
   | 'autoimmune'
   | 'renal'
   | 'transplant'
+  /** Endothelin/PDE5/prostacyclin therapies for pulmonary arterial
+   * hypertension — universal-decline class. Kept distinct from
+   * 'respiratory' (COPD/asthma) so combo math doesn't conflate them. */
+  | 'pulmonary'
+  /** HIV / antiretroviral therapy — universal-decline class. */
+  | 'hiv'
+  /** Hepatitis C direct-acting antivirals. Carriers diverge on
+   * post-SVR applicants; the entry's note carries the caveat. */
+  | 'hepatitis'
+  /** Growth-hormone replacement, anti-amyloid Alzheimer agents,
+   * other endocrine specialty drugs that don't fit elsewhere. */
+  | 'endocrine'
   /** Gabapentin / Lyrica / Cymbalta — only flag in combination with
    * diabetes, where underwriters infer diabetic neuropathy. Standalone
    * they have many benign uses (fibromyalgia, sciatica, depression). */
@@ -157,11 +169,149 @@ export const DDL: Record<string, DdlEntry> = {
   // Mental health — severe
   abilify: { condition: 'Schizophrenia/Bipolar', declineAll: true, cluster: 'mental' },
   depakote: { condition: 'Bipolar', declineAll: true, cluster: 'mental' },
-  clozaril: { condition: 'Schizophrenia', declineAll: true, cluster: 'mental' },
+  clozaril: {
+    condition: 'Treatment-resistant schizophrenia',
+    declineAll: true,
+    cluster: 'mental',
+    note: 'Universal decline across all carriers — indicates severe psychiatric condition',
+  },
 
-  // Transplant — universal decline
-  cellcept: { condition: 'Organ transplant', declineAll: true, cluster: 'transplant' },
-  tacrolimus: { condition: 'Organ transplant', declineAll: true, cluster: 'transplant' },
+  // Transplant / anti-rejection — universal decline. tacrolimus +
+  // cellcept land here for completeness alongside the broader rejection
+  // ladder; carriers treat every entry below as a knockout regardless
+  // of which organ.
+  cellcept: { condition: 'Organ transplant / anti-rejection', declineAll: true, cluster: 'transplant' },
+  tacrolimus: { condition: 'Organ transplant / anti-rejection', declineAll: true, cluster: 'transplant' },
+  cyclosporine: { condition: 'Organ transplant / anti-rejection', declineAll: true, cluster: 'transplant' },
+  mycophenolate: { condition: 'Organ transplant / anti-rejection', declineAll: true, cluster: 'transplant' },
+  sirolimus: { condition: 'Organ transplant / anti-rejection', declineAll: true, cluster: 'transplant' },
+  everolimus: { condition: 'Organ transplant / anti-rejection', declineAll: true, cluster: 'transplant' },
+  prograf: { condition: 'Organ transplant / anti-rejection', declineAll: true, cluster: 'transplant' },
+  neoral: { condition: 'Organ transplant / anti-rejection', declineAll: true, cluster: 'transplant' },
+  rapamune: { condition: 'Organ transplant / anti-rejection', declineAll: true, cluster: 'transplant' },
+
+  // Pulmonary arterial hypertension — endothelin / PDE5 / prostacyclin
+  // class. Universal decline because the diagnosis itself (PAH, WHO
+  // Group 1) is a knockout independent of which agent. NOTE: sildenafil
+  // and tadalafil are intentionally NOT in this list. At standard
+  // 20–100 mg doses they treat ED / BPH and are non-declinable; only
+  // PAH-strength dosing (Revatio 20 mg TID, Adcirca 40 mg QD)
+  // indicates PAH. The first-word DDL lookup can't distinguish dose,
+  // so flagging the ingredient would knock out every Viagra/Cialis
+  // user — wrong direction for false positives. The PAH cluster catches
+  // anyone whose med list contains a real pulmonary-only agent.
+  bosentan: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  ambrisentan: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  macitentan: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  riociguat: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  treprostinil: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  epoprostenol: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  opsumit: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  tracleer: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  letairis: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  uptravi: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  orenitram: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  veletri: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+  flolan: { condition: 'Pulmonary arterial hypertension', declineAll: true, cluster: 'pulmonary' },
+
+  // HIV / antiretroviral therapy — universal decline across all major
+  // Medigap carriers. Combination single-tablet regimens dominate; the
+  // first-word brand match catches each.
+  biktarvy: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  descovy: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  truvada: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  genvoya: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  odefsey: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  triumeq: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  dovato: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  cabenuva: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  juluca: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  symtuza: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  complera: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  atripla: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+  stribild: { condition: 'HIV/AIDS (antiretroviral therapy)', declineAll: true, cluster: 'hiv' },
+
+  // Hepatitis C direct-acting antivirals. Active treatment is a
+  // universal decline. Post-SVR (cured) applicants who can produce a
+  // documented SVR12 may qualify with select carriers — carrier-
+  // dependent — so the note flags this for the broker to chase, but
+  // the default ranking treats the drug as a knockout.
+  harvoni: {
+    condition: 'Hepatitis C (DAA therapy)',
+    declineAll: true,
+    cluster: 'hepatitis',
+    note: 'Post-SVR (cured) applicants may qualify with documented SVR12 — carrier-dependent',
+  },
+  epclusa: {
+    condition: 'Hepatitis C (DAA therapy)',
+    declineAll: true,
+    cluster: 'hepatitis',
+    note: 'Post-SVR (cured) applicants may qualify with documented SVR12 — carrier-dependent',
+  },
+  mavyret: {
+    condition: 'Hepatitis C (DAA therapy)',
+    declineAll: true,
+    cluster: 'hepatitis',
+    note: 'Post-SVR (cured) applicants may qualify with documented SVR12 — carrier-dependent',
+  },
+  vosevi: {
+    condition: 'Hepatitis C (DAA therapy)',
+    declineAll: true,
+    cluster: 'hepatitis',
+    note: 'Post-SVR (cured) applicants may qualify with documented SVR12 — carrier-dependent',
+  },
+  zepatier: {
+    condition: 'Hepatitis C (DAA therapy)',
+    declineAll: true,
+    cluster: 'hepatitis',
+    note: 'Post-SVR (cured) applicants may qualify with documented SVR12 — carrier-dependent',
+  },
+  sovaldi: {
+    condition: 'Hepatitis C (DAA therapy)',
+    declineAll: true,
+    cluster: 'hepatitis',
+    note: 'Post-SVR (cured) applicants may qualify with documented SVR12 — carrier-dependent',
+  },
+
+  // Growth hormone replacement (adult). Universal decline — adult-
+  // onset GHD itself is the knockout; carriers don't ladder this.
+  somatropin: { condition: 'Growth hormone deficiency (adult)', declineAll: true, cluster: 'endocrine' },
+  genotropin: { condition: 'Growth hormone deficiency (adult)', declineAll: true, cluster: 'endocrine' },
+  norditropin: { condition: 'Growth hormone deficiency (adult)', declineAll: true, cluster: 'endocrine' },
+  humatrope: { condition: 'Growth hormone deficiency (adult)', declineAll: true, cluster: 'endocrine' },
+  saizen: { condition: 'Growth hormone deficiency (adult)', declineAll: true, cluster: 'endocrine' },
+  omnitrope: { condition: 'Growth hormone deficiency (adult)', declineAll: true, cluster: 'endocrine' },
+  nutropin: { condition: 'Growth hormone deficiency (adult)', declineAll: true, cluster: 'endocrine' },
+
+  // Anti-amyloid Alzheimer therapy. New class as of 2023 — both donanemab
+  // (Kisunla) and lecanemab (Leqembi) are universal decline because the
+  // confirmed early-AD diagnosis they require is itself a knockout.
+  // aducanumab/Aduhelm withdrawn by Biogen in 2024 but kept here for
+  // legacy medication-list matches.
+  lecanemab: { condition: 'Alzheimer disease (anti-amyloid therapy)', declineAll: true, cluster: 'neuro' },
+  leqembi: { condition: 'Alzheimer disease (anti-amyloid therapy)', declineAll: true, cluster: 'neuro' },
+  donanemab: { condition: 'Alzheimer disease (anti-amyloid therapy)', declineAll: true, cluster: 'neuro' },
+  aducanumab: { condition: 'Alzheimer disease (anti-amyloid therapy)', declineAll: true, cluster: 'neuro' },
+  aduhelm: { condition: 'Alzheimer disease (anti-amyloid therapy)', declineAll: true, cluster: 'neuro' },
+
+  // Clozapine / Clozaril / Fazaclo — universal decline. Indicated only
+  // for treatment-resistant schizophrenia + reserved for the most
+  // severe presentations because of the agranulocytosis monitoring
+  // burden. The script-level flag already catches clozaril above; we
+  // re-list it here under the unified condition string so a future
+  // carrier crossref doesn't see it as an orphan.
+  clozapine: {
+    condition: 'Treatment-resistant schizophrenia',
+    declineAll: true,
+    cluster: 'mental',
+    note: 'Universal decline across all carriers — indicates severe psychiatric condition',
+  },
+  fazaclo: {
+    condition: 'Treatment-resistant schizophrenia',
+    declineAll: true,
+    cluster: 'mental',
+    note: 'Universal decline across all carriers — indicates severe psychiatric condition',
+  },
 
   // COPD / respiratory — Cigna accepts at Std II/III when others decline
   spiriva: {

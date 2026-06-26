@@ -226,6 +226,10 @@ function emptyClusters(): Record<DdlCluster, number> {
     autoimmune: 0,
     renal: 0,
     transplant: 0,
+    pulmonary: 0,
+    hiv: 0,
+    hepatitis: 0,
+    endocrine: 0,
     neuropathyAdj: 0,
   };
 }
@@ -243,6 +247,10 @@ function emptyClusterDrugs(): Record<DdlCluster, string[]> {
     autoimmune: [],
     renal: [],
     transplant: [],
+    pulmonary: [],
+    hiv: [],
+    hepatitis: [],
+    endocrine: [],
     neuropathyAdj: [],
   };
 }
