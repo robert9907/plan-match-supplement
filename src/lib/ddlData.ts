@@ -52,6 +52,21 @@ export const DDL: Record<string, DdlEntry> = {
   humira: { condition: 'Rheumatoid Arthritis', declineAll: true, cluster: 'autoimmune' },
   enbrel: { condition: 'Rheumatoid Arthritis', declineAll: true, cluster: 'autoimmune' },
   remicade: { condition: 'Rheumatoid Arthritis', declineAll: true, cluster: 'autoimmune' },
+  orencia: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  xeljanz: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  rinvoq: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  skyrizi: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  cosentyx: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  otezla: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  kevzara: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  actemra: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  stelara: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  taltz: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  tremfya: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  cimzia: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  simponi: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  inflectra: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
+  renflexis: { condition: 'Autoimmune biologic', declineAll: true, cluster: 'autoimmune' },
 
   // Neurodegenerative — conditional by carrier
   aricept: {
@@ -73,14 +88,71 @@ export const DDL: Record<string, DdlEntry> = {
     cluster: 'neuro',
   },
   copaxone: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  tecfidera: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  ocrevus: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  kesimpta: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  aubagio: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  tysabri: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  gilenya: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  mayzent: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  vumerity: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  zeposia: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  ponvory: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
+  bafiertam: { condition: 'Multiple Sclerosis', declineAll: true, cluster: 'neuro' },
 
   // Cancer — active treatment
   gleevec: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
   tamoxifen: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  ibrance: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  keytruda: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  opdivo: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  revlimid: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  pomalyst: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  imbruvica: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  lynparza: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  tagrisso: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  letrozole: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  arimidex: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  lupron: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  xtandi: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  zytiga: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  erleada: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  calquence: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  brukinsa: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  verzenio: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  kisqali: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  enhertu: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
+  trodelvy: { condition: 'Cancer (active)', declineAll: true, cluster: 'cancer' },
 
   // Pain — opioid flags
   fentanyl: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
   oxycontin: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  hydrocodone: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  oxycodone: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  morphine: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  dilaudid: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  norco: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  percocet: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  opana: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  vicodin: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  roxicodone: { condition: 'Opioid (chronic)', declineAll: true, cluster: 'pain' },
+  tramadol: {
+    condition: 'Opioid (moderate)',
+    declineAll: false,
+    cluster: 'pain',
+    note: 'Carrier-dependent — Cigna/Bankers may accept',
+  },
+  nucynta: {
+    condition: 'Opioid (moderate)',
+    declineAll: false,
+    cluster: 'pain',
+    note: 'Carrier-dependent — Cigna/Bankers may accept',
+  },
+  codeine: {
+    condition: 'Opioid (mild — schedule III–V)',
+    declineAll: false,
+    cluster: 'pain',
+  },
 
   // Mental health — severe
   abilify: { condition: 'Schizophrenia/Bipolar', declineAll: true, cluster: 'mental' },
@@ -241,6 +313,27 @@ export const DDL: Record<string, DdlEntry> = {
   toujeo: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
   apidra: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
   fiasp: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
+  humulin: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
+  admelog: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
+  semglee: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
+  rezvoglar: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
+  lyumjev: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
+  rybelsus: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 2 },
+
+  // Renal — CKD / PKD / hyperparathyroidism markers. Universal decline:
+  // each of these is prescribed for a specific kidney-disease diagnosis
+  // that carriers flag on every product.
+  jynarque: { condition: 'Polycystic kidney disease', declineAll: true, cluster: 'renal' },
+  sensipar: { condition: 'Secondary hyperparathyroidism / CKD', declineAll: true, cluster: 'renal' },
+  parsabiv: { condition: 'Secondary hyperparathyroidism / CKD', declineAll: true, cluster: 'renal' },
+  auryxia: { condition: 'CKD phosphate binder', declineAll: true, cluster: 'renal' },
+  veltassa: { condition: 'CKD potassium binder', declineAll: true, cluster: 'renal' },
+  phoslyra: { condition: 'CKD phosphate binder', declineAll: true, cluster: 'renal' },
+
+  // Generic-name fallback — first-word "insulin" catches generic
+  // descriptors like "insulin glargine" / "insulin aspart" that don't
+  // match a brand entry above. Same severity as the insulin brands.
+  insulin: { condition: null, declineAll: false, cluster: 'diabetes', severityTier: 3, isInsulin: true },
 };
 
 // Look up a DDL entry given a user-typed or shared-library-returned

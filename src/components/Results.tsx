@@ -430,7 +430,18 @@ export function Results() {
         <br />
         <br />
         We do not offer every plan available in your area. Contact Medicare.gov or 1-800-MEDICARE for a complete listing.
-        This tool does not provide medical advice. Medicare Supplement plans do not cover prescription drugs.
+        This tool does not provide medical advice. Medicare Supplement plans do not cover prescription drugs. You'll need
+        a separate standalone Part D prescription drug plan to cover your medications.
+        <br />
+        <br />
+        <a
+          className="cross-sell-cta"
+          href="https://planmatch.generationhealth.me"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Compare Part D options →
+        </a>
       </div>
 
       {/* Guaranteed Issue Rights enumeration + state-specific rating

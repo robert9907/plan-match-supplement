@@ -21,6 +21,11 @@ export interface MedItem {
   ddl?: DdlEntry;
   status: 'safe' | 'warn' | 'flag';
   statusText: string;
+  /** Resolved RxNorm concept identifier when the med came from a library
+   *  search hit or an OCR scan that successfully matched. Lets downstream
+   *  DDL lookups fall back to the generic name (e.g. "insulin glargine"
+   *  → insulin) when the user-typed first word doesn't match a brand. */
+  rxcui?: string;
 }
 
 export type YesNo = 'y' | 'n' | null;
@@ -834,6 +839,14 @@ export function classifyMed(name: string): Pick<MedItem, 'status' | 'statusText'
       return { status: 'flag', statusText: `DDL: ${ddl.condition}`, ddl };
     }
     return { status: 'warn', statusText: ddl.note ?? ddl.condition, ddl };
+  }
+  // No condition string, but the med is in the DDL with a cluster —
+  // metformin, lisinopril, eliquis, etc. Individually safe but the
+  // engine counts them toward combo-scoring (diabetes count, cardio
+  // count, anticoagulant presence). Hint at that so users don't think
+  // adding a 5th routine med will have zero effect on the decline math.
+  if (ddl && ddl.cluster) {
+    return { status: 'safe', statusText: 'Combo factor', ddl };
   }
   return { status: 'safe', statusText: 'No DDL flag', ddl };
 }

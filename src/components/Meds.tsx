@@ -51,6 +51,7 @@ export function Meds() {
     const med: MedItem = {
       name,
       dose: d.strength,
+      rxcui: d.rxcui,
       ...classification,
     };
     flow.addMed(med);
@@ -60,12 +61,24 @@ export function Meds() {
 
   // Single funnel for any add path (search pick, free-typed entry, or
   // scan confirmation). classifyMed runs the DDL lookup by first
-  // lowercased token, so this works for ad-hoc names too.
-  const addByName = (name: string, dose: string) => {
+  // lowercased token, so this works for ad-hoc names too. For the OCR
+  // path we try to resolve a real rxcui against the shared library
+  // before storing — combo scoring rules that need a generic name
+  // ("insulin glargine" → insulin cluster) can match on it.
+  const addByName = async (name: string, dose: string) => {
     const classification = classifyMed(name);
+    let resolvedRxcui: string | undefined;
+    try {
+      const drugs = await searchDrugs(name, undefined, 1);
+      resolvedRxcui = drugs[0]?.rxcui;
+    } catch {
+      // Network glitch — fall through with rxcui undefined; the
+      // ad-hoc add path still works without the library.
+    }
     const med: MedItem = {
       name,
       dose,
+      ...(resolvedRxcui ? { rxcui: resolvedRxcui } : {}),
       ...classification,
     };
     flow.addMed(med);
@@ -187,7 +200,7 @@ export function Meds() {
         <PillScanSheet
           onClose={() => setScanOpen(false)}
           onConfirm={(drugs) => {
-            for (const { name, dose } of drugs) addByName(name, dose);
+            for (const { name, dose } of drugs) void addByName(name, dose);
             setScanOpen(false);
           }}
         />
