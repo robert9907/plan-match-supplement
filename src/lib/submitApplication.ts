@@ -97,13 +97,32 @@ export async function submitApplication(flow: FlowState, age: number): Promise<S
     body: JSON.stringify(payload),
   });
 
+  // Read the body as text first. Vercel returns HTML on function crash /
+  // timeout — reading text lets us surface the actual error instead of a
+  // useless "Unexpected server response (500)." When the server responds
+  // properly, the text still parses as JSON below.
+  const rawText = await resp.text();
+
   let data: SubmitResult;
   try {
-    data = (await resp.json()) as SubmitResult;
+    data = JSON.parse(rawText) as SubmitResult;
   } catch {
+    // Non-JSON body — log the first 500 chars so the console has the real
+    // error, then surface a short snippet in the UI.
+    console.error('[submitApplication] non-JSON response', {
+      status: resp.status,
+      contentType: resp.headers.get('content-type'),
+      bodyPreview: rawText.slice(0, 500),
+    });
+    const snippet = rawText.replace(/\s+/g, ' ').trim().slice(0, 160);
     return {
       ok: false,
-      errors: [{ field: '_server', message: `Unexpected server response (${resp.status}).` }],
+      errors: [
+        {
+          field: '_server',
+          message: `Server returned ${resp.status} (non-JSON): ${snippet || '(empty body)'}`,
+        },
+      ],
     };
   }
   return data;

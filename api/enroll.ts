@@ -104,47 +104,88 @@ interface ValidationError {
 
 // ─── Handler ────────────────────────────────────────────────────────────
 
+// Best-effort downstream calls (AgentBase CRM bridge, customer ack SMS) must
+// not consume the whole Vercel timeout budget. If either hangs, the function
+// runs to its wall-clock limit and Vercel returns an HTML 500/504 that the
+// client can't decode — surfacing as "Unexpected server response (500)."
+const BEST_EFFORT_TIMEOUT_MS = 5000;
+
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (err) => {
+        clearTimeout(t);
+        reject(err);
+      },
+    );
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  applyCors(req, res);
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    return res.status(204).end();
-  }
-  if (req.method !== 'POST') {
-    return res
-      .status(405)
-      .json({ ok: false, errors: [{ field: '_method', message: 'POST required' }] });
-  }
-
-  let payload: EnrollPayload;
+  // Wrap the entire handler so no crash path can escape as a non-JSON 500.
+  // The prior structure had a try/catch around persistToSupabase only —
+  // anything that threw before that (or an unhandled rejection escaping
+  // one of the best-effort awaits) would fall through to Vercel's default
+  // HTML error page, which the client cannot JSON-parse.
   try {
-    payload = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body as EnrollPayload);
-  } catch {
-    return res.status(400).json({
-      ok: false,
-      errors: [{ field: '_body', message: 'Request body must be valid JSON.' }],
-    });
-  }
+    applyCors(req, res);
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      return res.status(204).end();
+    }
+    if (req.method !== 'POST') {
+      return res
+        .status(405)
+        .json({ ok: false, errors: [{ field: '_method', message: 'POST required' }] });
+    }
 
-  const errors = validate(payload);
-  if (errors.length > 0) {
-    return res.status(400).json({ ok: false, errors });
-  }
+    let payload: EnrollPayload;
+    try {
+      payload = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body as EnrollPayload);
+    } catch {
+      return res.status(400).json({
+        ok: false,
+        errors: [{ field: '_body', message: 'Request body must be valid JSON.' }],
+      });
+    }
 
-  try {
-    const submissionId = await persistToSupabase(payload);
+    const errors = validate(payload);
+    if (errors.length > 0) {
+      return res.status(400).json({ ok: false, errors });
+    }
 
-    await bridgeToAgentBase(payload, submissionId).catch((err) => {
-      console.error('[enroll] agentbase bridge failed:', err);
-    });
-    await notifyCustomerBySms(payload).catch((err) => {
-      console.error('[enroll] customer sms failed:', err);
+    let submissionId: string;
+    try {
+      submissionId = await persistToSupabase(payload);
+    } catch (err) {
+      console.error('[enroll] persistence failed:', err);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      return res.status(500).json({ ok: false, errors: [{ field: '_server', message }] });
+    }
+
+    // Best-effort — never block the response on their outcome, and never
+    // let them exceed BEST_EFFORT_TIMEOUT_MS each. The supplement_applications
+    // row is the authoritative record; any downstream miss is repairable
+    // from that row.
+    await withTimeout(bridgeToAgentBase(payload, submissionId), BEST_EFFORT_TIMEOUT_MS, 'agentbase-bridge').catch(
+      (err) => {
+        console.error('[enroll] agentbase bridge failed:', err instanceof Error ? err.message : err);
+      },
+    );
+    await withTimeout(notifyCustomerBySms(payload), BEST_EFFORT_TIMEOUT_MS, 'customer-sms').catch((err) => {
+      console.error('[enroll] customer sms failed:', err instanceof Error ? err.message : err);
     });
 
     return res.status(200).json({ ok: true, submissionId });
   } catch (err) {
-    console.error('[enroll] persistence failed:', err);
+    console.error('[enroll] unhandled handler error:', err);
+    if (res.headersSent) return;
     const message = err instanceof Error ? err.message : 'Unknown error';
     return res.status(500).json({ ok: false, errors: [{ field: '_server', message }] });
   }
