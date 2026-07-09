@@ -11,8 +11,12 @@
 // supplement_applications row is the authoritative record.
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyCors } from './_lib/cors';
-import { encrypt, hashPin, maskMbi } from './_lib/crypto';
+// NOTE: .js extension is required. `"type": "module"` in package.json puts
+// the compiled function into Node ESM mode; strict ESM resolution rejects
+// extensionless relative imports at runtime (ERR_MODULE_NOT_FOUND) even
+// though tsc `moduleResolution: "bundler"` accepts them at compile time.
+import { applyCors } from './_lib/cors.js';
+import { encrypt, hashPin, maskMbi } from './_lib/crypto.js';
 
 // CMS Medicare Beneficiary Identifier — 11 chars, digits 1-9 in position 1,
 // no S/L/O/I/B/Z in alpha positions (same regex as plan-match).

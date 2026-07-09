@@ -26,8 +26,8 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
-import { MBI_REGEX, normalizeMbi } from './_lib/mbi';
-import { applyCors } from './_lib/cors';
+import { MBI_REGEX, normalizeMbi } from './_lib/mbi.js';
+import { applyCors } from './_lib/cors.js';
 
 export const config = {
   api: {

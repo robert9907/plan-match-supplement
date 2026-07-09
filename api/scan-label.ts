@@ -19,7 +19,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
-import { applyCors } from './_lib/cors';
+import { applyCors } from './_lib/cors.js';
 
 export const config = {
   api: {
