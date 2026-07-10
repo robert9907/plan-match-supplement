@@ -3,12 +3,15 @@
 // Mirrors the plan-match-prod pattern:
 //   1. Validate the four authorization checks + signature + MBI format + DOB/age.
 //   2. Insert into Supabase `supplement_applications` (service role).
-//   3. Best-effort bridge to AgentBase CRM (clients upsert + leads insert).
+//   3. Bridge to AgentBase CRM (clients upsert + leads insert). Bridge is
+//      hard-fail: env-var missing OR leads insert failure returns 502.
+//      Consumer plan-match ate 51 days of silent failures because this
+//      was best-effort; we won't repeat it. supplement_applications
+//      remains the authoritative record, so no data is lost on 502.
 //   4. Best-effort customer auto-ack SMS via AgentBase /api/send-sms.
 //
 // Returns { ok: true, submissionId } / { ok: false, errors: [...] }.
-// Downstream failures (AgentBase, SMS) never surface as a 500 — the
-// supplement_applications row is the authoritative record.
+// Only SMS failures are swallowed — CRM bridge is fatal.
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 // NOTE: .js extension is required. `"type": "module"` in package.json puts
@@ -173,15 +176,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ ok: false, errors: [{ field: '_server', message }] });
     }
 
-    // Best-effort — never block the response on their outcome, and never
-    // let them exceed BEST_EFFORT_TIMEOUT_MS each. The supplement_applications
-    // row is the authoritative record; any downstream miss is repairable
-    // from that row.
-    await withTimeout(bridgeToAgentBase(payload, submissionId), BEST_EFFORT_TIMEOUT_MS, 'agentbase-bridge').catch(
-      (err) => {
-        console.error('[enroll] agentbase bridge failed:', err instanceof Error ? err.message : err);
-      },
-    );
+    // AgentBase bridge is hard-fail: env misconfig or leads insert
+    // failure returns 502 so the customer's UI shows a real failure
+    // state instead of pretending success. supplement_applications
+    // remains the authoritative record (persisted above) so no data
+    // is lost. Mirrors consumer plan-match/api/enroll.ts after the
+    // 51-day silent-failure incident that motivated this change.
+    try {
+      await withTimeout(
+        bridgeToAgentBase(payload, submissionId),
+        BEST_EFFORT_TIMEOUT_MS,
+        'agentbase-bridge',
+      );
+    } catch (err) {
+      console.error('[enroll] agentbase bridge failed:', err);
+      const message = err instanceof Error ? err.message : 'AgentBase bridge failed';
+      return res.status(502).json({
+        ok: false,
+        submissionId,
+        errors: [{ field: '_agentbase', message }],
+      });
+    }
+
+    // SMS remains best-effort — a delayed customer ack is annoying, not
+    // catastrophic, and the failure mode is Twilio-side (their outages
+    // don't warrant our 502).
     await withTimeout(notifyCustomerBySms(payload), BEST_EFFORT_TIMEOUT_MS, 'customer-sms').catch((err) => {
       console.error('[enroll] customer sms failed:', err instanceof Error ? err.message : err);
     });
@@ -408,8 +427,14 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
   const url = process.env.AGENTBASE_SUPABASE_URL;
   const key = process.env.AGENTBASE_SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
-    console.log('[enroll] AGENTBASE_SUPABASE_* not set; skipping CRM bridge.');
-    return;
+    // Fail loud. This used to console.log + return, which is the exact
+    // silent-failure mode consumer plan-match ate for 51 days when its
+    // Vercel project had empty AGENTBASE_SUPABASE_* env vars. The
+    // handler catches this and returns 502 so a misconfigured deploy
+    // surfaces on the first submission instead of the first audit.
+    throw new Error(
+      'AGENTBASE_SUPABASE_URL or AGENTBASE_SUPABASE_SERVICE_ROLE_KEY is not configured in this environment',
+    );
   }
 
   const digits = (p.phone || '').replace(/\D/g, '');
@@ -555,15 +580,19 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
       age: p.age ?? null,
       source: 'plan_match_supplement',
       product: 'supplement',
-      // W3 Fix 3: leads.context on AgentBase carries the same
-      // encrypted bundle as supplement_applications. The agent UI uses
-      // medicare_id_last4 + medicare_id_masked for caller verification;
-      // full MBI is decrypt-on-demand at carrier submission time.
-      medicare_id_encrypted: cleanMbi ? encrypt(cleanMbi) : null,
-      medicare_id_last4: cleanMbi ? cleanMbi.slice(-4) : null,
-      medicare_id_masked: cleanMbi ? maskMbi(cleanMbi) : null,
-      security_pin_hash: p.securityPin ? hashPin(String(p.securityPin)) : null,
+      // W3 Fix 3: leads.context on AgentBase carries the encrypted
+      // bundle. The agent UI uses medicare_id_last4 + medicare_id_masked
+      // for caller verification; full MBI is decrypt-on-demand at
+      // carrier submission time. These live inside context (not top-
+      // level) because the leads table doesn't have those columns —
+      // an earlier version wrote them at top level and PostgREST
+      // rejected the insert with PGRST204, which the outer catch
+      // swallowed silently until the bridge hardening surfaced it.
       context: {
+        medicare_id_encrypted: cleanMbi ? encrypt(cleanMbi) : null,
+        medicare_id_last4: cleanMbi ? cleanMbi.slice(-4) : null,
+        medicare_id_masked: cleanMbi ? maskMbi(cleanMbi) : null,
+        security_pin_hash: p.securityPin ? hashPin(String(p.securityPin)) : null,
         carrier: p.carrier,
         plan_letter: p.planLetter,
         rate_class_predicted: p.rateClassPredicted ?? null,
@@ -602,7 +631,12 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
       throw new Error(`leads insert ${leadResp.status}: ${text.slice(0, 200)}`);
     }
   } catch (err) {
+    // leads is the critical write — if it fails, propagate so the
+    // handler returns 502. clients-upsert failure above is still
+    // swallowed with a warning (a stale clients row is recoverable;
+    // a missing lead means Rob never sees the submission at all).
     console.error('[enroll] agentbase leads insert failed:', err);
+    throw err;
   }
 }
 
