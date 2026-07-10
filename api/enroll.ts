@@ -81,6 +81,19 @@ interface EnrollPayload {
   // Intent
   enrollmentPrompt?: string | null;
 
+  // Enrollment period + SEP bundle. Optional — supplement enrollments
+  // typically happen inside a Guaranteed Issue window rather than a
+  // CMS SEP, but Rob's CRM still tracks the period + reason for audit.
+  enrollmentPeriod?: string | null;
+  sepReasonCode?: string | null;
+  sepReasonLabel?: string | null;
+  sepEffectiveDate?: string | null;
+  enrollmentReason?: string | null;
+
+  // Medicaid eligibility flag — mirrored to clients.medicaid_eligible
+  // (mig 043). Real boolean.
+  medicaidEligible?: boolean | null;
+
   // Auth + sig
   // 5-tuple as of W2 Fix 4. Index 4 is the TCPA prior-express-written-
   // consent block (split out of the prior composite #3 per FCC One-to-One
@@ -100,7 +113,12 @@ interface EnrollPayload {
     clusterCounts?: Record<string, number>;
     comboFlags?: string[];
     escalationPattern?: string | null;
-    providers?: Array<{ name: string; npi?: string }>;
+    providers?: Array<{
+      name: string;
+      npi?: string;
+      specialty?: string;
+      affiliation?: string;
+    }>;
   };
 }
 
@@ -423,6 +441,43 @@ function splitEffectiveMdy(mdy: string | null | undefined): { month: string; yea
   return { month: MONTH_NAMES_LONG[idx], year: m[2] };
 }
 
+// AgentBase clients.sex stores lowercase 'male' / 'female'. Payload's
+// `gender` is 'Male'/'Female' (title-case); normalize and default to
+// null for anything unrecognized so we never write junk into the column.
+function normalizeSex(input: unknown): 'male' | 'female' | null {
+  if (typeof input !== 'string') return null;
+  const s = input.trim().toLowerCase();
+  if (s === 'male' || s === 'm') return 'male';
+  if (s === 'female' || s === 'f') return 'female';
+  return null;
+}
+
+// AgentBase clients.tobacco_user is a real boolean. Payload's
+// `tobaccoUse` is 'Yes'/'No'. Return null for unrecognized values.
+function normalizeTobacco(input: unknown): boolean | null {
+  if (typeof input === 'boolean') return input;
+  if (typeof input === 'string') {
+    const s = input.trim().toLowerCase();
+    if (s === 'yes' || s === 'true') return true;
+    if (s === 'no' || s === 'false') return false;
+  }
+  return null;
+}
+
+// Body Mass Index — 703 * lbs / in² rounded to 0.1. Returns null when
+// either input is missing or out-of-range (guards against 0 division
+// and against absurd values that would signal a bad payload rather
+// than a real body). Written to clients.bmi (mig 045).
+function computeBmi(heightInches: unknown, weightLbs: unknown): number | null {
+  const h = typeof heightInches === 'number' ? heightInches : NaN;
+  const w = typeof weightLbs === 'number' ? weightLbs : NaN;
+  if (!Number.isFinite(h) || !Number.isFinite(w)) return null;
+  if (h < 36 || h > 96) return null; // 3ft–8ft plausibility band
+  if (w < 50 || w > 700) return null;
+  const bmi = (703 * w) / (h * h);
+  return Math.round(bmi * 10) / 10;
+}
+
 async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promise<void> {
   const url = process.env.AGENTBASE_SUPABASE_URL;
   const key = process.env.AGENTBASE_SUPABASE_SERVICE_ROLE_KEY;
@@ -463,12 +518,28 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
   const partB = splitEffectiveMdy(p.partBEffective);
 
   // ─── clients · upsert on normalized phone digits ────────────────────
+  // clientId is hoisted so the providers / client_providers block below
+  // (after the leads INSERT) can link to it. Stays null on clients-
+  // upsert failure — provider write then no-ops rather than orphaning.
+  //
+  // Full-field capture: every clients column with a matching payload
+  // field is written here. Previously only ~9 columns were written;
+  // sex / height_inches / weight_lbs / tobacco_user / medicaid_eligible /
+  // enrollment_period / sep_* / enrollment_reason were all missing and
+  // Rob had to hand-fill them post-enrollment.
+  //
+  // Soft-delete filter added — memory feedback_soft_delete_lookups:
+  // without deleted_at=is.null the lookup re-anchors onto tombstoned
+  // clients, silently PATCHing ghost rows Rob thought were removed.
+  let clientId: number | null = null;
   try {
     const a = last10.slice(0, 3);
     const b = last10.slice(3, 6);
     const c = last10.slice(6);
     const pattern = `*${a}*${b}*${c}*`;
-    const lookupUrl = `${base}/rest/v1/clients?phone=ilike.${encodeURIComponent(pattern)}&select=id,phone,lead_source&limit=20`;
+    const lookupUrl =
+      `${base}/rest/v1/clients?phone=ilike.${encodeURIComponent(pattern)}` +
+      `&deleted_at=is.null&select=id,phone,lead_source&limit=20`;
     const lookup = await fetch(lookupUrl, { headers: { ...headers, Accept: 'application/json' } });
     const lookupText = await lookup.text();
     if (!lookup.ok) throw new Error(`clients lookup ${lookup.status}: ${lookupText.slice(0, 200)}`);
@@ -481,25 +552,44 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
       (row) => (row.phone ?? '').replace(/\D/g, '').slice(-10) === last10,
     );
 
+    // Common column map — used for both PATCH (dropNullish) and INSERT.
+    const clientColumns: Record<string, unknown> = {
+      first_name: p.firstName,
+      last_name: p.lastName,
+      phone: digits,
+      email: p.email || null,
+      dob,
+      address: p.address || null,
+      city: p.city || null,
+      state: p.state || null,
+      zip: p.zip || null,
+      county: p.county ?? null,
+      medicare_id: cleanMbi || null,
+      carrier: p.carrier,
+      plan_name: planName,
+      part_a_month: partA.month || null,
+      part_a_year: partA.year || null,
+      part_b_month: partB.month || null,
+      part_b_year: partB.year || null,
+      sex: normalizeSex(p.gender),
+      height_inches: typeof p.heightInches === 'number' ? p.heightInches : null,
+      weight_lbs: typeof p.weightLbs === 'number' ? p.weightLbs : null,
+      bmi: computeBmi(p.heightInches, p.weightLbs),
+      tobacco_user: normalizeTobacco(p.tobaccoUse),
+      medicaid_eligible:
+        typeof p.medicaidEligible === 'boolean' ? p.medicaidEligible : null,
+      enrollment_reason: p.enrollmentReason ?? null,
+      enrollment_period: p.enrollmentPeriod ?? null,
+      sep_reason_code:
+        p.enrollmentPeriod === 'SEP' ? (p.sepReasonCode ?? null) : null,
+      sep_effective_date: p.sepEffectiveDate ?? null,
+    };
+
     if (existing) {
+      clientId = Number(existing.id);
       const existingLeadSource = (existing.lead_source || '').trim();
       const patch = dropNullish({
-        first_name: p.firstName,
-        last_name: p.lastName,
-        email: p.email,
-        dob,
-        address: p.address,
-        city: p.city,
-        state: p.state,
-        zip: p.zip,
-        county: p.county,
-        medicare_id: cleanMbi,
-        carrier: p.carrier,
-        plan_name: planName,
-        part_a_month: partA.month,
-        part_a_year: partA.year,
-        part_b_month: partB.month,
-        part_b_year: partB.year,
+        ...clientColumns,
         lead_source: existingLeadSource ? undefined : 'Plan Match Supplement',
       });
       if (Object.keys(patch).length > 0) {
@@ -517,34 +607,38 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
         }
       }
     } else {
-      const insertBody = {
-        first_name: p.firstName,
-        last_name: p.lastName,
-        phone: digits,
-        email: p.email || null,
-        dob,
-        address: p.address || null,
-        city: p.city || null,
-        state: p.state || null,
-        zip: p.zip || null,
-        county: p.county ?? null,
-        medicare_id: cleanMbi || null,
-        carrier: p.carrier,
-        plan_name: planName,
-        part_a_month: partA.month || null,
-        part_a_year: partA.year || null,
-        part_b_month: partB.month || null,
-        part_b_year: partB.year || null,
-        lead_source: 'Plan Match Supplement',
-      };
-      const insertResp = await fetch(`${base}/rest/v1/clients`, {
-        method: 'POST',
-        headers: { ...headers, Prefer: 'return=minimal' },
-        body: JSON.stringify(insertBody),
-      });
-      if (!insertResp.ok) {
-        const text = await insertResp.text();
-        throw new Error(`clients insert ${insertResp.status}: ${text.slice(0, 400)}`);
+      // Tombstone guard — refuse to re-anchor onto a soft-deleted row.
+      const tombResp = await fetch(
+        `${base}/rest/v1/clients?phone=ilike.${encodeURIComponent(pattern)}` +
+          `&deleted_at=not.is.null&select=id&limit=1`,
+        { headers: { ...headers, Accept: 'application/json' } },
+      );
+      if (tombResp.ok) {
+        const tombs = (await tombResp.json()) as Array<{ id?: string | number }>;
+        if (tombs.length > 0) {
+          console.warn(
+            '[enroll:clients] tombstoned client for this phone; skipping upsert',
+            { tombstone_id: tombs[0]?.id ?? null, phone_last10: last10 },
+          );
+        }
+      }
+      if (clientId == null) {
+        const insertBody = {
+          ...clientColumns,
+          lead_source: 'Plan Match Supplement',
+        };
+        const insertResp = await fetch(`${base}/rest/v1/clients`, {
+          method: 'POST',
+          headers: { ...headers, Prefer: 'return=representation' },
+          body: JSON.stringify(insertBody),
+        });
+        if (!insertResp.ok) {
+          const text = await insertResp.text();
+          throw new Error(`clients insert ${insertResp.status}: ${text.slice(0, 400)}`);
+        }
+        const insertedRows = (await insertResp.json()) as Array<{ id?: number | string }>;
+        const newId = Array.isArray(insertedRows) ? insertedRows[0]?.id ?? null : null;
+        if (newId != null) clientId = Number(newId);
       }
     }
   } catch (err) {
@@ -637,6 +731,121 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
     // a missing lead means Rob never sees the submission at all).
     console.error('[enroll] agentbase leads insert failed:', err);
     throw err;
+  }
+
+  // ─── providers directory + client_providers link (fail-open) ────────
+  // Runs only if we have a resolved clientId (from the clients upsert
+  // above) and at least one provider on the payload. Each write is
+  // guarded so a bad row doesn't abort the batch. Fail-open by design:
+  // provider write failures do not affect the 200/502 response the
+  // customer sees — the leads row has already landed, so Rob has the
+  // ding and can re-link providers manually if this batch failed.
+  if (clientId != null && Array.isArray(p.context?.providers)) {
+    const syncedAt = new Date().toISOString();
+    let dirInserted = 0;
+    let dirDeduped = 0;
+    let dirFailed = 0;
+    let linkOk = 0;
+    let linkFailed = 0;
+    for (const pr of p.context.providers) {
+      const provName = (pr?.name || '').trim();
+      if (!provName) continue;
+      const npi = (pr.npi ? String(pr.npi) : '').replace(/\D/g, '').slice(0, 10) || null;
+      try {
+        // Dedup by NPI when we have one. AgentBase providers.npi does
+        // not have a unique constraint (id=336 + id=2470 hold the same
+        // Kombiz Klein NPI), so we SELECT-then-INSERT.
+        let providerId: number | null = null;
+        if (npi) {
+          const lookupResp = await fetch(
+            `${base}/rest/v1/providers?npi=eq.${npi}&select=id&limit=1`,
+            { headers: { ...headers, Accept: 'application/json' } },
+          );
+          if (lookupResp.ok) {
+            const rows = (await lookupResp.json()) as Array<{ id?: number }>;
+            if (rows[0]?.id != null) {
+              providerId = Number(rows[0].id);
+              dirDeduped += 1;
+            }
+          }
+        }
+        if (providerId == null) {
+          const insertResp = await fetch(`${base}/rest/v1/providers`, {
+            method: 'POST',
+            headers: { ...headers, Prefer: 'return=representation' },
+            body: JSON.stringify({
+              name: provName,
+              npi,
+              specialty: pr.specialty || null,
+              affiliation: pr.affiliation || null,
+            }),
+          });
+          if (insertResp.ok) {
+            const rows = (await insertResp.json()) as Array<{ id?: number }>;
+            if (rows[0]?.id != null) {
+              providerId = Number(rows[0].id);
+              dirInserted += 1;
+            }
+          } else {
+            const txt = await insertResp.text();
+            console.warn(
+              '[enroll:providers] insert failed:',
+              insertResp.status,
+              txt.slice(0, 200),
+            );
+            dirFailed += 1;
+            continue;
+          }
+        }
+        if (providerId == null) continue;
+
+        // Link via client_providers. 409 means the link already exists
+        // (idempotent) — count as success. PGRST204 on
+        // synced_from_planmatch_at means the column isn't in the
+        // schema cache yet — retry without the stamp.
+        const linkResp = await fetch(`${base}/rest/v1/client_providers`, {
+          method: 'POST',
+          headers: { ...headers, Prefer: 'return=minimal' },
+          body: JSON.stringify({
+            client_id: clientId,
+            provider_id: providerId,
+            synced_from_planmatch_at: syncedAt,
+          }),
+        });
+        if (linkResp.ok || linkResp.status === 409) {
+          linkOk += 1;
+        } else {
+          const txt = await linkResp.text();
+          if (linkResp.status === 400 && /synced_from_planmatch_at/.test(txt)) {
+            const retry = await fetch(`${base}/rest/v1/client_providers`, {
+              method: 'POST',
+              headers: { ...headers, Prefer: 'return=minimal' },
+              body: JSON.stringify({ client_id: clientId, provider_id: providerId }),
+            });
+            if (retry.ok || retry.status === 409) linkOk += 1;
+            else linkFailed += 1;
+          } else {
+            console.warn(
+              '[enroll:client_providers] link failed:',
+              linkResp.status,
+              txt.slice(0, 200),
+            );
+            linkFailed += 1;
+          }
+        }
+      } catch (err) {
+        console.warn(
+          '[enroll:providers] row error:',
+          err instanceof Error ? err.message : err,
+        );
+        dirFailed += 1;
+      }
+    }
+    console.log('[enroll:providers] done', {
+      client_id: clientId,
+      dir: { inserted: dirInserted, deduped: dirDeduped, failed: dirFailed },
+      links: { ok: linkOk, failed: linkFailed },
+    });
   }
 }
 
