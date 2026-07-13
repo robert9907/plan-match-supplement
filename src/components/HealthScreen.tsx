@@ -18,7 +18,7 @@ const QUESTIONS: Question[] = [
   { key: 'q1_hospitalized', n: 1, text: <>Currently <strong>hospitalized, bedridden, or wheelchair</strong>?</> },
   { key: 'q2_hospice', n: 2, text: <>Receiving <strong>hospice, home health, or oxygen</strong>?</> },
   { key: 'q3_dialysis', n: 3, text: <><strong>Dialysis</strong> or <strong>kidney failure</strong>?</> },
-  { key: 'q4_cancer', n: 4, text: <><strong>Cancer</strong> in past 2 years? <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>(not basal/squamous skin)</span></> },
+  { key: 'q4_cancer', n: 4, text: <><strong>Cancer</strong> in past 2 years? <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>(not basal/squamous skin)</span></> },
   { key: 'q5_transplant', n: 5, text: <><strong>Organ transplant</strong> — received or waiting?</> },
   { key: 'q6_als_hiv_hepc', n: 6, text: <><strong>ALS, AIDS/HIV, or Hepatitis C</strong>?</> },
   { key: 'q7_diabetes', n: 7, text: <><strong>Diabetes</strong>?</> },

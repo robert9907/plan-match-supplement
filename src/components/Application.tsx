@@ -741,7 +741,7 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
           <div
             style={{
               marginTop: 8,
-              fontSize: 11,
+              fontSize: 12,
               color: 'rgba(13,47,94,0.55)',
             }}
           >

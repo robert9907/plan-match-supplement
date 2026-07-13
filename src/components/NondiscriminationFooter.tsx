@@ -19,7 +19,7 @@ export function NondiscriminationFooter() {
         marginTop: 16,
         paddingTop: 16,
         borderTop: '1px solid rgba(0,0,0,0.08)',
-        fontSize: 11,
+        fontSize: 12,
         lineHeight: 1.45,
         color: 'rgba(0,0,0,0.65)',
       }}

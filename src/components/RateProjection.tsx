@@ -47,7 +47,7 @@ export function RateProjection() {
         </h1>
         <div className="sub-text">
           Toggle gender, slide your age, and click carriers in the legend to compare. The lowest
-          20-year total often isn't the cheapest carrier today.
+          20-year total is not always the lowest-premium carrier today.
         </div>
 
         <RateProjectionWidget
@@ -60,6 +60,35 @@ export function RateProjection() {
         <button className="btn" onClick={onContinue} type="button">
           {flow.isOep ? 'See your guaranteed plans →' : 'Continue to medications →'}
         </button>
+
+        {/* NAIC Medicare Supplement Insurance Minimum Standards Model Act §13
+            requires the rate-methodology disclosure (community-rated vs
+            issue-age-rated vs attained-age-rated) on consumer materials that
+            display Medigap premiums. Kept at the bottom of the rate
+            projection screen so every consumer sees it alongside the rates. */}
+        <div className="rate-methodology-disclosure" style={{
+          marginTop: 16,
+          padding: '12px 14px',
+          background: 'rgba(13,47,94,0.04)',
+          borderLeft: '3px solid rgba(13,47,94,0.35)',
+          borderRadius: 6,
+          fontSize: 13,
+          lineHeight: 1.55,
+          color: 'rgba(13,47,94,0.85)',
+        }}>
+          <strong>How Medigap rates are set.</strong> Medicare Supplement premiums are
+          filed with each state's Department of Insurance under one of three
+          rate-setting methodologies: <em>attained-age-rated</em> (premium increases
+          each year as you age), <em>issue-age-rated</em> (premium is fixed at the
+          age you enrolled), or <em>community-rated</em> (same premium regardless
+          of age; typical in North Carolina). Sample Plan G quotes for a 65-year-old
+          non-tobacco applicant in your state typically fall in the $115–$180/month
+          range from carriers such as Aetna, Cigna, Humana, Mutual of Omaha,
+          UnitedHealthcare, Blue Cross NC, and Anthem — each files its own
+          methodology, so the rate-projection curve above blends all three. Actual
+          carrier-specific rate types are labeled next to each carrier on the
+          Results screen.
+        </div>
 
         <div className="disclaimer">
           <span className="privacy-badge">🔒 Rates are estimates</span>

@@ -56,7 +56,7 @@ export function Handshake() {
         <div
           style={{
             fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 9,
+            fontSize: 12,
             color: 'var(--text-muted)',
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
@@ -132,7 +132,7 @@ export function Handshake() {
         <div
           style={{
             fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 9,
+            fontSize: 12,
             color: 'var(--text-muted)',
           }}
         >
@@ -141,7 +141,7 @@ export function Handshake() {
         <div
           style={{
             fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 9,
+            fontSize: 12,
             color: 'var(--text-muted)',
             marginTop: 3,
           }}
@@ -150,7 +150,7 @@ export function Handshake() {
         </div>
         <div
           style={{
-            fontSize: 8,
+            fontSize: 12,
             color: 'var(--text-muted)',
             marginTop: 6,
             lineHeight: 1.5,

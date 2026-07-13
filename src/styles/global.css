@@ -174,7 +174,7 @@ textarea {
 }
 .topbar-tag {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -215,7 +215,7 @@ textarea {
 
 .step-label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--green);
   text-transform: uppercase;
@@ -248,7 +248,7 @@ textarea {
 
 .sec-label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -514,7 +514,7 @@ textarea {
 }
 .item-sub {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   padding: 2px 7px;
   border-radius: var(--radius-pill);
@@ -608,7 +608,7 @@ textarea {
   border: 1.5px solid var(--border);
   background: var(--white);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   text-align: center;
   cursor: pointer;
@@ -625,7 +625,7 @@ textarea {
 }
 .sl {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-secondary);
   margin-bottom: 5px;
 }
@@ -667,7 +667,7 @@ textarea {
 }
 .score-hero-label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -714,7 +714,7 @@ textarea {
   color: var(--white);
 }
 .score-factors-text {
-  font-size: 11px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.45);
 }
 
@@ -738,7 +738,7 @@ textarea {
   margin-bottom: 3px;
 }
 .factor-label {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -850,7 +850,7 @@ textarea {
 }
 .cc-disc {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
   margin-top: 5px;
   text-align: center;
@@ -867,7 +867,7 @@ textarea {
 }
 .cc-knockout-tag {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--red-text);
   background: rgba(239, 68, 68, 0.14);
@@ -894,7 +894,7 @@ textarea {
 }
 .rate-est-label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -920,7 +920,7 @@ textarea {
 }
 .rate-class-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
   padding: 3px 7px;
   border-radius: var(--radius-pill);
@@ -1009,7 +1009,7 @@ textarea {
   top: 0;
   left: 14px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1074,7 +1074,7 @@ textarea {
 }
 .plan-toggle-price {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-secondary);
 }
 .plan-toggle-opt.selected .plan-toggle-letter,
@@ -1091,7 +1091,7 @@ textarea {
 }
 
 .disclaimer {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--text-muted);
   line-height: 1.6;
   margin-top: 16px;
@@ -1103,7 +1103,7 @@ textarea {
   align-items: center;
   gap: 4px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--green-text);
   background: var(--green-bg);
@@ -1262,7 +1262,7 @@ textarea {
 .scan-or {
   text-align: center;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1375,7 +1375,7 @@ textarea {
 }
 .scan-sheet-title {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1403,7 +1403,7 @@ textarea {
 }
 .scan-sheet-field-label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1470,7 +1470,7 @@ textarea {
 }
 .scan-queue-count {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--seafoam);
@@ -1525,7 +1525,7 @@ textarea {
   padding: 4px;
   background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.65) 100%);
   color: white;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   text-align: center;
   pointer-events: none;
@@ -1548,7 +1548,7 @@ textarea {
 .scan-thumb-name {
   display: block;
   max-width: 100%;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.15;
   letter-spacing: 0.04em;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
@@ -1696,7 +1696,7 @@ textarea {
   margin-bottom: 3px;
 }
 .combo-alert span {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--amber-text);
   line-height: 1.6;
 }
@@ -1743,7 +1743,7 @@ textarea {
 }
 .medigap-trigger-eyebrow {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -1823,7 +1823,7 @@ textarea {
 }
 .medigap-plan-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
   padding: 3px 7px;
   border-radius: var(--radius-pill);
@@ -1846,7 +1846,7 @@ textarea {
   margin-bottom: 4px;
 }
 .medigap-plan-desc {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 10px;
@@ -1867,7 +1867,7 @@ textarea {
   gap: 2px;
 }
 .copay-label {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1889,7 +1889,7 @@ textarea {
 }
 .medigap-plan-risk-label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -1934,7 +1934,7 @@ textarea {
 }
 .medigap-contrast-label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -2065,7 +2065,7 @@ textarea {
 }
 .plan-selected-range {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
   margin-top: 2px;
   white-space: nowrap;
@@ -2086,7 +2086,7 @@ textarea {
 }
 .prefill-title {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -2094,7 +2094,7 @@ textarea {
 }
 .prefill-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--green);
   background: var(--green-bg);
@@ -2131,7 +2131,7 @@ textarea {
 }
 .medicare-id-title {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 500;
   color: #1e40af;
   text-transform: uppercase;
@@ -2162,7 +2162,7 @@ textarea {
   font-size: 14px;
 }
 .medicare-id-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: #6b7daa;
   margin-top: 8px;
   text-align: center;
@@ -2177,7 +2177,7 @@ textarea {
   padding: 12px 14px;
 }
 .fi-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   line-height: 1.5;
   margin-top: 6px;
@@ -2262,7 +2262,7 @@ textarea {
 }
 .sig-date {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
   text-align: right;
 }
@@ -2306,7 +2306,7 @@ textarea {
   padding: 2px 6px;
   border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -2338,7 +2338,7 @@ textarea {
 }
 .sms-from {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -2421,7 +2421,7 @@ textarea {
 }
 .results-header-kicker {
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--teal);
   text-transform: uppercase;
@@ -2436,7 +2436,7 @@ textarea {
   color: #fff;
 }
 .results-header-sub {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.5);
   margin-top: 4px;
@@ -2472,7 +2472,7 @@ textarea {
   line-height: 1;
 }
 .factor-pill-label {
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.55);
   text-transform: uppercase;
@@ -2498,7 +2498,7 @@ textarea {
   margin-bottom: 8px;
 }
 .slot-title > span:first-child {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--body-c);
   text-transform: uppercase;
@@ -2506,7 +2506,7 @@ textarea {
 }
 .slot-title-meta {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 .slot-row {
@@ -2539,7 +2539,7 @@ textarea {
   line-height: 1;
 }
 .slot-empty-label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted-c);
   margin-top: 8px;
@@ -2583,7 +2583,7 @@ textarea {
   line-height: 1;
 }
 .slot-name {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--dark);
   letter-spacing: -0.01em;
@@ -2614,7 +2614,7 @@ textarea {
   background: rgba(59, 130, 246, 0.1);
 }
 .slot-mini-letter {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--muted-c);
 }
@@ -2625,14 +2625,14 @@ textarea {
   color: #3b82f6;
 }
 .slot-mini-price {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--dark);
   font-variant-numeric: tabular-nums;
 }
 .slot-hhd {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   color: var(--muted-c);
   margin-top: 4px;
   text-align: center;
@@ -2654,7 +2654,7 @@ textarea {
   margin-bottom: 10px;
 }
 .spectrum-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--body-c);
   text-transform: uppercase;
@@ -2662,7 +2662,7 @@ textarea {
 }
 .spectrum-range {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 .spectrum-track {
@@ -2708,7 +2708,7 @@ textarea {
   justify-content: space-between;
   margin-top: 6px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 
@@ -2722,7 +2722,7 @@ textarea {
   margin: 18px 0 10px;
 }
 .building-section-title > span:first-child {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--body-c);
   text-transform: uppercase;
@@ -2730,7 +2730,7 @@ textarea {
 }
 .building-section-meta {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 .building-section-title-muted > span:first-child {
@@ -2807,7 +2807,7 @@ textarea {
 }
 .building-meta {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-c);
   margin-top: 2px;
 }
@@ -2832,7 +2832,7 @@ textarea {
 }
 .building-hhd {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 .building-actions {
@@ -2843,7 +2843,7 @@ textarea {
   background: var(--teal);
   color: #fff;
   border: none;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   padding: 6px 10px;
   border-radius: 10px;
@@ -2884,7 +2884,7 @@ textarea {
 .building-ranked-badge {
   background: var(--teal);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
   padding: 8px 14px;
@@ -2906,7 +2906,7 @@ textarea {
 }
 .price-bar-plan {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -2925,7 +2925,7 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 .price-bar-mo {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted-c);
   margin-left: 2px;
@@ -2962,7 +2962,7 @@ textarea {
   display: flex;
   justify-content: space-between;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 
@@ -2995,7 +2995,7 @@ textarea {
 }
 .badge-pill {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
   padding: 3px 7px;
   border-radius: 100px;
@@ -3035,7 +3035,7 @@ textarea {
 }
 .floor-tile-plan {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -3054,14 +3054,14 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 .floor-tile-mo {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted-c);
   margin-left: 2px;
 }
 .floor-tile-na {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 .floor-tile.na {
@@ -3091,7 +3091,7 @@ textarea {
 }
 .knockout-row-reason {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 
@@ -3109,7 +3109,7 @@ textarea {
 }
 .results-footer-name {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted-c);
   margin-top: 6px;
 }
@@ -3157,7 +3157,7 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 .action-bar-status {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.78);
 }
@@ -3167,7 +3167,7 @@ textarea {
 }
 .action-btn {
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   padding: 9px 12px;
   border-radius: 10px;
@@ -3295,7 +3295,7 @@ textarea {
 .compare-col-pick {
   display: inline-block;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--teal);
   letter-spacing: 0.1em;
@@ -3315,7 +3315,7 @@ textarea {
 }
 .compare-row-label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--muted-c);
   text-transform: uppercase;
@@ -3525,7 +3525,7 @@ textarea {
   50% { opacity: 0.65; transform: translateX(-50%) scale(1.1); }
 }
 .gh-ms .ms-eyebrow {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 2.5px;
   text-transform: uppercase;
@@ -3620,7 +3620,7 @@ textarea {
   align-items: center;
 }
 .gh-ms .ms-ctrl-label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -3738,7 +3738,7 @@ textarea {
   padding: 0 6px;
 }
 .gh-ms .ms-age-marks span {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ms-light-muted);
   font-variant-numeric: tabular-nums;
   font-weight: 500;
@@ -3774,7 +3774,7 @@ textarea {
   box-shadow: 0 12px 32px rgba(10, 22, 40, 0.08), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 .gh-ms .ms-card .ms-c-label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--ms-light-muted);
   letter-spacing: 0.3px;
@@ -3802,7 +3802,7 @@ textarea {
   color: var(--ms-muted);
 }
 .gh-ms .ms-card .ms-c-sub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ms-teal);
   font-weight: 500;
   margin-top: 3px;
@@ -3830,7 +3830,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ms-muted);
   cursor: pointer;
   padding: 6px 12px;
@@ -3922,7 +3922,7 @@ textarea {
   padding: 10px 10px;
   font-weight: 600;
   color: var(--ms-light-muted);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   border-bottom: 1px solid var(--ms-surface);
@@ -4016,7 +4016,7 @@ textarea {
 
 .gh-ms .ms-inc {
   color: var(--ms-danger);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
 }
 
