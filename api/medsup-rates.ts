@@ -7,8 +7,14 @@
 // Plan Finder rates in api/rates.ts).
 //
 // Response:
-//   { ok: true, state, carriers: [{ n, c, ra, M: {age:premium}, F:{age:premium} }] }
+//   { ok: true, state, available: true,  carriers: [{ n, c, ra, M, F }] }
+//   { ok: true, state, available: false, message: "…", carriers: [] }
 //   { ok: false, error: "…" }
+//
+// `available` + `message` were added after pressure boil 2026-07-21 found the
+// widget spinning silently on TX/GA (data gap — pm_medsup_rate is NC-only
+// today). The widget should render `message` when `available === false`
+// instead of showing an empty rate table.
 //
 // PostgREST 1000-row cap (memory: feedback_postgrest_row_cap) — one state at
 // plan G is ~682 rows (11 carriers × 31 ages × 2 genders). NC currently ships
@@ -127,6 +133,10 @@ function shape(rows: RawRow[]): MedsupCarrier[] {
 
 const ALLOWED_STATES = new Set(['NC']);
 
+function unavailableMessage(state: string): string {
+  return `Supplement rates not yet loaded for ${state}. Contact your agent for a quote.`;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
     res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -137,19 +147,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(400).json({ ok: false, error: 'state required (2-letter abbr)' });
     return;
   }
-  // Outside NC we have no rate filings yet. Return an explicit empty list
-  // so the widget can show its "Coming to <state> soon" fallback instead of
-  // spinning forever or throwing a 500.
+  // Outside NC we have no rate filings yet. Return an explicit
+  // available:false + message so the widget renders a "contact your
+  // agent" state instead of a blank rate table.
   if (!ALLOWED_STATES.has(state)) {
     res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=604800');
-    res.status(200).json({ ok: true, state, carriers: [] });
+    res.status(200).json({
+      ok: true,
+      state,
+      available: false,
+      message: unavailableMessage(state),
+      carriers: [],
+    });
     return;
   }
   try {
     const rows = await fetchAllPages(state);
     const carriers = shape(rows);
+    // Even inside ALLOWED_STATES, an empty result set indicates a data-
+    // load regression. Guard so the widget doesn't render a blank table
+    // and callers can distinguish "no data" from "loaded and available".
+    if (carriers.length === 0) {
+      res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+      res.status(200).json({
+        ok: true,
+        state,
+        available: false,
+        message: unavailableMessage(state),
+        carriers: [],
+      });
+      return;
+    }
     res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=604800');
-    res.status(200).json({ ok: true, state, carriers });
+    res.status(200).json({ ok: true, state, available: true, carriers });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('[api/medsup-rates]', message);
