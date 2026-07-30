@@ -86,11 +86,11 @@ export function Meds() {
 
   const flaggedMeds = flow.meds.filter((m) => m.status === 'flag');
 
-  const onContinue = () => navigate('/embed/providers');
+  const onContinue = () => navigate('/providers');
 
   return (
     <Frame step={3}>
-      <BackRow onClick={() => navigate('/embed/rates')} />
+      <BackRow onClick={() => navigate('/rates')} />
       <div className="step-label">Step 3 of 6 · Medications</div>
       <h1 className="headline">
         What medications do <em>you</em> take?

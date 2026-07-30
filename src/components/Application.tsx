@@ -34,7 +34,7 @@ export function Application() {
         <div className="sub-text">
           You haven't selected a carrier yet. Head back to your results and pick one to apply with.
         </div>
-        <button className="btn" onClick={() => navigate('/embed/results')} type="button">
+        <button className="btn" onClick={() => navigate('/results')} type="button">
           Back to results →
         </button>
       </Frame>
@@ -50,7 +50,7 @@ export function Application() {
     return (
       <ReviewStage
         onNext={() => setStage('details')}
-        onBack={() => navigate('/embed/results')}
+        onBack={() => navigate('/results')}
         planLetter={planLetter}
         rateRange={`$${rateLo}–$${rateHi}`}
         rateClassName={carrier.rateClass.name}
@@ -661,7 +661,7 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
         setSubmitting(false);
         return;
       }
-      navigate('/embed/submitted');
+      navigate('/submitted');
     } catch (err) {
       console.error('[submit] failed:', err);
       setSubmitError('Network error — please check your connection and try again.');

@@ -82,7 +82,7 @@ export function HealthScreen() {
         oep: false,
       });
       flow.setScoring(result);
-      navigate('/embed/results');
+      navigate('/results');
     } catch (err) {
       setScoreError(err instanceof Error ? err.message : 'Could not load rates');
       setScoring(false);
@@ -91,7 +91,7 @@ export function HealthScreen() {
 
   return (
     <Frame step={4}>
-      <BackRow onClick={() => navigate('/embed/providers')} />
+      <BackRow onClick={() => navigate('/providers')} />
       <div className="step-label">Step 5 of 6 · Health screen</div>
       <h1 className="headline">
         Quick health <em>check.</em>

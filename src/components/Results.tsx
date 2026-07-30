@@ -240,7 +240,7 @@ export function Results() {
   const onApply = useCallback(
     (carrier: CarrierResult, plan: 'G' | 'N') => {
       flow.selectCarrier(carrier, plan);
-      navigate('/embed/apply');
+      navigate('/apply');
     },
     [flow, navigate],
   );
@@ -250,13 +250,13 @@ export function Results() {
     const stale = !flow.gender || !flow.tobacco;
     return (
       <Frame step={5}>
-        <BackRow onClick={() => navigate('/embed/about')} />
+        <BackRow onClick={() => navigate('/about')} />
         <div className="step-label">Step 6 of 6 · Your results</div>
         {stale ? (
           <>
             <h1 className="headline">Let's start from the beginning.</h1>
             <div className="sub-text">We need a few details first before we can show your qualification.</div>
-            <button className="btn" onClick={() => navigate('/embed/about')} type="button">
+            <button className="btn" onClick={() => navigate('/about')} type="button">
               Go to About you →
             </button>
           </>
@@ -264,7 +264,7 @@ export function Results() {
           <>
             <h1 className="headline">Couldn't load carrier rates.</h1>
             <div className="sub-text">{loadError}</div>
-            <button className="btn" onClick={() => navigate('/embed/about')} type="button">
+            <button className="btn" onClick={() => navigate('/about')} type="button">
               Start over →
             </button>
           </>
@@ -278,7 +278,7 @@ export function Results() {
     );
   }
 
-  const backTarget = flow.isOep ? '/embed/rates' : '/embed/health';
+  const backTarget = flow.isOep ? '/rates' : '/health';
   const profile = `${flow.age} · ${flow.gender ?? '—'} · ZIP ${flow.zip}`;
   const factorScores = {
     meds: scoring.factorMeds,

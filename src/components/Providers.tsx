@@ -19,11 +19,11 @@ export function Providers() {
     setName('');
   };
 
-  const onContinue = () => navigate('/embed/health');
+  const onContinue = () => navigate('/health');
 
   return (
     <Frame step={4}>
-      <BackRow onClick={() => navigate('/embed/meds')} />
+      <BackRow onClick={() => navigate('/meds')} />
       <div className="step-label">Step 4 of 6 · Your doctors</div>
       <h1 className="headline">
         Who are <em>your</em> doctors?

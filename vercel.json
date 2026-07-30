@@ -1,4 +1,16 @@
 {
+  "redirects": [
+    { "source": "/embed/about",     "destination": "/about",     "permanent": true },
+    { "source": "/embed/rates",     "destination": "/rates",     "permanent": true },
+    { "source": "/embed/meds",      "destination": "/meds",      "permanent": true },
+    { "source": "/embed/providers", "destination": "/providers", "permanent": true },
+    { "source": "/embed/health",    "destination": "/health",    "permanent": true },
+    { "source": "/embed/results",   "destination": "/results",   "permanent": true },
+    { "source": "/embed/apply",     "destination": "/apply",     "permanent": true },
+    { "source": "/embed/submitted", "destination": "/submitted", "permanent": true },
+    { "source": "/embed",           "destination": "/about",     "permanent": true },
+    { "source": "/embed/",          "destination": "/about",     "permanent": true }
+  ],
   "rewrites": [
     { "source": "/:path((?!api|assets).*)", "destination": "/index.html" }
   ],

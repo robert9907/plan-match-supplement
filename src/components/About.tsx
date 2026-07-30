@@ -136,7 +136,7 @@ export function About() {
     }
     // Everyone gets the rate projection next. OEP users still skip Meds +
     // Health from there — RateProjection.tsx handles the branch on continue.
-    navigate('/embed/rates');
+    navigate('/rates');
   };
 
   return (
