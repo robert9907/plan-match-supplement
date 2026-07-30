@@ -9,8 +9,10 @@
 //   { ok: true, state, refZip, rates: { G: CarrierRate[], N: CarrierRate[] } }
 //   { ok: false, error: "…" }
 //
-// Auth: server-side service-role key — table has RLS public-read, but we
-// keep the network shape consistent with /api/enroll.
+// Auth: server-side service-role key. As of migration 005, anon has no
+// SELECT on the base pm_supp_carrier_rates table — reads go through the
+// pm_supp_carrier_rates_public view, which filters carriers listed in
+// pm_medsup_carrier_exclusions. Service role bypasses the revoke.
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
@@ -102,7 +104,7 @@ async function fetchRates(
     gender: `eq.${gender}`,
     select: 'company,plan,rate_type,rate_min,hhd_std_min,hhd_rm_min',
   });
-  const resp = await fetch(`${url.replace(/\/$/, '')}/rest/v1/pm_supp_carrier_rates?${qs}`, {
+  const resp = await fetch(`${url.replace(/\/$/, '')}/rest/v1/pm_supp_carrier_rates_public?${qs}`, {
     headers: {
       apikey: key,
       Authorization: `Bearer ${key}`,

@@ -477,6 +477,15 @@ export function RateProjectionWidget({
           </tbody>
         </table>
       </div>
+
+      <div
+        className="ms-appointment-disclosure"
+        style={{ fontSize: 12, lineHeight: 1.4, color: '#6B7280', margin: '16px 4px 0' }}
+      >
+        Rates shown are from carriers Generation Health is appointed with and do not represent
+        every Medicare Supplement insurer available in your area. Premiums are estimates sourced
+        from Medicare.gov and are not a quote or a guarantee of coverage. Rob Simm, NPN #10447418.
+      </div>
     </div>
   );
 }

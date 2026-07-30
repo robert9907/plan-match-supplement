@@ -429,9 +429,14 @@ export function Results() {
         and rates are determined by each carrier's underwriting department. Exact quote provided before enrollment.
         <br />
         <br />
-        We do not offer every plan available in your area. Contact Medicare.gov or 1-800-MEDICARE for a complete listing.
-        This tool does not provide medical advice. Medicare Supplement plans do not cover prescription drugs. You'll need
-        a separate standalone Part D prescription drug plan to cover your medications.
+        Rates shown are from carriers Generation Health is appointed with and do not represent every Medicare Supplement
+        insurer available in your area. Premiums are estimates sourced from Medicare.gov and are not a quote or a
+        guarantee of coverage. Rob Simm, NPN #10447418.
+        <br />
+        <br />
+        Contact Medicare.gov or 1-800-MEDICARE for a complete listing of insurers. This tool does not provide medical
+        advice. Medicare Supplement plans do not cover prescription drugs. You'll need a separate standalone Part D
+        prescription drug plan to cover your medications.
         <br />
         <br />
         <a

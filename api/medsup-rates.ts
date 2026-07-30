@@ -1,10 +1,12 @@
 // GET /api/medsup-rates?state=NC
 //
 // Returns age-banded Plan G monthly premiums for every active carrier in a
-// state, shaped for the RateProjectionWidget. Data source: pm_medsup_rate
-// joined with pm_medsup_carrier in the consumer plan-match Supabase
-// (rpcbrkmvalvdmroqzpaq — same project this repo already uses for the CMS
-// Plan Finder rates in api/rates.ts).
+// state, shaped for the RateProjectionWidget. Data source:
+// pm_medsup_rate_public — the consumer-safe view over pm_medsup_rate +
+// pm_medsup_carrier in the consumer plan-match Supabase (rpcbrkmvalvdmroqzpaq).
+// The view already applies active=true and drops suppressed carriers listed
+// in pm_medsup_carrier_exclusions (migration 005). Do not read pm_medsup_rate
+// directly — anon has no SELECT on the base table.
 //
 // Response:
 //   { ok: true, state, available: true,  carriers: [{ n, c, ra, M, F }] }
@@ -12,8 +14,8 @@
 //   { ok: false, error: "…" }
 //
 // `available` + `message` were added after pressure boil 2026-07-21 found the
-// widget spinning silently on TX/GA (data gap — pm_medsup_rate is NC-only
-// today). The widget should render `message` when `available === false`
+// widget spinning silently on TX/GA (data gap — pm_medsup_rate_public is
+// NC-only today). The widget should render `message` when `available === false`
 // instead of showing an empty rate table.
 //
 // PostgREST 1000-row cap (memory: feedback_postgrest_row_cap) — one state at
@@ -41,12 +43,9 @@ interface RawRow {
   age: number | string;
   gender: string;
   monthly_premium: number | string;
-  pm_medsup_carrier: {
-    carrier_name: string;
-    state: string;
-    rating_type: string | null;
-    active: boolean;
-  } | null;
+  carrier_name: string | null;
+  carrier_state: string | null;
+  rating_type: string | null;
 }
 
 export interface MedsupCarrier {
@@ -77,13 +76,11 @@ async function fetchAllPages(state: string): Promise<RawRow[]> {
     const qs = new URLSearchParams({
       plan_letter: 'eq.G',
       tobacco: 'eq.false',
-      'pm_medsup_carrier.state': `eq.${state}`,
-      'pm_medsup_carrier.active': 'eq.true',
-      select:
-        'age,gender,monthly_premium,pm_medsup_carrier!inner(carrier_name,state,rating_type,active)',
+      carrier_state: `eq.${state}`,
+      select: 'age,gender,monthly_premium,carrier_name,carrier_state,rating_type',
       order: 'age.asc',
     });
-    const resp = await fetch(`${base}/rest/v1/pm_medsup_rate?${qs}`, {
+    const resp = await fetch(`${base}/rest/v1/pm_medsup_rate_public?${qs}`, {
       headers: {
         apikey: key,
         Authorization: `Bearer ${key}`,
@@ -108,16 +105,14 @@ async function fetchAllPages(state: string): Promise<RawRow[]> {
 function shape(rows: RawRow[]): MedsupCarrier[] {
   const byCarrier = new Map<string, { ra: string | null; M: Record<number, number>; F: Record<number, number> }>();
   for (const r of rows) {
-    const c = r.pm_medsup_carrier;
-    if (!c) continue;
-    const name = c.carrier_name;
+    const name = r.carrier_name;
     const g = normalizeGender(r.gender);
     const age = Number(r.age);
     const premium = Number(r.monthly_premium);
     if (!name || !g || !Number.isFinite(age) || !Number.isFinite(premium)) continue;
 
     if (!byCarrier.has(name)) {
-      byCarrier.set(name, { ra: c.rating_type ?? null, M: {}, F: {} });
+      byCarrier.set(name, { ra: r.rating_type ?? null, M: {}, F: {} });
     }
     byCarrier.get(name)![g][age] = premium;
   }
