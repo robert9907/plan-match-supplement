@@ -12,7 +12,7 @@ import { classifyMed, type MedItem } from '../lib/scoringEngine';
 import { BackRow, Frame } from './Frame';
 import { PillScanSheet } from './PillScanSheet';
 
-const SEARCH_DEBOUNCE_MS = 200;
+const SEARCH_DEBOUNCE_MS = 250;
 
 export function Meds() {
   const navigate = useNavigate();

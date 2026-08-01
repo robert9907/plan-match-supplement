@@ -6,7 +6,7 @@
 
 const ENDPOINT = 'https://planmatch.generationhealth.me/api/library/drug-search';
 
-export const MIN_SEARCH_CHARS = 2;
+export const MIN_SEARCH_CHARS = 3;
 
 export interface DrugSearchResult {
   rxcui: string;
