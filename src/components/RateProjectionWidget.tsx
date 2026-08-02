@@ -28,6 +28,7 @@ import {
   stateLabel,
   type MedsupCarrier,
 } from '../lib/medsupRates';
+import { MedSupRateDisclosure } from './MedSupRateDisclosure';
 
 ChartJS.register(
   LineElement,
@@ -486,6 +487,8 @@ export function RateProjectionWidget({
         every Medicare Supplement insurer available in your area. Premiums are estimates sourced
         from Medicare.gov and are not a quote or a guarantee of coverage. Rob Simm, NPN #10447418.
       </div>
+
+      <MedSupRateDisclosure gender={gender === 'F' ? 'female' : 'male'} />
     </div>
   );
 }
