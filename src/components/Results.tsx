@@ -16,16 +16,21 @@ import { FitScoreExplainer } from './FitScoreExplainer';
 import { PlanLetterPopover } from './PlanLetterPopover';
 import { BackRow, Frame } from './Frame';
 import { MedigapDisclosures } from './MedigapDisclosures';
+import { IconPill, IconHeart, IconScale, IconSmokingNo } from './Icons';
 
 // Number of ranked picks the user can drop into the top-3 slot row.
 const SLOT_COUNT = 3;
-const MEDALS = ['🥇', '🥈', '🥉'];
 
-const FACTOR_ITEMS: Array<{ key: 'meds' | 'health' | 'build' | 'tobacco'; icon: string; label: string }> = [
-  { key: 'meds', icon: '💊', label: 'Meds' },
-  { key: 'health', icon: '❤️', label: 'Health' },
-  { key: 'build', icon: '⚖️', label: 'Build' },
-  { key: 'tobacco', icon: '🚬', label: 'Tobacco' },
+type FactorKey = 'meds' | 'health' | 'build' | 'tobacco';
+const FACTOR_ITEMS: Array<{
+  key: FactorKey;
+  Icon: (props: { size?: number }) => JSX.Element;
+  label: string;
+}> = [
+  { key: 'meds', Icon: IconPill, label: 'Meds' },
+  { key: 'health', Icon: IconHeart, label: 'Health' },
+  { key: 'build', Icon: IconScale, label: 'Build' },
+  { key: 'tobacco', Icon: IconSmokingNo, label: 'Tobacco' },
 ];
 
 export function Results() {
@@ -367,11 +372,18 @@ export function Results() {
           {FACTOR_ITEMS.map((f) => (
             <span className="factor-pill" key={f.key}>
               <span className="factor-pill-icon" aria-hidden="true">
-                {f.icon}
+                <f.Icon size={18} />
               </span>
               <span className="factor-pill-label">{f.label}</span>
-              <span className={`factor-pill-score tone-${toneFor(factorScores[f.key])}`}>
-                {scoring.isOep ? 'N/A' : `${factorScores[f.key]}%`}
+              <span
+                className="factor-pill-score"
+                title={
+                  scoring.isOep
+                    ? 'Open Enrollment Period — every carrier must accept you at their best rate class, no underwriting.'
+                    : undefined
+                }
+              >
+                {scoring.isOep ? '✓' : `${factorScores[f.key]}%`}
               </span>
             </span>
           ))}
@@ -625,15 +637,12 @@ function DropSlot({
   onExplainPlanG,
   onExplainPlanN,
 }: DropSlotProps) {
-  const medal = MEDALS[index] ?? '🏅';
   const filled = group !== null;
   const cls = `slot${filled ? ' slot-filled' : ''}${hover ? ' slot-hover' : ''}`;
   if (!filled) {
     return (
       <div className={cls} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
-        <div className="slot-medal" aria-hidden="true">
-          {medal}
-        </div>
+        <div className="slot-index" aria-hidden="true">{index + 1}</div>
         <div className="slot-empty-label">Add a carrier to compare</div>
       </div>
     );
@@ -647,10 +656,8 @@ function DropSlot({
         ×
       </button>
       <div className="slot-head">
-        <ScoreRing score={group.bestScore} size={32} onExplain={onExplainScore} />
-        <div className="slot-medal-mini" aria-hidden="true">
-          {medal}
-        </div>
+        <ScoreRing score={group.bestScore} size={36} onExplain={onExplainScore} />
+        <div className="slot-index-mini" aria-hidden="true">{index + 1}</div>
       </div>
       <div className="slot-name">{group.parent}</div>
       <div className="slot-prices">
@@ -711,8 +718,3 @@ function DropSlot({
   );
 }
 
-function toneFor(value: number): 'high' | 'mid' | 'low' {
-  if (value >= 90) return 'high';
-  if (value >= 80) return 'mid';
-  return 'low';
-}

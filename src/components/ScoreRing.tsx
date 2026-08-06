@@ -1,31 +1,31 @@
 // SVG ring with an animated stroke-dashoffset transition. Used at four
-// sizes across the Results screen — header (64), building header (44),
-// drop slot (32), and compare modal column (52). Stroke colour follows
-// the same score → tone mapping the rest of the app uses.
+// sizes across the Results screen — header (60), building header (36),
+// drop slot (36), and compare modal column (52). One accent stroke
+// colour everywhere; the score number carries the tier meaning. When
+// onExplain is set the whole ring becomes the tap target (no floating
+// "?" dot badge).
 
 interface ScoreRingProps {
   score: number;
   size?: number;
-  /** True when rendering on the dark navy header — flips the track and
-   *  score-text colour to legible-on-dark variants. */
+  /** True when rendering on a dark hero surface — flips the score-text
+   *  colour to a legible-on-dark variant. Track darkens automatically. */
   dark?: boolean;
   /** When set, wraps the SVG in a button that opens the Fit Score
-   *  explainer. Rendered as a subtle info-cursor affordance. */
+   *  explainer. Entire ring is tappable. */
   onExplain?: () => void;
 }
 
-export function ScoreRing({ score, size = 44, dark = false, onExplain }: ScoreRingProps) {
+export function ScoreRing({ score, size = 36, dark = false, onExplain }: ScoreRingProps) {
   const clamped = Math.max(0, Math.min(100, score));
-  const stroke = size <= 32 ? 3 : size <= 44 ? 4 : 5;
+  const stroke = size <= 40 ? 3 : 4;
   const r = (size - stroke) / 2;
   const center = size / 2;
   const circumference = 2 * Math.PI * r;
   const offset = circumference - (clamped / 100) * circumference;
-  const color =
-    clamped >= 90 ? 'var(--teal)' : clamped >= 80 ? 'var(--amber)' : 'var(--red-c)';
-  const trackColor = dark ? 'rgba(255,255,255,0.08)' : '#e2e8f0';
+  const trackColor = dark ? 'rgba(255,255,255,0.10)' : 'rgba(15, 23, 42, 0.08)';
   const textColor = dark ? '#fff' : 'var(--dark)';
-  const fontSize = Math.round(size * 0.36);
+  const fontSize = Math.round(size * 0.38);
 
   const svg = (
     <svg
@@ -48,7 +48,7 @@ export function ScoreRing({ score, size = 44, dark = false, onExplain }: ScoreRi
         cy={center}
         r={r}
         fill="none"
-        stroke={color}
+        stroke="var(--teal)"
         strokeWidth={stroke}
         strokeDasharray={circumference}
         strokeDashoffset={offset}
@@ -62,7 +62,7 @@ export function ScoreRing({ score, size = 44, dark = false, onExplain }: ScoreRi
         textAnchor="middle"
         dominantBaseline="central"
         fontFamily="'Fraunces', serif"
-        fontWeight={800}
+        fontWeight={700}
         fontSize={fontSize}
         fill={textColor}
         style={{ fontVariantNumeric: 'tabular-nums' }}
@@ -86,7 +86,6 @@ export function ScoreRing({ score, size = 44, dark = false, onExplain }: ScoreRi
       title="How is this score calculated?"
     >
       {svg}
-      <span className="score-ring-info" aria-hidden="true">?</span>
     </button>
   );
 }

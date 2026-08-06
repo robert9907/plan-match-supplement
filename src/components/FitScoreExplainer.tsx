@@ -3,6 +3,7 @@
 // ring actually means. Reachable from every ScoreRing on the Results screen.
 
 import { ScoreRing } from './ScoreRing';
+import { IconPill, IconHeart, IconScale, IconSmokingNo } from './Icons';
 
 interface FitScoreExplainerProps {
   overall: number;
@@ -18,35 +19,35 @@ interface FitScoreExplainerProps {
 
 const FACTOR_ROWS: Array<{
   key: 'meds' | 'health' | 'build' | 'tobacco';
-  icon: string;
+  Icon: (props: { size?: number }) => JSX.Element;
   label: string;
   weight: string;
   desc: string;
 }> = [
   {
     key: 'meds',
-    icon: '💊',
+    Icon: IconPill,
     label: 'Meds match',
     weight: '40%',
     desc: "How well your current prescriptions line up with each carrier's underwriting rules.",
   },
   {
     key: 'health',
-    icon: '❤️',
+    Icon: IconHeart,
     label: 'Health',
     weight: '30%',
     desc: 'Whether your health-history answers avoid the carrier\'s knockout questions.',
   },
   {
     key: 'build',
-    icon: '⚖️',
+    Icon: IconScale,
     label: 'Build',
     weight: '15%',
     desc: "Where your height and weight fall on the carrier's build chart.",
   },
   {
     key: 'tobacco',
-    icon: '🚬',
+    Icon: IconSmokingNo,
     label: 'Tobacco',
     weight: '15%',
     desc: 'Tobacco use bumps the rate class and lowers the fit score.',
@@ -94,12 +95,19 @@ export function FitScoreExplainer({ overall, factors, isOep, onClose }: FitScore
               <div key={row.key} className="fit-explainer-row">
                 <div className="fit-explainer-row-head">
                   <span className="fit-explainer-row-icon" aria-hidden="true">
-                    {row.icon}
+                    <row.Icon size={18} />
                   </span>
                   <span className="fit-explainer-row-label">{row.label}</span>
                   <span className="fit-explainer-row-weight">Weight {row.weight}</span>
-                  <span className="fit-explainer-row-score">
-                    {isOep ? 'N/A' : `${value}%`}
+                  <span
+                    className="fit-explainer-row-score"
+                    title={
+                      isOep
+                        ? 'OEP — automatic pass, no underwriting.'
+                        : undefined
+                    }
+                  >
+                    {isOep ? '✓' : `${value}%`}
                   </span>
                 </div>
                 <p className="fit-explainer-row-desc">{row.desc}</p>
