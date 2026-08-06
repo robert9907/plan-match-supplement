@@ -369,24 +369,32 @@ export function Results() {
           onClick={openFitExplainer}
           aria-label="How is the Fit Score calculated?"
         >
-          {FACTOR_ITEMS.map((f) => (
-            <span className="factor-pill" key={f.key}>
-              <span className="factor-pill-icon" aria-hidden="true">
-                <f.Icon size={18} />
+          {FACTOR_ITEMS.map((f) => {
+            // OEP profiles get the success tint (guaranteed acceptance is
+            // effectively a 100% match). Otherwise ≥90% is success, below
+            // is warning — see the "sensible default" note in the redesign
+            // brief; flag for review if we want a subtler ladder later.
+            const isSuccess = scoring.isOep || factorScores[f.key] >= 90;
+            const tone = isSuccess ? 'success' : 'warn';
+            return (
+              <span className={`factor-pill tone-${tone}`} key={f.key}>
+                <span className="factor-pill-icon" aria-hidden="true">
+                  <f.Icon size={20} />
+                </span>
+                <span className="factor-pill-label">{f.label}</span>
+                <span
+                  className="factor-pill-score"
+                  title={
+                    scoring.isOep
+                      ? 'Open Enrollment Period — every carrier must accept you at their best rate class, no underwriting.'
+                      : undefined
+                  }
+                >
+                  {scoring.isOep ? '✓' : `${factorScores[f.key]}%`}
+                </span>
               </span>
-              <span className="factor-pill-label">{f.label}</span>
-              <span
-                className="factor-pill-score"
-                title={
-                  scoring.isOep
-                    ? 'Open Enrollment Period — every carrier must accept you at their best rate class, no underwriting.'
-                    : undefined
-                }
-              >
-                {scoring.isOep ? '✓' : `${factorScores[f.key]}%`}
-              </span>
-            </span>
-          ))}
+            );
+          })}
         </button>
       </header>
 

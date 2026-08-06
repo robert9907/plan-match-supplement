@@ -2461,8 +2461,8 @@ textarea {
 .factor-pills {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 14px;
   width: 100%;
   padding: 0;
   border: none;
@@ -2472,18 +2472,19 @@ textarea {
   color: inherit;
   font: inherit;
 }
-.factor-pills:hover .factor-pill {
-  background: rgba(15, 23, 42, 0.04);
-}
 .factor-pill {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   background: var(--card);
-  border-radius: 12px;
-  padding: 10px 4px 9px;
-  transition: background 0.15s;
+  border-radius: 14px;
+  padding: 14px 8px 12px;
+  min-width: 0;
+  transition: filter 0.15s;
+}
+.factor-pills:hover .factor-pill {
+  filter: brightness(0.98);
 }
 .factor-pill-icon {
   display: inline-flex;
@@ -2500,11 +2501,32 @@ textarea {
 }
 .factor-pill-score {
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 500;
   color: var(--dark);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
   margin-top: 2px;
+}
+
+/* Tinted tiles — success ≥90% (or OEP), warning <90%. Icon + value
+ * inherit the semantic colour; label stays muted for hierarchy. Tokens
+ * (--green-bg/--green-text/--amber-bg/--amber-text) are the same ones
+ * used on .item-sub.safe/.warn, .build-res, .rate-class-badge, etc. */
+.factor-pill.tone-success {
+  background: var(--green-bg);
+}
+.factor-pill.tone-success .factor-pill-icon,
+.factor-pill.tone-success .factor-pill-score {
+  color: var(--green-text);
+}
+.factor-pill.tone-warn {
+  background: var(--amber-bg);
+}
+.factor-pill.tone-warn .factor-pill-icon,
+.factor-pill.tone-warn .factor-pill-score {
+  color: var(--amber-text);
 }
 
 /* ─── DropSlot row ────────────────────────────────────────────── */
