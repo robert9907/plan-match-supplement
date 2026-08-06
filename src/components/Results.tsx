@@ -11,7 +11,6 @@ import {
 } from '../lib/carrierGroups';
 import { ScoreRing } from './ScoreRing';
 import { Building } from './Building';
-import { PriceSpectrum } from './PriceSpectrum';
 import { CompareModal } from './CompareModal';
 import { FitScoreExplainer } from './FitScoreExplainer';
 import { PlanLetterPopover } from './PlanLetterPopover';
@@ -311,15 +310,20 @@ export function Results() {
     tobacco: scoring.factorTobacco,
   };
   const totalPlans = eligibleGroups.reduce((sum, g) => sum + g.variants.length, 0);
-  // Plan G is announced on the PriceSpectrum title (renders when 2+
-  // eligible carriers). Fall back to the first building with a Plan G
-  // filing when the spectrum is hidden. Plan N never appears in the
-  // spectrum, so its first mention is always the first building card
-  // that actually filed a Plan N price.
-  const spectrumShown = eligibleGroups.length > 1;
-  const firstPlanGIdx = spectrumShown
-    ? -1
-    : eligibleGroups.findIndex((g) => cheapestVariantFor(g, 'G') !== null);
+  // Slots auto-populate with the top 3 eligible carriers, so the first
+  // "Plan G / Plan N" mention in the main scroll is normally the first
+  // filled slot with that plan letter. Building carries a fallback
+  // "?" on the first carrier-list card too, in case the user cleared
+  // every slot.
+  const firstSlotWithPlanG = slots.findIndex(
+    (s) => s !== null && cheapestVariantFor(s, 'G') !== null,
+  );
+  const firstSlotWithPlanN = slots.findIndex(
+    (s) => s !== null && cheapestVariantFor(s, 'N') !== null,
+  );
+  const firstPlanGIdx = eligibleGroups.findIndex(
+    (g) => cheapestVariantFor(g, 'G') !== null,
+  );
   const firstPlanNIdx = eligibleGroups.findIndex(
     (g) => cheapestVariantFor(g, 'N') !== null,
   );
@@ -416,20 +420,12 @@ export function Results() {
               onDrop={onSlotDrop(i)}
               onClear={() => clearSlot(i)}
               onExplainScore={openFitExplainer}
+              onExplainPlanG={i === firstSlotWithPlanG ? openPlanG : undefined}
+              onExplainPlanN={i === firstSlotWithPlanN ? openPlanN : undefined}
             />
           ))}
         </div>
       </div>
-
-      {eligibleGroups.length > 1 && (
-        <PriceSpectrum
-          groups={eligibleGroups}
-          rankedParents={rankedParents}
-          marketMin={marketMinG}
-          marketMax={marketMaxG}
-          onExplainPlanG={openPlanG}
-        />
-      )}
 
       <div className="building-section-title">
         <span>
@@ -454,8 +450,16 @@ export function Results() {
             onAddToTop3={() => addToTop3(group)}
             onRemoveFromTop3={() => removeFromTop3(group)}
             onExplainScore={openFitExplainer}
-            onExplainPlanG={idx === firstPlanGIdx ? openPlanG : undefined}
-            onExplainPlanN={idx === firstPlanNIdx ? openPlanN : undefined}
+            onExplainPlanG={
+              firstSlotWithPlanG === -1 && idx === firstPlanGIdx
+                ? openPlanG
+                : undefined
+            }
+            onExplainPlanN={
+              firstSlotWithPlanN === -1 && idx === firstPlanNIdx
+                ? openPlanN
+                : undefined
+            }
             onDragStart={onBuildingDragStart(group.parent)}
             onDragEnd={onBuildingDragEnd}
           />
@@ -603,6 +607,10 @@ interface DropSlotProps {
   onDrop: (e: React.DragEvent) => void;
   onClear: () => void;
   onExplainScore: () => void;
+  /** When set, this slot's Plan G pill renders the "?" popover trigger.
+   *  Results wires this only on the first slot that has a Plan G filing. */
+  onExplainPlanG?: () => void;
+  onExplainPlanN?: () => void;
 }
 
 function DropSlot({
@@ -614,6 +622,8 @@ function DropSlot({
   onDrop,
   onClear,
   onExplainScore,
+  onExplainPlanG,
+  onExplainPlanN,
 }: DropSlotProps) {
   const medal = MEDALS[index] ?? '🏅';
   const filled = group !== null;
@@ -646,14 +656,46 @@ function DropSlot({
       <div className="slot-prices">
         {cG && (
           <div className="slot-mini plan-g">
-            <span className="slot-mini-letter">G</span>
-            <span className="slot-mini-price">${cG.carrier.planGLo}</span>
+            <span className="slot-mini-letter">
+              Plan G
+              {onExplainPlanG && (
+                <button
+                  type="button"
+                  className="plan-letter-info"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExplainPlanG();
+                  }}
+                  aria-label="What is Plan G?"
+                  title="What is Plan G?"
+                >
+                  ?
+                </button>
+              )}
+            </span>
+            <span className="slot-mini-price">${cG.carrier.planGLo}/mo</span>
           </div>
         )}
         {cN && (
           <div className="slot-mini plan-n">
-            <span className="slot-mini-letter">N</span>
-            <span className="slot-mini-price">${cN.carrier.planNLo}</span>
+            <span className="slot-mini-letter">
+              Plan N
+              {onExplainPlanN && (
+                <button
+                  type="button"
+                  className="plan-letter-info"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExplainPlanN();
+                  }}
+                  aria-label="What is Plan N?"
+                  title="What is Plan N?"
+                >
+                  ?
+                </button>
+              )}
+            </span>
+            <span className="slot-mini-price">${cN.carrier.planNLo}/mo</span>
           </div>
         )}
       </div>
