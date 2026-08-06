@@ -186,7 +186,7 @@ export function Meds() {
         </button>
       ) : (
         <button className="btn" onClick={onContinue} type="button">
-          Continue to health screen →
+          Continue to doctors →
         </button>
       )}
 
