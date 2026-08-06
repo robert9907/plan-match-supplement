@@ -13,6 +13,8 @@ import { ScoreRing } from './ScoreRing';
 import { Building } from './Building';
 import { PriceSpectrum } from './PriceSpectrum';
 import { CompareModal } from './CompareModal';
+import { FitScoreExplainer } from './FitScoreExplainer';
+import { PlanLetterPopover } from './PlanLetterPopover';
 import { BackRow, Frame } from './Frame';
 import { MedigapDisclosures } from './MedigapDisclosures';
 
@@ -43,7 +45,15 @@ export function Results() {
   const [hoverSlot, setHoverSlot] = useState<number | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
+  const [showFitExplainer, setShowFitExplainer] = useState(false);
+  const [planPopover, setPlanPopover] = useState<'G' | 'N' | null>(null);
   const [autoSlotted, setAutoSlotted] = useState(false);
+
+  const openFitExplainer = useCallback(() => setShowFitExplainer(true), []);
+  const closeFitExplainer = useCallback(() => setShowFitExplainer(false), []);
+  const openPlanG = useCallback(() => setPlanPopover('G'), []);
+  const openPlanN = useCallback(() => setPlanPopover('N'), []);
+  const closePlanPopover = useCallback(() => setPlanPopover(null), []);
 
   useEffect(() => {
     if (flow.scoring) {
@@ -228,6 +238,20 @@ export function Results() {
     });
   }, []);
 
+  const removeFromTop3 = useCallback((group: CarrierGroup) => {
+    setSlots((prev) => {
+      let changed = false;
+      const next = prev.map((s) => {
+        if (s?.parent === group.parent) {
+          changed = true;
+          return null;
+        }
+        return s;
+      });
+      return changed ? next : prev;
+    });
+  }, []);
+
   const toggleExpand = useCallback((parent: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -287,6 +311,18 @@ export function Results() {
     tobacco: scoring.factorTobacco,
   };
   const totalPlans = eligibleGroups.reduce((sum, g) => sum + g.variants.length, 0);
+  // Plan G is announced on the PriceSpectrum title (renders when 2+
+  // eligible carriers). Fall back to the first building with a Plan G
+  // filing when the spectrum is hidden. Plan N never appears in the
+  // spectrum, so its first mention is always the first building card
+  // that actually filed a Plan N price.
+  const spectrumShown = eligibleGroups.length > 1;
+  const firstPlanGIdx = spectrumShown
+    ? -1
+    : eligibleGroups.findIndex((g) => cheapestVariantFor(g, 'G') !== null);
+  const firstPlanNIdx = eligibleGroups.findIndex(
+    (g) => cheapestVariantFor(g, 'N') !== null,
+  );
 
   return (
     <Frame step={5}>
@@ -301,13 +337,31 @@ export function Results() {
             <div className="results-header-sub">{profile}</div>
           </div>
           <div className="results-header-ring">
-            <ScoreRing score={scoring.overall} size={64} dark />
+            <ScoreRing
+              score={scoring.overall}
+              size={64}
+              dark
+              onExplain={openFitExplainer}
+            />
+            <button
+              type="button"
+              className="fit-score-caption"
+              onClick={openFitExplainer}
+              aria-label="How is the Fit Score calculated?"
+            >
+              Fit Score <span aria-hidden="true">·</span> How?
+            </button>
           </div>
         </div>
         <div className="results-header-verdict">{scoring.verdict}</div>
-        <div className="factor-pills">
+        <button
+          type="button"
+          className="factor-pills"
+          onClick={openFitExplainer}
+          aria-label="How is the Fit Score calculated?"
+        >
           {FACTOR_ITEMS.map((f) => (
-            <div className="factor-pill" key={f.key}>
+            <span className="factor-pill" key={f.key}>
               <span className="factor-pill-icon" aria-hidden="true">
                 {f.icon}
               </span>
@@ -315,9 +369,9 @@ export function Results() {
               <span className={`factor-pill-score tone-${toneFor(factorScores[f.key])}`}>
                 {scoring.isOep ? 'N/A' : `${factorScores[f.key]}%`}
               </span>
-            </div>
+            </span>
           ))}
-        </div>
+        </button>
       </header>
 
       {scoring.comboFlags.length > 0 && (
@@ -347,8 +401,8 @@ export function Results() {
 
       <div className="slot-section">
         <div className="slot-title">
-          <span>Your top 3 picks</span>
-          <span className="slot-title-meta">Drag a carrier here or tap ★ Pick</span>
+          <span>Your top 3 picks to compare</span>
+          <span className="slot-title-meta">Drag a carrier here or tap Compare</span>
         </div>
         <div className="slot-row">
           {slots.map((slot, i) => (
@@ -361,6 +415,7 @@ export function Results() {
               onDragLeave={onSlotDragLeave(i)}
               onDrop={onSlotDrop(i)}
               onClear={() => clearSlot(i)}
+              onExplainScore={openFitExplainer}
             />
           ))}
         </div>
@@ -372,6 +427,7 @@ export function Results() {
           rankedParents={rankedParents}
           marketMin={marketMinG}
           marketMax={marketMaxG}
+          onExplainPlanG={openPlanG}
         />
       )}
 
@@ -385,7 +441,7 @@ export function Results() {
       </div>
 
       <div className="building-list">
-        {eligibleGroups.map((group) => (
+        {eligibleGroups.map((group, idx) => (
           <Building
             key={group.parent}
             group={group}
@@ -396,6 +452,10 @@ export function Results() {
             marketMax={marketMaxG}
             onToggleExpand={() => toggleExpand(group.parent)}
             onAddToTop3={() => addToTop3(group)}
+            onRemoveFromTop3={() => removeFromTop3(group)}
+            onExplainScore={openFitExplainer}
+            onExplainPlanG={idx === firstPlanGIdx ? openPlanG : undefined}
+            onExplainPlanN={idx === firstPlanNIdx ? openPlanN : undefined}
             onDragStart={onBuildingDragStart(group.parent)}
             onDragEnd={onBuildingDragEnd}
           />
@@ -469,7 +529,7 @@ export function Results() {
             {slotsFilled === SLOT_COUNT
               ? 'Ready to compare!'
               : slotsFilled === 0
-              ? 'Pick up to 3 carriers'
+              ? 'Add up to 3 carriers to compare'
               : `${SLOT_COUNT - slotsFilled} slot${SLOT_COUNT - slotsFilled === 1 ? '' : 's'} open`}
           </span>
         </div>
@@ -511,7 +571,22 @@ export function Results() {
           picks={slots.filter((s): s is CarrierGroup => s !== null)}
           onClose={() => setShowCompare(false)}
           onApply={onApply}
+          onExplainPlanG={openPlanG}
+          onExplainPlanN={openPlanN}
         />
+      )}
+
+      {showFitExplainer && (
+        <FitScoreExplainer
+          overall={scoring.overall}
+          factors={factorScores}
+          isOep={scoring.isOep}
+          onClose={closeFitExplainer}
+        />
+      )}
+
+      {planPopover && (
+        <PlanLetterPopover plan={planPopover} onClose={closePlanPopover} />
       )}
     </Frame>
   );
@@ -527,9 +602,19 @@ interface DropSlotProps {
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
   onClear: () => void;
+  onExplainScore: () => void;
 }
 
-function DropSlot({ index, group, hover, onDragOver, onDragLeave, onDrop, onClear }: DropSlotProps) {
+function DropSlot({
+  index,
+  group,
+  hover,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onClear,
+  onExplainScore,
+}: DropSlotProps) {
   const medal = MEDALS[index] ?? '🏅';
   const filled = group !== null;
   const cls = `slot${filled ? ' slot-filled' : ''}${hover ? ' slot-hover' : ''}`;
@@ -539,7 +624,7 @@ function DropSlot({ index, group, hover, onDragOver, onDragLeave, onDrop, onClea
         <div className="slot-medal" aria-hidden="true">
           {medal}
         </div>
-        <div className="slot-empty-label">↕ Drag a carrier</div>
+        <div className="slot-empty-label">Add a carrier to compare</div>
       </div>
     );
   }
@@ -548,11 +633,11 @@ function DropSlot({ index, group, hover, onDragOver, onDragLeave, onDrop, onClea
   const hhd = bestHhdLabel(group);
   return (
     <div className={cls} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
-      <button type="button" className="slot-clear" onClick={onClear} aria-label="Remove pick">
+      <button type="button" className="slot-clear" onClick={onClear} aria-label="Remove from compare">
         ×
       </button>
       <div className="slot-head">
-        <ScoreRing score={group.bestScore} size={32} />
+        <ScoreRing score={group.bestScore} size={32} onExplain={onExplainScore} />
         <div className="slot-medal-mini" aria-hidden="true">
           {medal}
         </div>
@@ -572,7 +657,14 @@ function DropSlot({ index, group, hover, onDragOver, onDragLeave, onDrop, onClea
           </div>
         )}
       </div>
-      {hhd && <div className="slot-hhd">{hhd}</div>}
+      {hhd && (
+        <div
+          className="slot-hhd"
+          title="Household discount typically applies when two adults at the same address enroll — spouse, civil union, or (some carriers) any household member. Exact rules vary by carrier."
+        >
+          {hhd}
+        </div>
+      )}
     </div>
   );
 }

@@ -205,10 +205,10 @@ function buildCarrierMap(
 
 function discountCopy(rates: CarrierRates): string {
   if (rates.gHhd && rates.gHhd > 0) {
-    return `HHD: $${rates.gHhd.toFixed(0)}/mo Plan G`;
+    return `Household discount: $${rates.gHhd.toFixed(0)}/mo for Plan G`;
   }
   if (rates.nHhd && rates.nHhd > 0) {
-    return `HHD: $${rates.nHhd.toFixed(0)}/mo Plan N`;
+    return `Household discount: $${rates.nHhd.toFixed(0)}/mo for Plan N`;
   }
   return 'None listed';
 }

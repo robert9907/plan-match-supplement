@@ -2444,6 +2444,26 @@ textarea {
 }
 .results-header-ring {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.fit-score-caption {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.fit-score-caption:hover {
+  color: #fff;
+  text-decoration: underline;
 }
 .results-header-verdict {
   font-size: 12px;
@@ -2456,6 +2476,17 @@ textarea {
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-top: 12px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: inherit;
+  color: inherit;
+  font: inherit;
+}
+.factor-pills:hover .factor-pill {
+  background: rgba(255, 255, 255, 0.1);
 }
 .factor-pill {
   display: flex;
@@ -4056,3 +4087,347 @@ textarea {
   color: var(--ms-light-muted);
   font-size: 13px;
 }
+
+/* ─── ScoreRing tap-to-explain wrapper ──────────────────────────── */
+
+.score-ring-btn {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  transition: transform 0.12s ease;
+}
+.score-ring-btn:hover {
+  transform: scale(1.06);
+}
+.score-ring-btn:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+.score-ring-info {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--teal);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--card, #fff);
+  font-family: 'Inter', sans-serif;
+}
+.results-header-ring .score-ring-info {
+  box-shadow: 0 0 0 2px var(--navy-c);
+}
+
+/* ─── Fit Score explainer modal ─────────────────────────────────── */
+
+.fit-explainer-card {
+  max-width: 520px;
+}
+.fit-explainer-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--surface);
+  border-radius: 14px;
+  border: 1px solid var(--border-c);
+  margin-bottom: 14px;
+}
+.fit-explainer-summary-text {
+  min-width: 0;
+}
+.fit-explainer-summary-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--body-c);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.fit-explainer-summary-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--body-c);
+}
+.fit-explainer-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fit-explainer-row {
+  padding: 10px 12px;
+  border: 1px solid var(--border-c);
+  border-radius: 12px;
+  background: var(--card);
+}
+.fit-explainer-row-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.fit-explainer-row-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+.fit-explainer-row-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--dark);
+  flex: 1;
+}
+.fit-explainer-row-weight {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted-c);
+}
+.fit-explainer-row-score {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--dark);
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+  text-align: right;
+}
+.fit-explainer-row-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--body-c);
+}
+.fit-explainer-foot {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--muted-c);
+  line-height: 1.4;
+}
+
+/* ─── Compact-info affordances (ⓘ hints) ────────────────────────── */
+
+.building-meta-info,
+.building-hhd-info,
+.compare-row-hint,
+.spectrum-title-info {
+  color: var(--muted-c);
+  font-size: 0.85em;
+  cursor: help;
+}
+.building-hhd span[title] {
+  cursor: help;
+}
+.building-toggle-text {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.building-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  min-height: 28px;
+  padding: 0 10px;
+}
+.building-toggle-chev {
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.15s ease;
+}
+.building-toggle-chev.open {
+  transform: rotate(180deg);
+}
+
+/* ─── Comparing (active pick) button state ──────────────────────── */
+
+.building-pick-active {
+  background: var(--navy-c);
+  color: #fff;
+}
+.building-pick-active:hover {
+  background: var(--red-c, #ef4444);
+}
+.building-pick-active:hover::after {
+  content: ' — remove';
+  font-weight: 600;
+}
+
+/* ─── Price spectrum "Best value" label ─────────────────────────── */
+
+.spectrum-value-zone-label {
+  position: absolute;
+  left: 4px;
+  top: -18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(16, 185, 129, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.spectrum-track {
+  margin-top: 18px;
+}
+
+/* ─── Plan letter "?" info dot (matches ScoreRing badge) ────────── */
+
+.plan-letter-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--teal);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.plan-letter-info:hover {
+  transform: scale(1.15);
+  background: #0ea271;
+}
+.plan-letter-info:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* Rate class badge — inline ⓘ hint marker */
+.badge-pill {
+  cursor: help;
+}
+.badge-pill-info {
+  color: currentColor;
+  opacity: 0.7;
+  font-size: 0.85em;
+  margin-left: 2px;
+}
+
+/* ─── Plan-letter popover card (compact variant of compare-modal) ── */
+
+.plan-letter-popover-card {
+  max-width: 380px;
+  padding: 18px 18px 16px;
+}
+.plan-letter-popover-head-id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.plan-letter-popover-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--teal-bg);
+  color: var(--teal);
+  font-family: 'Fraunces', serif;
+  font-weight: 800;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.plan-letter-popover-letter.plan-n {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+.plan-letter-popover-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--dark);
+  letter-spacing: -0.01em;
+}
+.plan-letter-popover-tagline {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-c);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+.plan-letter-popover-desc {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--body-c);
+}
+.plan-letter-popover-copays {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-radius: 10px;
+  border: 1px solid var(--border-c);
+  margin-bottom: 10px;
+}
+.plan-letter-popover-copay {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.plan-letter-popover-copay-label {
+  color: var(--body-c);
+}
+.plan-letter-popover-copay-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--dark);
+}
+.plan-letter-popover-copay-value.free {
+  color: var(--teal);
+}
+.plan-letter-popover-risk {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.04);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.plan-letter-popover-risk-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-c);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.plan-letter-popover-risk-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--dark);
+}
+.plan-letter-popover-foot {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted-c);
+  line-height: 1.4;
+}
+

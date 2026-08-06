@@ -13,6 +13,7 @@ interface PriceSpectrumProps {
   rankedParents: Set<string>;
   marketMin: number;
   marketMax: number;
+  onExplainPlanG?: () => void;
 }
 
 export function PriceSpectrum({
@@ -20,6 +21,7 @@ export function PriceSpectrum({
   rankedParents,
   marketMin,
   marketMax,
+  onExplainPlanG,
 }: PriceSpectrumProps) {
   const span = Math.max(1, marketMax - marketMin);
   const midA = Math.round(marketMin + span * 0.33);
@@ -41,13 +43,42 @@ export function PriceSpectrum({
   return (
     <div className="spectrum">
       <div className="spectrum-head">
-        <span className="spectrum-title">Plan G price spectrum</span>
+        <span
+          className="spectrum-title"
+          title="Each dot is one carrier family, placed by its lowest Plan G premium in your ZIP. Your ranked picks are highlighted."
+        >
+          Plan G
+          {onExplainPlanG && (
+            <button
+              type="button"
+              className="plan-letter-info"
+              onClick={(e) => {
+                e.stopPropagation();
+                onExplainPlanG();
+              }}
+              aria-label="What is Plan G?"
+              title="What is Plan G?"
+            >
+              ?
+            </button>
+          )}{' '}price spectrum
+          <span className="spectrum-title-info" aria-hidden="true">
+            {' '}ⓘ
+          </span>
+        </span>
         <span className="spectrum-range">
           ${marketMin} — ${marketMax}/mo
         </span>
       </div>
       <div className="spectrum-track">
-        <div className="spectrum-value-zone" aria-hidden="true" />
+        <div
+          className="spectrum-value-zone"
+          aria-hidden="true"
+          title="Cheapest ~third of the market — the 'value zone.'"
+        />
+        <span className="spectrum-value-zone-label" aria-hidden="true">
+          Best value
+        </span>
         {dots.map((d) => {
           const cls = d.ranked
             ? 'spectrum-dot spectrum-dot-ranked'

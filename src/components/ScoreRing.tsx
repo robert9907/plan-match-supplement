@@ -9,9 +9,12 @@ interface ScoreRingProps {
   /** True when rendering on the dark navy header — flips the track and
    *  score-text colour to legible-on-dark variants. */
   dark?: boolean;
+  /** When set, wraps the SVG in a button that opens the Fit Score
+   *  explainer. Rendered as a subtle info-cursor affordance. */
+  onExplain?: () => void;
 }
 
-export function ScoreRing({ score, size = 44, dark = false }: ScoreRingProps) {
+export function ScoreRing({ score, size = 44, dark = false, onExplain }: ScoreRingProps) {
   const clamped = Math.max(0, Math.min(100, score));
   const stroke = size <= 32 ? 3 : size <= 44 ? 4 : 5;
   const r = (size - stroke) / 2;
@@ -24,13 +27,13 @@ export function ScoreRing({ score, size = 44, dark = false }: ScoreRingProps) {
   const textColor = dark ? '#fff' : 'var(--dark)';
   const fontSize = Math.round(size * 0.36);
 
-  return (
+  const svg = (
     <svg
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       className="score-ring"
-      aria-label={`Score ${clamped} of 100`}
+      aria-label={`Fit Score ${clamped} of 100`}
     >
       <circle
         cx={center}
@@ -67,5 +70,23 @@ export function ScoreRing({ score, size = 44, dark = false }: ScoreRingProps) {
         {clamped}
       </text>
     </svg>
+  );
+
+  if (!onExplain) return svg;
+
+  return (
+    <button
+      type="button"
+      className="score-ring-btn"
+      onClick={(e) => {
+        e.stopPropagation();
+        onExplain();
+      }}
+      aria-label={`Fit Score ${clamped} of 100. Tap to see how it's calculated.`}
+      title="How is this score calculated?"
+    >
+      {svg}
+      <span className="score-ring-info" aria-hidden="true">?</span>
+    </button>
   );
 }

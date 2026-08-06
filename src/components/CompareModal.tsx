@@ -17,6 +17,10 @@ interface CompareModalProps {
   picks: CarrierGroup[];
   onClose: () => void;
   onApply: (carrier: CarrierResult, plan: 'G' | 'N') => void;
+  /** Opens the shared Plan G / Plan N popover. Wired only on the first
+   *  column so the "?" doesn't repeat down the stack. */
+  onExplainPlanG?: () => void;
+  onExplainPlanN?: () => void;
 }
 
 interface PickRow {
@@ -26,12 +30,19 @@ interface PickRow {
   nLo: number;
   nHi: number;
   rateType: string;
+  rateTypeHint: string | null;
   hhd: string;
   applyCarrier: CarrierResult | null;
   applyPlan: 'G' | 'N';
 }
 
-export function CompareModal({ picks, onClose, onApply }: CompareModalProps) {
+export function CompareModal({
+  picks,
+  onClose,
+  onApply,
+  onExplainPlanG,
+  onExplainPlanN,
+}: CompareModalProps) {
   const rows = useMemo<PickRow[]>(
     () =>
       picks.map((g) => {
@@ -47,6 +58,7 @@ export function CompareModal({ picks, onClose, onApply }: CompareModalProps) {
           nLo: cN?.carrier.planNLo ?? 0,
           nHi: cN?.carrier.planNHi ?? 0,
           rateType: rateTypeLabel(g.groupRateType),
+          rateTypeHint: rateTypeHint(g.groupRateType),
           hhd: bestHhdLabel(g) ?? '—',
           applyCarrier,
           applyPlan,
@@ -86,25 +98,37 @@ export function CompareModal({ picks, onClose, onApply }: CompareModalProps) {
                   <ScoreRing score={r.group.bestScore} size={52} />
                   <div className="compare-col-id">
                     <div className="compare-col-name">{r.group.parent}</div>
-                    {topPick && <span className="compare-col-pick">★ TOP PICK</span>}
+                    {topPick && <span className="compare-col-pick">★ HIGHEST FIT SCORE</span>}
                   </div>
                 </div>
                 <CompareRow
                   label="Plan G"
-                  value={r.gLo > 0 ? `$${r.gLo}–$${r.gHi}/mo` : 'Not filed'}
+                  value={r.gLo > 0 ? `$${r.gLo}–$${r.gHi}/mo` : 'Not offered'}
                   best={gIsBest}
+                  onExplain={topPick ? onExplainPlanG : undefined}
+                  explainAria="What is Plan G?"
                 />
                 <CompareRow
                   label="Plan N"
-                  value={r.nLo > 0 ? `$${r.nLo}–$${r.nHi}/mo` : 'Not filed'}
+                  value={r.nLo > 0 ? `$${r.nLo}–$${r.nHi}/mo` : 'Not offered'}
                   best={nIsBest}
+                  onExplain={topPick ? onExplainPlanN : undefined}
+                  explainAria="What is Plan N?"
                 />
-                <CompareRow label="Rate type" value={r.rateType} />
                 <CompareRow
-                  label="Tiers"
-                  value={`${r.group.variants.length} tier${r.group.variants.length === 1 ? '' : 's'}`}
+                  label="Rate type"
+                  value={r.rateType}
+                  hint={r.rateTypeHint ?? undefined}
                 />
-                <CompareRow label="HHD" value={r.hhd} />
+                <CompareRow
+                  label="Plans filed"
+                  value={`${r.group.variants.length} plan${r.group.variants.length === 1 ? '' : 's'}`}
+                />
+                <CompareRow
+                  label="Household discount"
+                  value={r.hhd}
+                  hint="Applies when two adults at the same address enroll — spouse, civil union, or (some carriers) any household member. Exact rules vary by carrier."
+                />
 
                 {r.applyCarrier && (
                   <button
@@ -128,14 +152,38 @@ function CompareRow({
   label,
   value,
   best,
+  hint,
+  onExplain,
+  explainAria,
 }: {
   label: string;
   value: string;
   best?: boolean;
+  hint?: string;
+  onExplain?: () => void;
+  explainAria?: string;
 }) {
   return (
     <div className="compare-row">
-      <span className="compare-row-label">{label}</span>
+      <span className="compare-row-label">
+        {label}
+        {hint && (
+          <span className="compare-row-hint" title={hint} aria-label={hint}>
+            {' '}ⓘ
+          </span>
+        )}
+        {onExplain && (
+          <button
+            type="button"
+            className="plan-letter-info"
+            onClick={onExplain}
+            aria-label={explainAria ?? 'More info'}
+            title={explainAria ?? 'More info'}
+          >
+            ?
+          </button>
+        )}
+      </span>
       <span className={`compare-row-value${best ? ' compare-row-best' : ''}`}>
         {best && <span aria-hidden="true">★ </span>}
         {value}
@@ -145,8 +193,18 @@ function CompareRow({
 }
 
 function rateTypeLabel(rt?: string): string {
-  if (rt === 'ATTAINED_AGE') return 'Attained age';
-  if (rt === 'ISSUE_AGE') return 'Issue age';
+  if (rt === 'ATTAINED_AGE') return 'Attained-age priced';
+  if (rt === 'ISSUE_AGE') return 'Issue-age priced';
   if (rt === 'COMMUNITY_RATED') return 'Community rated';
   return '—';
+}
+
+function rateTypeHint(rt?: string): string | null {
+  if (rt === 'ATTAINED_AGE')
+    return 'Your premium increases each year as you get older, plus general rate increases.';
+  if (rt === 'ISSUE_AGE')
+    return 'Your premium is set by your age when you first bought the plan — no age-based increases, only general rate increases.';
+  if (rt === 'COMMUNITY_RATED')
+    return 'Everyone in your area pays the same premium regardless of age. General rate increases still apply.';
+  return null;
 }
