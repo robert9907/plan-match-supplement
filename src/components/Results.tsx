@@ -10,7 +10,7 @@ import {
   type CarrierGroup,
 } from '../lib/carrierGroups';
 import { ScoreRing } from './ScoreRing';
-import { Building } from './Building';
+import { Building, type GroupContext } from './Building';
 import { CompareModal } from './CompareModal';
 import { FitScoreExplainer } from './FitScoreExplainer';
 import { PlanLetterPopover } from './PlanLetterPopover';
@@ -32,6 +32,21 @@ const FACTOR_ITEMS: Array<{
   { key: 'build', Icon: IconScale, label: 'Build' },
   { key: 'tobacco', Icon: IconSmokingNo, label: 'Tobacco' },
 ];
+
+// Pick the most-frequent value from a bag; ties broken by insertion
+// order. Used to compute market-majority rate type / rate class so
+// each Building card can flag when its own value differs.
+function pickMajority(counts: Record<string, number>): string | null {
+  let winner: string | null = null;
+  let best = -1;
+  for (const [k, v] of Object.entries(counts)) {
+    if (v > best) {
+      best = v;
+      winner = k;
+    }
+  }
+  return winner;
+}
 
 // Explain why a factor is below 100%. Pulled from ScoringResult fields
 // that the scoring engine already computes (comboFlags, healthFlagCount,
@@ -156,6 +171,56 @@ export function Results() {
   );
   const eligibleGroups = useMemo(() => groups.filter((g) => !g.allKnockedOut), [groups]);
   const knockoutGroups = useMemo(() => groups.filter((g) => g.allKnockedOut), [groups]);
+
+  // Market stats used by Building's reasoning generator to produce
+  // genuinely per-carrier bullets (price positioning, majority-vs-minority
+  // rate methodology / rate class). Computed once here and passed down
+  // rather than recomputed per card.
+  const eligibleContext = useMemo<GroupContext>(() => {
+    if (eligibleGroups.length === 0) {
+      return {
+        cheapestPrice: 0,
+        eligibleCount: 0,
+        majorityRateType: null,
+        majorityRateClass: null,
+      };
+    }
+    const prices: number[] = [];
+    const rateTypeCounts: Record<string, number> = {};
+    const rateClassCounts: Record<string, number> = {};
+    for (const g of eligibleGroups) {
+      const cG = cheapestVariantFor(g, 'G');
+      const cN = cheapestVariantFor(g, 'N');
+      const primary = cG ?? cN;
+      if (primary) {
+        const lo =
+          cG && cN
+            ? Math.min(cG.carrier.planGLo, cN.carrier.planNLo)
+            : cG
+              ? cG.carrier.planGLo
+              : cN!.carrier.planNLo;
+        if (lo > 0) prices.push(lo);
+        const rc = primary.carrier.rateClass.name;
+        rateClassCounts[rc] = (rateClassCounts[rc] ?? 0) + 1;
+      }
+      const rt = g.groupRateType ?? 'UNKNOWN';
+      rateTypeCounts[rt] = (rateTypeCounts[rt] ?? 0) + 1;
+    }
+    const majorityRateTypeRaw = pickMajority(rateTypeCounts);
+    const majorityRateType: GroupContext['majorityRateType'] =
+      majorityRateTypeRaw === 'ATTAINED_AGE' ||
+      majorityRateTypeRaw === 'ISSUE_AGE' ||
+      majorityRateTypeRaw === 'COMMUNITY_RATED'
+        ? majorityRateTypeRaw
+        : null;
+    const majorityRateClass = pickMajority(rateClassCounts);
+    return {
+      cheapestPrice: prices.length > 0 ? Math.min(...prices) : 0,
+      eligibleCount: eligibleGroups.length,
+      majorityRateType,
+      majorityRateClass,
+    };
+  }, [eligibleGroups]);
 
   // Auto-populate the slots with the top three eligible groups on first
   // load. We track this with a flag so the user's subsequent removals
@@ -346,10 +411,6 @@ export function Results() {
   const firstSlotWithPlanN = slots.findIndex(
     (s) => s !== null && cheapestVariantFor(s, 'N') !== null,
   );
-  // "Top match" pill is applied to the first filled slot in the tray.
-  // Auto-slotting normally puts eligibleGroups[0] in slot 0, so this
-  // aligns with the top Building card in the list below.
-  const firstFilledSlot = slots.findIndex((s) => s !== null);
   const firstPlanGIdx = eligibleGroups.findIndex(
     (g) => cheapestVariantFor(g, 'G') !== null,
   );
@@ -468,7 +529,6 @@ export function Results() {
               index={i}
               group={slot}
               hover={hoverSlot === i}
-              isTopMatch={i === firstFilledSlot}
               onDragOver={onSlotDragOver(i)}
               onDragLeave={onSlotDragLeave(i)}
               onDrop={onSlotDrop(i)}
@@ -502,6 +562,7 @@ export function Results() {
             rankPosition={idx + 1}
             totalCarriers={eligibleGroups.length}
             overallScore={scoring.overall}
+            context={eligibleContext}
             onToggleExpand={() => toggleExpand(group.parent)}
             onAddToTop3={() => addToTop3(group)}
             onRemoveFromTop3={() => removeFromTop3(group)}
@@ -658,10 +719,6 @@ interface DropSlotProps {
   index: number;
   group: CarrierGroup | null;
   hover: boolean;
-  /** True when this slot holds the top-ranked pick — turns on accent
-   *  border + "Top match" pill for visual consistency with the carrier
-   *  list card. */
-  isTopMatch: boolean;
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
@@ -677,7 +734,6 @@ function DropSlot({
   index,
   group,
   hover,
-  isTopMatch,
   onDragOver,
   onDragLeave,
   onDrop,
@@ -687,7 +743,7 @@ function DropSlot({
   onExplainPlanN,
 }: DropSlotProps) {
   const filled = group !== null;
-  const cls = `slot${filled ? ' slot-filled' : ''}${hover ? ' slot-hover' : ''}${filled && isTopMatch ? ' slot-top-match' : ''}`;
+  const cls = `slot${filled ? ' slot-filled' : ''}${hover ? ' slot-hover' : ''}`;
   if (!filled) {
     return (
       <div className={cls} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
@@ -704,11 +760,6 @@ function DropSlot({
       <button type="button" className="slot-clear" onClick={onClear} aria-label="Remove from compare">
         ×
       </button>
-      {isTopMatch && (
-        <div className="top-match-badge slot-top-match-badge" aria-label="Top match for your profile">
-          Top match
-        </div>
-      )}
       <div className="slot-head">
         <ScoreRing score={group.bestScore} size={36} onExplain={onExplainScore} />
         <div className="slot-index-mini" aria-hidden="true">{index + 1}</div>

@@ -105,6 +105,17 @@ function Floor({
 
 // ─── Building ───────────────────────────────────────────────────────────
 
+/** Market context computed once in Results.tsx across all eligible
+ *  carriers. Passed to every Building so reasonsForGroup can produce
+ *  genuinely per-carrier bullets ("Lowest premium…" / "Within $8/mo of
+ *  the lowest…" / "differs from most top carriers"). */
+export interface GroupContext {
+  cheapestPrice: number;
+  eligibleCount: number;
+  majorityRateType: 'ATTAINED_AGE' | 'ISSUE_AGE' | 'COMMUNITY_RATED' | null;
+  majorityRateClass: string | null;
+}
+
 interface BuildingProps {
   group: CarrierGroup;
   expanded: boolean;
@@ -120,6 +131,9 @@ interface BuildingProps {
   /** Person-level overall score, used to detect meaningful per-carrier
    *  score delta (softens carrier-flexibility reason bullets). */
   overallScore: number;
+  /** Market stats across all eligible groups — enables per-carrier
+   *  reasoning that distinguishes this card from its neighbours. */
+  context: GroupContext;
   onToggleExpand: () => void;
   onAddToTop3: () => void;
   onRemoveFromTop3: () => void;
@@ -142,6 +156,7 @@ export function Building({
   rankPosition,
   totalCarriers,
   overallScore,
+  context,
   onToggleExpand,
   onAddToTop3,
   onRemoveFromTop3,
@@ -170,16 +185,24 @@ export function Building({
         : cheapestN
           ? { variant: cheapestN, plan: 'N' as const }
           : null;
-  const headerPrice =
+  const headerLo =
     primaryVariant?.plan === 'G'
       ? primaryVariant.variant.carrier.planGLo
       : primaryVariant?.plan === 'N'
         ? primaryVariant.variant.carrier.planNLo
         : 0;
+  const headerHi =
+    primaryVariant?.plan === 'G'
+      ? primaryVariant.variant.carrier.planGHi
+      : primaryVariant?.plan === 'N'
+        ? primaryVariant.variant.carrier.planNHi
+        : 0;
+  const priceDisplay =
+    headerLo === headerHi ? `$${headerLo}` : `$${headerLo}–$${headerHi}`;
 
   const reasons = useMemo(
-    () => reasonsForGroup(group, overallScore),
-    [group, overallScore],
+    () => reasonsForGroup(group, overallScore, context, headerLo),
+    [group, overallScore, context, headerLo],
   );
 
   return (
@@ -217,7 +240,7 @@ export function Building({
         </div>
         {primaryVariant && (
           <div className="building-price-col">
-            <div className="building-price-num">${headerPrice}</div>
+            <div className="building-price-num">{priceDisplay}</div>
             <div className="building-price-unit">per month</div>
           </div>
         )}
@@ -320,65 +343,122 @@ export function Building({
 
 // ─── Reasoning list generator ───────────────────────────────────────────
 //
-// Pulls factual + softened bullets from data scoreApplication already
-// exposes on CarrierGroup / CarrierResult. Every bullet uses the
-// likelihood phrasing established in the compliance pass — no stated
-// fact, no diagnosis inference, no absolute cross-carrier claims.
-// Returns 2-4 items; falls through gracefully when a group has fewer
-// meaningful signals rather than padding with filler.
-function reasonsForGroup(group: CarrierGroup, overallScore: number): string[] {
-  const reasons: string[] = [];
+// Produces 2-4 bullets from data scoreApplication already exposes plus a
+// per-page GroupContext (cheapest price, majority rate type/class). Bullets
+// are actively differentiating — price positioning always fires with a
+// per-carrier delta; HHD amount always varies per carrier when filed; rate
+// methodology and rate class are annotated when they differ from the
+// majority; the score-delta signal fires at a lower threshold (≥8pts) so
+// per-carrier bumps like Bankers-flexibility or Aetna-strictness surface.
+//
+// When a carrier's profile is genuinely indistinct from the pack, we say
+// so explicitly rather than repeating the majority rate class as if it
+// were a differentiator.
+//
+// Copy uses the softened likelihood phrasing from the compliance pass.
+function reasonsForGroup(
+  group: CarrierGroup,
+  overallScore: number,
+  ctx: GroupContext,
+  primaryPrice: number,
+): string[] {
+  const bullets: string[] = [];
   const cheapestG = cheapestVariantFor(group, 'G');
   const cheapestN = cheapestVariantFor(group, 'N');
   const primary = cheapestG ?? cheapestN;
-  if (!primary) return reasons;
+  if (!primary) return bullets;
   const c = primary.carrier;
 
-  // 1. Rate class assignment — softened.
-  const rc = c.rateClass.name;
-  if (rc === 'Preferred') {
-    reasons.push('Modeled at Preferred rate class based on your profile');
-  } else if (rc === 'Standard') {
-    reasons.push('Modeled at Standard rate class based on your profile');
-  } else if (rc === 'Standard I' || rc === 'Standard II' || rc === 'Standard III') {
-    reasons.push(`Modeled at ${rc} (rated) based on your profile`);
+  // Track whether we produced anything that meaningfully differentiates
+  // this carrier from its neighbours. If we didn't, we'll lead with an
+  // honest "comparable qualification profile" line instead of dressing
+  // up shared attributes as differentiators.
+  let hasDifferentiator = false;
+
+  // 1. Price positioning — always distinct per carrier (uses ctx). Skip
+  //    the "vs the rest" framing when there's only one eligible carrier.
+  if (ctx.eligibleCount > 1 && ctx.cheapestPrice > 0 && primaryPrice > 0) {
+    if (primaryPrice === ctx.cheapestPrice) {
+      bullets.push('Lowest premium among your top carrier matches');
+      hasDifferentiator = true;
+    } else {
+      const delta = primaryPrice - ctx.cheapestPrice;
+      if (delta <= 10) {
+        bullets.push(`Within $${delta}/mo of the lowest premium in your area`);
+      } else {
+        bullets.push(`$${delta}/mo above the lowest premium in your area`);
+      }
+      hasDifferentiator = true;
+    }
   }
 
-  // 2. Plan availability in the user's ZIP — factual.
-  if (cheapestG && cheapestN) {
-    reasons.push('Files both Plan G and Plan N in your ZIP');
-  } else if (cheapestG) {
-    reasons.push('Files Plan G in your ZIP (Plan N not filed)');
-  } else if (cheapestN) {
-    reasons.push('Files Plan N in your ZIP (Plan G not filed)');
-  }
-
-  // 3. Rate methodology — factual, sourced from CMS filings.
-  if (group.groupRateType === 'COMMUNITY_RATED') {
-    reasons.push('Community-rated — same premium regardless of age');
-  } else if (group.groupRateType === 'ISSUE_AGE') {
-    reasons.push('Issue-age priced — premium locked to your enrollment age');
-  } else if (group.groupRateType === 'ATTAINED_AGE') {
-    reasons.push('Attained-age priced — premium rises with age');
-  }
-
-  // 4. Household discount — factual, from CMS filings.
+  // 2. Household discount — per-carrier value ($X/mo), so always a
+  //    genuine differentiator when present.
   const hhd = bestHhdLabel(group);
-  if (hhd) reasons.push(hhd);
-
-  // 5. Carrier-specific delta from person-level overall score — softened.
-  //    Big positive delta means this carrier applied a floor bump (e.g.
-  //    Bankers accepts insulin >50u where others decline); big negative
-  //    means the carrier is stricter for this profile (e.g. Aetna
-  //    diabetes+cardiac). Threshold 15 keeps it meaningful.
-  const delta = c.score - overallScore;
-  if (delta >= 15) {
-    reasons.push('This carrier historically shows more flexibility for your profile — confirm directly with the carrier');
-  } else if (delta <= -15) {
-    reasons.push('This carrier applies stricter review for your profile — confirm directly with the carrier');
+  if (hhd) {
+    bullets.push(hhd);
+    hasDifferentiator = true;
   }
 
-  return reasons.slice(0, 4);
+  // 3. Rate methodology — mention always (useful context); flag it as
+  //    differing when this carrier is in the minority for the market.
+  const isMajorityRateType =
+    !ctx.majorityRateType || group.groupRateType === ctx.majorityRateType;
+  if (group.groupRateType === 'COMMUNITY_RATED') {
+    bullets.push(
+      isMajorityRateType
+        ? "Community-rated — premium doesn't rise with your age"
+        : "Community-rated — premium doesn't rise with your age (differs from most top carriers)",
+    );
+    if (!isMajorityRateType) hasDifferentiator = true;
+  } else if (group.groupRateType === 'ISSUE_AGE') {
+    bullets.push(
+      isMajorityRateType
+        ? 'Issue-age priced — premium locked to your enrollment age'
+        : 'Issue-age priced — premium locked to your enrollment age (differs from most top carriers)',
+    );
+    if (!isMajorityRateType) hasDifferentiator = true;
+  } else if (group.groupRateType === 'ATTAINED_AGE') {
+    bullets.push(
+      isMajorityRateType
+        ? 'Attained-age priced — premium rises each year with age'
+        : 'Attained-age priced — premium rises each year with age (differs from most top carriers)',
+    );
+    if (!isMajorityRateType) hasDifferentiator = true;
+  }
+
+  // 4. Rate class — only surface when it differs from the majority (a
+  //    Preferred sitting in a pool of Preferreds tells you nothing).
+  const rc = c.rateClass.name;
+  if (ctx.majorityRateClass && rc !== ctx.majorityRateClass) {
+    bullets.push(`Modeled at ${rc} rate class — differs from most other top carriers`);
+    hasDifferentiator = true;
+  }
+
+  // 5. Per-carrier score delta from the person-level overall — captures
+  //    adjustCarrierScore() bumps (Bankers flexibility on diabetes/
+  //    insulin, Cigna filed rated tiers on COPD, Aetna strictness on
+  //    diabetes+cardiac). Lower threshold than v1 so small but real
+  //    bumps surface.
+  const scoreDelta = c.score - overallScore;
+  if (scoreDelta >= 8) {
+    bullets.push('This carrier historically shows more flexibility for your profile — confirm directly with the carrier');
+    hasDifferentiator = true;
+  } else if (scoreDelta <= -8) {
+    bullets.push('This carrier applies stricter review for your profile — confirm directly with the carrier');
+    hasDifferentiator = true;
+  }
+
+  // If nothing meaningful distinguishes this carrier from the pack,
+  // lead with the honest fallback rather than parroting the majority
+  // rate class / rate type.
+  if (!hasDifferentiator) {
+    bullets.unshift(
+      'Comparable qualification profile to other top carriers — main difference here is price and household discount.',
+    );
+  }
+
+  return bullets.slice(0, 4);
 }
 
 function CheckIcon() {

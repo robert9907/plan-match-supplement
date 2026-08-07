@@ -2792,22 +2792,9 @@ textarea {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.slot-top-match {
-  border: 2px solid var(--green);
-  padding-top: 6px;
-}
-.slot-top-match-badge {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0;
-  background: var(--green-bg);
-  border: 1px solid var(--green);
-  font-size: 9px;
-  padding: 2px 8px;
-  white-space: nowrap;
-}
+/* .slot-top-match / .slot-top-match-badge removed — top-match indicator
+ * lives only on the Building card below the tray now, to avoid the
+ * duplicate-badge appearance for the same rank-1 carrier. */
 
 /* ── Header row: name+plan left, price+"per month" right ─────── */
 .building-header-2col {
