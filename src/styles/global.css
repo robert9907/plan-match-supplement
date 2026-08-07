@@ -2502,12 +2502,14 @@ textarea {
 .factor-pill-score {
   font-family: 'Inter', sans-serif;
   font-size: 24px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--dark);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   line-height: 1.1;
   margin-top: 2px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Tinted tiles — success ≥90% (or OEP), warning <90%. Icon + value
@@ -2527,6 +2529,16 @@ textarea {
 .factor-pill.tone-warn .factor-pill-icon,
 .factor-pill.tone-warn .factor-pill-score {
   color: var(--amber-text);
+}
+.factor-pill-info {
+  font-size: 0.55em;
+  font-weight: 600;
+  vertical-align: super;
+  opacity: 0.75;
+  margin-left: 1px;
+}
+.factor-pill[title] {
+  cursor: help;
 }
 
 /* ─── DropSlot row ────────────────────────────────────────────── */

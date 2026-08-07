@@ -33,6 +33,40 @@ const FACTOR_ITEMS: Array<{
   { key: 'tobacco', Icon: IconSmokingNo, label: 'Tobacco' },
 ];
 
+// Explain why a factor is below 100%. Pulled from ScoringResult fields
+// that the scoring engine already computes (comboFlags, healthFlagCount,
+// buildClassLabel) plus the raw tobacco input. Returns null for OEP or
+// 100% factors — those tiles have nothing to explain.
+function reasonForFactor(
+  key: FactorKey,
+  scoring: ScoringResult,
+  tobacco: 'Yes' | 'No' | null,
+): string | null {
+  switch (key) {
+    case 'meds': {
+      if (scoring.comboFlags.length > 0) return scoring.comboFlags.join(' ');
+      if (scoring.flagCount > 0) {
+        return `${scoring.flagCount} medication${scoring.flagCount === 1 ? '' : 's'} flagged on carrier underwriting lists.`;
+      }
+      return 'One or more medications require carrier-specific review.';
+    }
+    case 'health': {
+      if (scoring.healthFlagCount === 0) return null;
+      const n = scoring.healthFlagCount;
+      return `You answered Yes to ${n} health question${n === 1 ? '' : 's'} on the screening — carriers factor these into acceptance and rate class.`;
+    }
+    case 'build': {
+      return `Build class: ${scoring.buildClassLabel}. Outside the carriers' preferred (Standard) height-to-weight range, so most add a rate uplift.`;
+    }
+    case 'tobacco': {
+      if (tobacco !== 'Yes') return null;
+      return 'You reported current tobacco use. Most carriers file a separate tobacco rate class and add roughly a 20% premium; the exact uplift varies by carrier.';
+    }
+    default:
+      return null;
+  }
+}
+
 export function Results() {
   const navigate = useNavigate();
   const flow = useFlow();
@@ -349,7 +383,6 @@ export function Results() {
             <ScoreRing
               score={scoring.overall}
               size={64}
-              dark
               onExplain={openFitExplainer}
             />
             <button
@@ -374,23 +407,33 @@ export function Results() {
             // effectively a 100% match). Otherwise ≥90% is success, below
             // is warning — see the "sensible default" note in the redesign
             // brief; flag for review if we want a subtler ladder later.
-            const isSuccess = scoring.isOep || factorScores[f.key] >= 90;
+            const value = factorScores[f.key];
+            const isSuccess = scoring.isOep || value >= 90;
             const tone = isSuccess ? 'success' : 'warn';
+            const reducedReason =
+              !scoring.isOep && value < 100
+                ? reasonForFactor(f.key, scoring, flow.tobacco)
+                : null;
+            const tileTitle = scoring.isOep
+              ? 'Open Enrollment Period — every carrier must accept you at their best rate class, no underwriting.'
+              : reducedReason ?? undefined;
             return (
-              <span className={`factor-pill tone-${tone}`} key={f.key}>
+              <span
+                className={`factor-pill tone-${tone}`}
+                key={f.key}
+                title={tileTitle}
+              >
                 <span className="factor-pill-icon" aria-hidden="true">
                   <f.Icon size={20} />
                 </span>
                 <span className="factor-pill-label">{f.label}</span>
-                <span
-                  className="factor-pill-score"
-                  title={
-                    scoring.isOep
-                      ? 'Open Enrollment Period — every carrier must accept you at their best rate class, no underwriting.'
-                      : undefined
-                  }
-                >
-                  {scoring.isOep ? '✓' : `${factorScores[f.key]}%`}
+                <span className="factor-pill-score">
+                  {scoring.isOep ? '✓' : `${value}%`}
+                  {reducedReason && (
+                    <span className="factor-pill-info" aria-hidden="true">
+                      {' '}ⓘ
+                    </span>
+                  )}
                 </span>
               </span>
             );

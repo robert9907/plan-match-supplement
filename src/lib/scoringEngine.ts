@@ -141,7 +141,7 @@ function verdictForScore(s: number): string {
   if (s >= 70) return 'Good — most carriers likely accept';
   if (s >= 50) return 'Mixed — some carriers may accept';
   if (s >= 25) return 'Limited options — review carefully';
-  return 'Most carriers will decline';
+  return 'Most carriers may decline this profile';
 }
 
 function rateClassForScore(s: number): RateClass {
@@ -350,7 +350,7 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   if (clusters.diabetes >= 3) {
     score = Math.min(score, 25);
     comboFlags.push(
-      `${clusters.diabetes} diabetes meds — most carriers flag 3+ as a decline threshold.`,
+      `${clusters.diabetes} diabetes medications — many carriers apply added scrutiny at this level, though thresholds vary by carrier.`,
     );
   } else if (clusters.diabetes === 2) {
     score -= 10;
@@ -359,10 +359,14 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   // Cardio med stacking (BP / statin / beta blocker — excluding anticoagulants).
   if (clusters.cardio >= 4) {
     score = Math.min(score, 25);
-    comboFlags.push(`${clusters.cardio} cardiovascular meds — signals active heart disease.`);
+    comboFlags.push(
+      `${clusters.cardio} cardiovascular medications — a stack this size can prompt closer review at many carriers.`,
+    );
   } else if (clusters.cardio >= 3) {
     score -= 15;
-    comboFlags.push(`${clusters.cardio} cardio meds — MoO 2×2 decline threshold.`);
+    comboFlags.push(
+      `${clusters.cardio} cardiovascular medications — this pattern is associated with stricter review at some carriers (including Mutual of Omaha's underwriting approach).`,
+    );
   }
 
   // Anticoagulant presence — Warfarin / Eliquis / Xarelto / Pradaxa / Plavix.
@@ -371,7 +375,7 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   if (clusters.anticoagulant >= 1) {
     score -= 15;
     comboFlags.push(
-      `Anticoagulant (${clusterDrugs.anticoagulant.join(', ')}) — carriers read as proxy for AFib / post-stent / DVT.`,
+      `Anticoagulant (${clusterDrugs.anticoagulant.join(', ')}) — carriers often review anticoagulant use for the underlying condition; confirm your history directly with the carrier.`,
     );
   }
 
@@ -380,11 +384,11 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   if (clusters.diabetes >= 1 && (clusters.cardio >= 2 || clusters.anticoagulant >= 1)) {
     score = Math.min(score, 20);
     comboFlags.push(
-      `Diabetes + cardiac combo — Part A knockout at most carriers (Cigna Std II/III or Bankers may accept).`,
+      `Diabetes + cardiac combination — this combination is often declined or rated higher by carriers; Cigna and Bankers Fidelity have historically shown more flexibility here, but confirm directly with the carrier.`,
     );
   } else if (clusters.diabetes >= 1 && clusters.cardio >= 1) {
     score -= 15;
-    comboFlags.push(`Diabetes + cardio — closer review.`);
+    comboFlags.push(`Diabetes + cardiovascular medications — closer review is typical.`);
   }
 
   // Insulin + any cardiac signal — hard cap. Matches the compound question:
@@ -392,7 +396,7 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   if (hasInsulin && cardiacSignal) {
     score = Math.min(score, 15);
     comboFlags.push(
-      `Insulin (${insulinMeds.map((m) => m.name).join(', ')}) + cardiac signal — Part A knockout at most carriers.`,
+      `Insulin (${insulinMeds.map((m) => m.name).join(', ')}) + cardiac signal — this combination is often declined or rated higher; Cigna and Bankers Fidelity have historically shown more flexibility here, but confirm directly with the carrier.`,
     );
   }
 
@@ -405,13 +409,17 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   // same stack signals oral failure → A1c climbed → upgrade therapy.
   if (hasDiabetesEscalation) {
     score -= 10;
-    comboFlags.push('Diabetes escalation pattern — oral therapy appears to have failed.');
+    comboFlags.push(
+      'Diabetes escalation pattern — may indicate oral therapy alone is no longer managing the condition; carriers often review this more closely.',
+    );
   }
 
   // GLP-1 + insulin — advanced escalation beyond oral failure.
   if (hasGlp1PlusInsulin) {
     score = Math.min(score, 15);
-    comboFlags.push('GLP-1 + insulin — advanced diabetes escalation.');
+    comboFlags.push(
+      'GLP-1 + insulin — this combination is often reviewed as an advanced-therapy pattern; expect additional carrier scrutiny.',
+    );
   }
 
   // Neuropathy-adjacent drug + diabetes — Gabapentin / Lyrica / Cymbalta
@@ -423,7 +431,7 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   ) {
     score = Math.min(score, 15);
     comboFlags.push(
-      `${clusterDrugs.neuropathyAdj.join(', ')} + diabetes — underwriters infer diabetic neuropathy.`,
+      `${clusterDrugs.neuropathyAdj.join(', ')} combined with diabetes — this combination can prompt additional carrier review.`,
     );
   }
 
@@ -432,7 +440,7 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   if (clusters.anticoagulant >= 2) {
     score = Math.min(score, 15);
     comboFlags.push(
-      `Dual anticoagulation (${clusterDrugs.anticoagulant.join(', ')}) — mechanical valve or high-risk stent signal.`,
+      `Dual anticoagulation (${clusterDrugs.anticoagulant.join(', ')}) — this combination is sometimes associated with more complex cardiac history and may prompt additional review.`,
     );
   }
 
@@ -441,14 +449,16 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   if (cardioTier3Meds.length > 0) {
     score = Math.min(score, 25);
     comboFlags.push(
-      `${cardioTier3Meds.map((m) => m.name).join(', ')} — tier-3 cardiac med, HFrEF-implied.`,
+      `${cardioTier3Meds.map((m) => m.name).join(', ')} — a higher-tier cardiac medication that may prompt additional carrier review.`,
     );
   }
 
   // Polypharmacy — brokers flag 5+ maintenance Rx as closer review.
   if (meds.length >= 8) {
     score -= 15;
-    comboFlags.push(`${meds.length} total meds — polypharmacy flag.`);
+    comboFlags.push(
+      `${meds.length} total medications — a longer med list can prompt closer review at some carriers.`,
+    );
   } else if (meds.length >= 5) {
     score -= 5;
   }
@@ -456,7 +466,7 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   // Respiratory stacking
   if (clusters.respiratory >= 2) {
     score -= 10;
-    comboFlags.push(`${clusters.respiratory} respiratory meds.`);
+    comboFlags.push(`${clusters.respiratory} respiratory medications.`);
   }
 
   return {
@@ -497,9 +507,9 @@ function buildClassLabelFor(heightIn: number | null, weightLbs: number | null): 
     case 'standard':
       return 'Standard';
     case 'class1':
-      return 'Class I (+10%)';
+      return 'Class I (approx. +10%)';
     case 'class2':
-      return 'Class II (+20%)';
+      return 'Class II (approx. +20%)';
     case 'decline':
       return 'Above max — likely decline';
     default:
@@ -602,24 +612,28 @@ function carrierKnockoutReason(
   // an explicit heart condition, an anticoagulant (heart-dx proxy), or
   // 3+ BP meds (the "hypertension counts as heart condition" line).
   if (carrierName === 'Mutual of Omaha') {
-    if (clusters.diabetes > 2) return '>2 diabetes meds — MoO 2×2 Rule decline';
-    if (clusters.cardio > 2) return '>2 cardio meds — MoO 2×2 Rule decline';
+    if (clusters.diabetes > 2) {
+      return '>2 diabetes medications — modeled against Mutual of Omaha\'s known "2×2" underwriting pattern; confirm directly with the carrier.';
+    }
+    if (clusters.cardio > 2) {
+      return '>2 cardiovascular medications — modeled against Mutual of Omaha\'s known "2×2" underwriting pattern; confirm directly with the carrier.';
+    }
     if (
       clusters.diabetes >= 1 &&
       (health.q8_heart === 'y' || clusters.anticoagulant >= 1 || clusters.cardio >= 3)
     ) {
-      return 'Diabetes + cardiac — MoO 2×2 Rule decline';
+      return 'Diabetes + cardiac — modeled against Mutual of Omaha\'s known "2×2" underwriting pattern; confirm directly with the carrier.';
     }
   }
 
   // Humana — binary accept/decline model; no filed rated classes.
   if (carrierName === 'Humana' && adjustedScore < 70) {
-    return 'Humana is accept-or-decline — score below Preferred/Standard threshold';
+    return 'Modeled against Humana\'s typically binary underwriting approach; score is below the estimated accept threshold. Confirm directly with the carrier.';
   }
 
   // MoO (NC) binary fallback if the 2×2 specifics didn't fire.
   if (carrierName === 'Mutual of Omaha' && adjustedScore < 70) {
-    return 'MoO NC does not offer rated classes — score below Standard threshold';
+    return 'Modeled against Mutual of Omaha\'s NC filing (typically no rated classes); score is below the estimated accept threshold. Confirm directly with the carrier.';
   }
 
   return null;
@@ -673,7 +687,7 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
         planGHi: gAdj > 0 ? Math.round(gAdj * rc.hi) : 0,
         planNLo: nAdj > 0 ? Math.round(nAdj * rc.lo) : 0,
         planNHi: nAdj > 0 ? Math.round(nAdj * rc.hi) : 0,
-        reason: `100% — guaranteed acceptance at ${rc.name} rates. OEP — no health screening required.`,
+        reason: `100% — guaranteed acceptance under Open Enrollment. OEP — no medical underwriting required; tobacco and build classing may still apply per carrier.`,
         discount: discountCopy(rates),
         ctaLabel: 'Apply online →',
       };
