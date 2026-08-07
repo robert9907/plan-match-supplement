@@ -2772,19 +2772,58 @@ textarea {
   display: none;
 }
 
-.building-head {
-  display: flex;
+/* ── Top-match accent (rank-1 card + slot) ────────────────────── */
+.building-top-match {
+  border: 2px solid var(--green);
+  padding-top: 4px; /* offset for the top-match-badge sitting inside */
+}
+.top-match-badge {
+  display: inline-flex;
   align-items: center;
+  align-self: flex-start;
+  margin: 10px 14px 0;
+  padding: 3px 10px;
+  background: var(--green-bg);
+  color: var(--green);
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.slot-top-match {
+  border: 2px solid var(--green);
+  padding-top: 6px;
+}
+.slot-top-match-badge {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  background: var(--green-bg);
+  border: 1px solid var(--green);
+  font-size: 9px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* ── Header row: name+plan left, price+"per month" right ─────── */
+.building-header-2col {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 12px 14px 8px;
-  gap: 10px;
+  gap: 12px;
+  padding: 12px 14px 10px;
 }
 .building-id {
   min-width: 0;
+  flex: 1;
 }
 .building-name {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--dark);
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -2794,7 +2833,71 @@ textarea {
 .building-meta {
   font-size: 12px;
   color: var(--muted-c);
+  margin-top: 4px;
+}
+.building-price-col {
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 0;
+}
+.building-price-num {
+  font-family: 'Inter', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--dark);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.building-price-unit {
+  font-size: 11px;
+  color: var(--muted-c);
   margin-top: 2px;
+}
+
+.building-divider {
+  height: 1px;
+  background: rgba(15, 23, 42, 0.06);
+  margin: 0 14px;
+}
+
+.building-rank {
+  font-size: 11px;
+  color: var(--muted-c);
+  padding: 10px 14px 6px;
+  letter-spacing: 0.02em;
+}
+
+.building-reasons {
+  list-style: none;
+  padding: 0 14px 6px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.building-reason {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--body-c);
+}
+.building-reason-check {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--green-bg);
+  color: var(--green);
+  margin-top: 1px;
+}
+.building-reason-text {
+  min-width: 0;
 }
 
 .building-body {
@@ -2827,45 +2930,92 @@ textarea {
   justify-content: flex-end;
   flex-wrap: wrap;
 }
+/* Three-column pill row: View plans · Compare · Apply */
+.building-actions-3col {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 6px;
+  align-items: stretch;
+  justify-content: stretch;
+  flex-wrap: nowrap;
+}
+.building-actions-3col > .building-toggle,
+.building-actions-3col > .building-pick,
+.building-actions-3col > .building-apply {
+  min-height: 36px;
+}
+.building-actions-3col > .building-apply {
+  justify-self: stretch;
+}
+
+/* "Compare" button becomes success-outline (was solid teal fill). */
 .building-pick {
-  background: var(--teal);
-  color: #fff;
-  border: none;
+  background: transparent;
+  color: var(--green);
+  border: 1.5px solid var(--green);
   font-family: 'Inter', sans-serif;
   font-size: 12px;
   font-weight: 700;
-  padding: 8px 16px;
+  padding: 7px 14px;
   border-radius: 999px;
   cursor: pointer;
   letter-spacing: 0.02em;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 .building-pick:hover {
-  background: #0ea271;
+  background: var(--green-bg);
 }
+
+/* Neutral outline pill for the View / Hide plans toggle. */
 .building-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 8px 12px;
+  padding: 7px 12px;
   border-radius: 999px;
-  border: none;
-  background: rgba(15, 23, 42, 0.05);
+  border: 1.5px solid rgba(15, 23, 42, 0.12);
+  background: transparent;
   font-family: 'Inter', sans-serif;
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
   color: var(--body-c);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 .building-toggle:hover {
-  background: rgba(15, 23, 42, 0.1);
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.2);
+}
+
+/* Solid success-fill final CTA, white text — this is the enrol/apply
+ * action that was previously only reachable via the Compare modal. */
+.building-apply {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--green);
+  color: #ffffff;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.building-apply:hover {
+  background: #16a34a;
 }
 
 .building-ranked {
   cursor: default;
-  background: var(--teal-bg);
+  background: var(--green-bg);
 }
 /* building-ranked-overlay removed — no longer used in Building.tsx */
 .building-ranked-overlay,
@@ -4174,13 +4324,14 @@ textarea {
 /* ─── Comparing (active pick) button state ──────────────────────── */
 
 .building-pick-active {
-  background: transparent;
-  color: var(--teal);
-  box-shadow: inset 0 0 0 1.5px var(--teal);
+  background: var(--green-bg);
+  color: var(--green);
+  border-color: var(--green);
 }
 .building-pick-active:hover {
-  background: var(--teal-bg);
-  color: var(--teal);
+  background: var(--green-bg);
+  color: var(--green);
+  filter: brightness(0.95);
 }
 
 

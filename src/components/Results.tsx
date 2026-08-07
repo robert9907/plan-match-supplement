@@ -157,20 +157,6 @@ export function Results() {
   const eligibleGroups = useMemo(() => groups.filter((g) => !g.allKnockedOut), [groups]);
   const knockoutGroups = useMemo(() => groups.filter((g) => g.allKnockedOut), [groups]);
 
-  // Plan G market bounds across the eligible pool (fallback to the spec's
-  // baseline when only one carrier filed Plan G).
-  const [marketMinG, marketMaxG] = useMemo(() => {
-    const prices: number[] = [];
-    for (const g of eligibleGroups) {
-      const c = cheapestVariantFor(g, 'G');
-      if (c) prices.push(c.carrier.planGLo);
-    }
-    if (prices.length === 0) return [102, 310];
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    return [Math.floor(min), Math.ceil(max)];
-  }, [eligibleGroups]);
-
   // Auto-populate the slots with the top three eligible groups on first
   // load. We track this with a flag so the user's subsequent removals
   // aren't overridden.
@@ -360,6 +346,10 @@ export function Results() {
   const firstSlotWithPlanN = slots.findIndex(
     (s) => s !== null && cheapestVariantFor(s, 'N') !== null,
   );
+  // "Top match" pill is applied to the first filled slot in the tray.
+  // Auto-slotting normally puts eligibleGroups[0] in slot 0, so this
+  // aligns with the top Building card in the list below.
+  const firstFilledSlot = slots.findIndex((s) => s !== null);
   const firstPlanGIdx = eligibleGroups.findIndex(
     (g) => cheapestVariantFor(g, 'G') !== null,
   );
@@ -478,6 +468,7 @@ export function Results() {
               index={i}
               group={slot}
               hover={hoverSlot === i}
+              isTopMatch={i === firstFilledSlot}
               onDragOver={onSlotDragOver(i)}
               onDragLeave={onSlotDragLeave(i)}
               onDrop={onSlotDrop(i)}
@@ -507,12 +498,14 @@ export function Results() {
             expanded={expandedIds.has(group.parent)}
             ranked={rankedParents.has(group.parent)}
             dragging={draggingId === group.parent}
-            marketMin={marketMinG}
-            marketMax={marketMaxG}
+            isTopMatch={idx === 0}
+            rankPosition={idx + 1}
+            totalCarriers={eligibleGroups.length}
+            overallScore={scoring.overall}
             onToggleExpand={() => toggleExpand(group.parent)}
             onAddToTop3={() => addToTop3(group)}
             onRemoveFromTop3={() => removeFromTop3(group)}
-            onExplainScore={openFitExplainer}
+            onApply={onApply}
             onExplainPlanG={
               firstSlotWithPlanG === -1 && idx === firstPlanGIdx
                 ? openPlanG
@@ -665,6 +658,10 @@ interface DropSlotProps {
   index: number;
   group: CarrierGroup | null;
   hover: boolean;
+  /** True when this slot holds the top-ranked pick — turns on accent
+   *  border + "Top match" pill for visual consistency with the carrier
+   *  list card. */
+  isTopMatch: boolean;
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
@@ -680,6 +677,7 @@ function DropSlot({
   index,
   group,
   hover,
+  isTopMatch,
   onDragOver,
   onDragLeave,
   onDrop,
@@ -689,7 +687,7 @@ function DropSlot({
   onExplainPlanN,
 }: DropSlotProps) {
   const filled = group !== null;
-  const cls = `slot${filled ? ' slot-filled' : ''}${hover ? ' slot-hover' : ''}`;
+  const cls = `slot${filled ? ' slot-filled' : ''}${hover ? ' slot-hover' : ''}${filled && isTopMatch ? ' slot-top-match' : ''}`;
   if (!filled) {
     return (
       <div className={cls} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
@@ -706,6 +704,11 @@ function DropSlot({
       <button type="button" className="slot-clear" onClick={onClear} aria-label="Remove from compare">
         ×
       </button>
+      {isTopMatch && (
+        <div className="top-match-badge slot-top-match-badge" aria-label="Top match for your profile">
+          Top match
+        </div>
+      )}
       <div className="slot-head">
         <ScoreRing score={group.bestScore} size={36} onExplain={onExplainScore} />
         <div className="slot-index-mini" aria-hidden="true">{index + 1}</div>

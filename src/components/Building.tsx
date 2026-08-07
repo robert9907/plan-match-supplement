@@ -1,76 +1,16 @@
-// One carrier family = one "building". When collapsed it shows a Plan G
-// and Plan N PriceBar — the cheapest filing per plan plotted against the
-// full market range. When expanded it stacks "floors" — one per variant —
-// each showing the variant label, rate-class badge, and Plan G/N tiles.
+// Carrier family card. Rank-1 gets a "Top match" pill badge + accent
+// border; every card shows a short reasoning list (2-4 bullets sourced
+// from CarrierGroup + CarrierResult fields that scoreApplication already
+// exposes) so users see WHY a carrier lands where it does, not just a
+// bare score. Three-button foot: View/Hide plans · Compare · Apply.
 //
-// Buildings are draggable into the DropSlot row at the top. Click-to-add
-// works too, since drag-and-drop on touch screens is unreliable.
+// Copy uses likelihood/estimate phrasing to match the compliance pass —
+// no "will," "is," or diagnosis-implying language.
 
 import { useMemo } from 'react';
+import type { CarrierResult } from '../lib/scoringEngine';
 import type { CarrierGroup, CarrierVariant } from '../lib/carrierGroups';
 import { bestHhdLabel, cheapestVariantFor } from '../lib/carrierGroups';
-import { ScoreRing } from './ScoreRing';
-
-// ─── PriceBar ───────────────────────────────────────────────────────────
-
-interface PriceBarProps {
-  plan: 'G' | 'N';
-  lo: number;
-  hi: number;
-  marketMin: number;
-  marketMax: number;
-  onExplainPlan?: () => void;
-}
-
-function PriceBar({ plan, lo, hi, marketMin, marketMax, onExplainPlan }: PriceBarProps) {
-  const span = Math.max(1, marketMax - marketMin);
-  const pos = Math.max(0, Math.min(100, ((lo - marketMin) / span) * 100));
-  const isG = plan === 'G';
-  return (
-    <div className="price-bar">
-      <div className="price-bar-head">
-        <span className={`price-bar-plan ${isG ? 'plan-g' : 'plan-n'}`}>
-          Plan {plan}
-          {onExplainPlan && (
-            <button
-              type="button"
-              className="plan-letter-info"
-              onClick={(e) => {
-                e.stopPropagation();
-                onExplainPlan();
-              }}
-              aria-label={`What is Plan ${plan}?`}
-              title={`What is Plan ${plan}?`}
-            >
-              ?
-            </button>
-          )}
-        </span>
-        <span className="price-bar-price">
-          ${lo}–${hi}
-          <span className="price-bar-mo">/mo</span>
-        </span>
-      </div>
-      <div className="price-bar-track">
-        <div
-          className={`price-bar-fill ${isG ? 'plan-g' : 'plan-n'}`}
-          style={{ width: `${Math.max(2, pos)}%` }}
-        />
-        <div
-          className="price-bar-marker"
-          style={{ left: `calc(${pos}% - 4px)` }}
-          aria-hidden="true"
-        />
-      </div>
-      <div className="price-bar-range">
-        <span>
-          ${marketMin}
-        </span>
-        <span>${marketMax}</span>
-      </div>
-    </div>
-  );
-}
 
 // ─── Floor (one variant inside an expanded building) ────────────────────
 
@@ -170,17 +110,24 @@ interface BuildingProps {
   expanded: boolean;
   ranked: boolean;
   dragging: boolean;
-  marketMin: number;
-  marketMax: number;
+  /** True for the top-ranked eligible carrier — turns on accent border
+   *  and "Top match" pill badge. */
+  isTopMatch: boolean;
+  /** 1-indexed rank within the eligible list; used for the "Ranked N of X"
+   *  meta line. */
+  rankPosition: number;
+  totalCarriers: number;
+  /** Person-level overall score, used to detect meaningful per-carrier
+   *  score delta (softens carrier-flexibility reason bullets). */
+  overallScore: number;
   onToggleExpand: () => void;
   onAddToTop3: () => void;
   onRemoveFromTop3: () => void;
-  onExplainScore: () => void;
-  /** When set, the compact Plan G PriceBar renders a "?" info dot that
-   *  opens the Plan G popover. Results only sets this on the first
-   *  card that actually has a Plan G filing. */
+  onApply: (carrier: CarrierResult, plan: 'G' | 'N') => void;
+  /** When set, the collapsed header renders a "?" info dot beside the
+   *  displayed plan letter that opens the Plan G/N popover. Results
+   *  only wires this on the first card that filed that plan letter. */
   onExplainPlanG?: () => void;
-  /** Same, for Plan N. */
   onExplainPlanN?: () => void;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: (e: React.DragEvent) => void;
@@ -191,43 +138,71 @@ export function Building({
   expanded,
   ranked,
   dragging,
-  marketMin,
-  marketMax,
+  isTopMatch,
+  rankPosition,
+  totalCarriers,
+  overallScore,
   onToggleExpand,
   onAddToTop3,
   onRemoveFromTop3,
-  onExplainScore,
+  onApply,
   onExplainPlanG,
   onExplainPlanN,
   onDragStart,
   onDragEnd,
 }: BuildingProps) {
-  const score = group.bestScore;
-  const tone = score >= 90 ? 'gold' : score >= 80 ? 'silver' : 'red';
   const tierWord = group.variants.length === 1 ? 'plan' : 'plans';
   const rateTypeLabel = useMemo(() => rateTypeShortLabel(group.groupRateType), [group.groupRateType]);
   const rateTypeHint = useMemo(() => rateTypeHintText(group.groupRateType), [group.groupRateType]);
 
   const cheapestG = cheapestVariantFor(group, 'G');
   const cheapestN = cheapestVariantFor(group, 'N');
-  const hhd = bestHhdLabel(group);
+
+  // Header shows the cheaper of the two plans as the "from" price.
+  // Same pick drives the default plan for the Apply CTA.
+  const primaryVariant =
+    cheapestG && cheapestN
+      ? cheapestG.carrier.planGLo <= cheapestN.carrier.planNLo
+        ? { variant: cheapestG, plan: 'G' as const }
+        : { variant: cheapestN, plan: 'N' as const }
+      : cheapestG
+        ? { variant: cheapestG, plan: 'G' as const }
+        : cheapestN
+          ? { variant: cheapestN, plan: 'N' as const }
+          : null;
+  const headerPrice =
+    primaryVariant?.plan === 'G'
+      ? primaryVariant.variant.carrier.planGLo
+      : primaryVariant?.plan === 'N'
+        ? primaryVariant.variant.carrier.planNLo
+        : 0;
+
+  const reasons = useMemo(
+    () => reasonsForGroup(group, overallScore),
+    [group, overallScore],
+  );
 
   return (
     <div
-      className={`building${expanded ? ' building-open' : ''}${ranked ? ' building-ranked' : ''}${dragging ? ' building-dragging' : ''}`}
+      className={`building${expanded ? ' building-open' : ''}${ranked ? ' building-ranked' : ''}${dragging ? ' building-dragging' : ''}${isTopMatch ? ' building-top-match' : ''}`}
       draggable={!ranked}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <div className={`building-stripe stripe-${tone}`} />
-      <div className="building-head">
+      {isTopMatch && (
+        <div className="top-match-badge" aria-label="Top match for your profile">
+          Top match
+        </div>
+      )}
+
+      <div className="building-header-2col">
         <div className="building-id">
           <div className="building-name">{group.parent}</div>
           <div className="building-meta">
-            {group.variants.length} {tierWord}
+            {primaryVariant && <>Plan {primaryVariant.plan}</>}
             {rateTypeLabel && (
               <>
-                {' · '}
+                {primaryVariant ? ' · ' : ''}
                 <span title={rateTypeHint ?? undefined}>
                   {rateTypeLabel}
                   {rateTypeHint && (
@@ -240,10 +215,36 @@ export function Building({
             )}
           </div>
         </div>
-        <ScoreRing score={score} size={44} onExplain={onExplainScore} />
+        {primaryVariant && (
+          <div className="building-price-col">
+            <div className="building-price-num">${headerPrice}</div>
+            <div className="building-price-unit">per month</div>
+          </div>
+        )}
       </div>
 
-      {expanded ? (
+      {!expanded && (
+        <>
+          <div className="building-divider" aria-hidden="true" />
+          <div className="building-rank">
+            Ranked {rankPosition} of {totalCarriers} carriers based on your profile
+          </div>
+          {reasons.length > 0 && (
+            <ul className="building-reasons">
+              {reasons.map((r, i) => (
+                <li className="building-reason" key={i}>
+                  <span className="building-reason-check" aria-hidden="true">
+                    <CheckIcon />
+                  </span>
+                  <span className="building-reason-text">{r}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+
+      {expanded && (
         <div className="building-body">
           {group.variants.map((v, i) => (
             <Floor
@@ -254,45 +255,34 @@ export function Building({
             />
           ))}
         </div>
-      ) : (
-        <div className="building-body building-body-compact">
-          {cheapestG && (
-            <PriceBar
-              plan="G"
-              lo={cheapestG.carrier.planGLo}
-              hi={cheapestG.carrier.planGHi}
-              marketMin={marketMin}
-              marketMax={marketMax}
-              onExplainPlan={onExplainPlanG}
-            />
-          )}
-          {cheapestN && (
-            <PriceBar
-              plan="N"
-              lo={cheapestN.carrier.planNLo}
-              hi={cheapestN.carrier.planNHi}
-              marketMin={marketMin}
-              marketMax={marketMax}
-              onExplainPlan={onExplainPlanN}
-            />
-          )}
-        </div>
       )}
 
       <div className="building-foot">
-        <div className="building-hhd">
-          {hhd ? (
-            <span title="Household discount typically applies when two adults at the same address enroll — spouse, civil union, or (with some carriers) any household member. Exact rules vary by carrier.">
-              {hhd}
-              <span className="building-hhd-info" aria-hidden="true">
-                {' '}ⓘ
-              </span>
+        <div className="building-actions building-actions-3col">
+          <button
+            type="button"
+            className="building-toggle"
+            onClick={onToggleExpand}
+            aria-expanded={expanded}
+          >
+            <span className="building-toggle-text">
+              {expanded ? 'Hide plans' : `View ${group.variants.length} ${tierWord}`}
             </span>
-          ) : (
-            '·'
-          )}
-        </div>
-        <div className="building-actions">
+            <span
+              className={`building-toggle-chev${expanded ? ' open' : ''}`}
+              aria-hidden="true"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path
+                  d="M2 3.5l3 3 3-3"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </button>
           {ranked ? (
             <button
               type="button"
@@ -312,35 +302,96 @@ export function Building({
               Compare
             </button>
           )}
-          <button
-            type="button"
-            className="building-toggle"
-            onClick={onToggleExpand}
-            aria-expanded={expanded}
-          >
-            <span className="building-toggle-text">
-              {expanded
-                ? 'Hide plans'
-                : `View ${group.variants.length} ${tierWord}`}
-            </span>
-            <span
-              className={`building-toggle-chev${expanded ? ' open' : ''}`}
-              aria-hidden="true"
+          {primaryVariant && (
+            <button
+              type="button"
+              className="building-apply"
+              onClick={() => onApply(primaryVariant.variant.carrier, primaryVariant.plan)}
+              aria-label={`Apply with ${group.parent} Plan ${primaryVariant.plan}`}
             >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path
-                  d="M2 3.5l3 3 3-3"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-          </button>
+              Apply →
+            </button>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Reasoning list generator ───────────────────────────────────────────
+//
+// Pulls factual + softened bullets from data scoreApplication already
+// exposes on CarrierGroup / CarrierResult. Every bullet uses the
+// likelihood phrasing established in the compliance pass — no stated
+// fact, no diagnosis inference, no absolute cross-carrier claims.
+// Returns 2-4 items; falls through gracefully when a group has fewer
+// meaningful signals rather than padding with filler.
+function reasonsForGroup(group: CarrierGroup, overallScore: number): string[] {
+  const reasons: string[] = [];
+  const cheapestG = cheapestVariantFor(group, 'G');
+  const cheapestN = cheapestVariantFor(group, 'N');
+  const primary = cheapestG ?? cheapestN;
+  if (!primary) return reasons;
+  const c = primary.carrier;
+
+  // 1. Rate class assignment — softened.
+  const rc = c.rateClass.name;
+  if (rc === 'Preferred') {
+    reasons.push('Modeled at Preferred rate class based on your profile');
+  } else if (rc === 'Standard') {
+    reasons.push('Modeled at Standard rate class based on your profile');
+  } else if (rc === 'Standard I' || rc === 'Standard II' || rc === 'Standard III') {
+    reasons.push(`Modeled at ${rc} (rated) based on your profile`);
+  }
+
+  // 2. Plan availability in the user's ZIP — factual.
+  if (cheapestG && cheapestN) {
+    reasons.push('Files both Plan G and Plan N in your ZIP');
+  } else if (cheapestG) {
+    reasons.push('Files Plan G in your ZIP (Plan N not filed)');
+  } else if (cheapestN) {
+    reasons.push('Files Plan N in your ZIP (Plan G not filed)');
+  }
+
+  // 3. Rate methodology — factual, sourced from CMS filings.
+  if (group.groupRateType === 'COMMUNITY_RATED') {
+    reasons.push('Community-rated — same premium regardless of age');
+  } else if (group.groupRateType === 'ISSUE_AGE') {
+    reasons.push('Issue-age priced — premium locked to your enrollment age');
+  } else if (group.groupRateType === 'ATTAINED_AGE') {
+    reasons.push('Attained-age priced — premium rises with age');
+  }
+
+  // 4. Household discount — factual, from CMS filings.
+  const hhd = bestHhdLabel(group);
+  if (hhd) reasons.push(hhd);
+
+  // 5. Carrier-specific delta from person-level overall score — softened.
+  //    Big positive delta means this carrier applied a floor bump (e.g.
+  //    Bankers accepts insulin >50u where others decline); big negative
+  //    means the carrier is stricter for this profile (e.g. Aetna
+  //    diabetes+cardiac). Threshold 15 keeps it meaningful.
+  const delta = c.score - overallScore;
+  if (delta >= 15) {
+    reasons.push('This carrier historically shows more flexibility for your profile — confirm directly with the carrier');
+  } else if (delta <= -15) {
+    reasons.push('This carrier applies stricter review for your profile — confirm directly with the carrier');
+  }
+
+  return reasons.slice(0, 4);
+}
+
+function CheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M5 12l4.5 4.5L19 7.5"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
