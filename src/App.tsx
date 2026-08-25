@@ -30,7 +30,11 @@ export default function App() {
     <FlowProvider>
       <ScrollToTop />
       <Routes>
-        <Route path="/about" element={<About />} />
+        {/* Step 1 lives at the root. /about is kept only as a redirect
+            (see vercel.json + the client-side fallback below) because
+            the Medicare track's cross-sell card still links to it. */}
+        <Route path="/" element={<About />} />
+        <Route path="/about" element={<Navigate to="/" replace />} />
         <Route path="/rates" element={<RateProjection />} />
         <Route path="/meds" element={<Meds />} />
         <Route path="/providers" element={<Providers />} />
@@ -38,8 +42,7 @@ export default function App() {
         <Route path="/results" element={<Results />} />
         <Route path="/apply" element={<Application />} />
         <Route path="/submitted" element={<Handshake />} />
-        <Route path="/" element={<Navigate to="/about" replace />} />
-        <Route path="*" element={<Navigate to="/about" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </FlowProvider>
   );

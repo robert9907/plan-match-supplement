@@ -363,13 +363,13 @@ export function Results() {
     const stale = !flow.gender || !flow.tobacco;
     return (
       <Frame step={5}>
-        <BackRow onClick={() => navigate('/about')} />
+        <BackRow onClick={() => navigate('/')} />
         <div className="step-label">Step 6 of 6 · Your results</div>
         {stale ? (
           <>
             <h1 className="headline">Let's start from the beginning.</h1>
             <div className="sub-text">We need a few details first before we can show your qualification.</div>
-            <button className="btn" onClick={() => navigate('/about')} type="button">
+            <button className="btn" onClick={() => navigate('/')} type="button">
               Go to About you →
             </button>
           </>
@@ -377,7 +377,7 @@ export function Results() {
           <>
             <h1 className="headline">Couldn't load carrier rates.</h1>
             <div className="sub-text">{loadError}</div>
-            <button className="btn" onClick={() => navigate('/about')} type="button">
+            <button className="btn" onClick={() => navigate('/')} type="button">
               Start over →
             </button>
           </>
