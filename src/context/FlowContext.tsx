@@ -11,6 +11,16 @@ import { emptyHealthAnswers, type HealthAnswers } from '../lib/scoringEngine';
 
 // ─── Types ───────────────────────────────────────────────────────
 
+/** A doctor on the applicant's file. `npi` (and the enrichment that
+ *  rides with it) is present when the entry came from the NPI Registry
+ *  search rather than being typed free-hand. */
+export interface ProviderEntry {
+  name: string;
+  npi?: string;
+  specialty?: string;
+  address?: string;
+}
+
 export type PromptReason =
   | 'Turning 65'
   | 'Switching plans'
@@ -60,8 +70,11 @@ export interface FlowState {
   // Meds
   meds: MedItem[];
 
-  // Providers (no networks for supplements — collected for file only)
-  providers: Array<{ name: string; npi?: string }>;
+  // Providers. Supplements have no networks, so nothing here gates plan
+  // eligibility — but the NPI is what AgentBase matches on when it links
+  // a doctor to its providers directory, so capture it when the search
+  // resolves one. Free-typed entries still land with npi undefined.
+  providers: ProviderEntry[];
 
   // Health + build
   health: HealthAnswers;
@@ -86,9 +99,9 @@ interface FlowContextValue extends FlowState {
   addMed: (m: MedItem) => void;
   removeMed: (index: number) => void;
   setMeds: (m: MedItem[]) => void;
-  addProvider: (p: { name: string; npi?: string }) => void;
+  addProvider: (p: ProviderEntry) => void;
   removeProvider: (index: number) => void;
-  setProviders: (p: Array<{ name: string; npi?: string }>) => void;
+  setProviders: (p: ProviderEntry[]) => void;
   setHealth: (updater: (prev: HealthAnswers) => HealthAnswers) => void;
   setHeight: (inches: number | null) => void;
   setWeight: (lbs: number | null) => void;
@@ -194,11 +207,30 @@ export function FlowProvider({ children }: { children: ReactNode }) {
   }, []);
   const setMeds = useCallback((meds: MedItem[]) => setState((s) => ({ ...s, meds })), []);
 
-  const addProvider = useCallback((p: { name: string; npi?: string }) => {
+  const addProvider = useCallback((p: ProviderEntry) => {
     setState((s) => {
       const name = p.name.trim();
       if (!name) return s;
-      if (s.providers.some((x) => x.name.toLowerCase() === name.toLowerCase())) return s;
+      // NPI first: the same clinician can surface under slightly
+      // different display names ("Dr. Sarah Chen" vs "Sarah Chen, MD"),
+      // and a name-only check would let both through as two doctors.
+      if (p.npi && s.providers.some((x) => x.npi === p.npi)) return s;
+      const existingIdx = s.providers.findIndex(
+        (x) => x.name.toLowerCase() === name.toLowerCase(),
+      );
+      if (existingIdx !== -1) {
+        // Same name already on file. If the new entry carries an NPI and
+        // the stored one doesn't, upgrade in place rather than dropping
+        // the identifier on the floor — a free-typed name followed by a
+        // search pick should end up resolved.
+        const existing = s.providers[existingIdx];
+        if (p.npi && !existing.npi) {
+          const providers = [...s.providers];
+          providers[existingIdx] = { ...existing, ...p, name };
+          return { ...s, providers };
+        }
+        return s;
+      }
       return { ...s, providers: [...s.providers, { ...p, name }] };
     });
   }, []);
@@ -206,7 +238,7 @@ export function FlowProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, providers: s.providers.filter((_, i) => i !== index) }));
   }, []);
   const setProviders = useCallback(
-    (providers: Array<{ name: string; npi?: string }>) => setState((s) => ({ ...s, providers })),
+    (providers: ProviderEntry[]) => setState((s) => ({ ...s, providers })),
     [],
   );
 

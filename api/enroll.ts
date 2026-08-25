@@ -19,6 +19,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 // extensionless relative imports at runtime (ERR_MODULE_NOT_FOUND) even
 // though tsc `moduleResolution: "bundler"` accepts them at compile time.
 import { applyCors } from './_lib/cors.js';
+import { postAgentBaseSession } from './_lib/agentbase-session';
 import { encrypt, hashPin, maskMbi } from './_lib/crypto.js';
 
 // CMS Medicare Beneficiary Identifier — 11 chars, digits 1-9 in position 1,
@@ -36,6 +37,10 @@ interface MedicationInput {
   dose?: string | null;
   status?: string | null;
   statusText?: string | null;
+  /** RxNorm concept id, resolved client-side on the Meds screen. The
+   *  key AgentBase's formulary / tier panel works from — a medication
+   *  without it can be displayed but not priced against a plan. */
+  rxcui?: string | null;
 }
 
 interface EnrollPayload {
@@ -115,9 +120,13 @@ interface EnrollPayload {
     escalationPattern?: string | null;
     providers?: Array<{
       name: string;
+      /** 10-digit NPI from the registry search. AgentBase matches its
+       *  providers directory on this before falling back to a
+       *  normalized name, so its absence is what forks duplicate rows. */
       npi?: string;
       specialty?: string;
       affiliation?: string;
+      address?: string;
     }>;
   };
 }
@@ -656,6 +665,10 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
         dose: m.dose?.trim() || null,
         status: m.status || null,
         statusText: m.statusText?.trim() || null,
+        // Carried so a lead promoted by hand in the CRM lands with a
+        // priceable medication row (parseMedication in
+        // agentbase-crm/lib/planmatch-sync.js reads this key).
+        rxcui: m.rxcui?.trim() || null,
       }));
 
     const providerObjects = (p.context?.providers ?? [])
@@ -663,6 +676,8 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
       .map((pr) => ({
         name: pr.name.trim(),
         ...(pr.npi ? { npi: pr.npi } : {}),
+        ...(pr.specialty ? { specialty: pr.specialty } : {}),
+        ...(pr.address ? { address: pr.address } : {}),
       }));
 
     const leadRow = {
@@ -846,6 +861,73 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
       dir: { inserted: dirInserted, deduped: dirDeduped, failed: dirFailed },
       links: { ok: linkOk, failed: linkFailed },
     });
+  }
+
+  // ─── Road A · structured meds + providers onto the client card ──────
+  // This bridge has never written client_medications. A supplement
+  // applicant's drug list reached a client card only when someone
+  // clicked "Promote to Client" on the lead — and arrived without an
+  // rxcui, because the browser dropped it before sending. Posting the
+  // session closes both: the receiver writes client_medications AND
+  // client_providers against the clientId we already resolved above.
+  //
+  // Runs last, after the directory block, on purpose. Those rows exist
+  // by now, so resolveProviderId() finds them by NPI and updates the
+  // link (stamping synced_from_planmatch_at) rather than inserting a
+  // near-duplicate. Both sides are idempotent, so the overlap is safe —
+  // once this path is proven the older client_providers block above is
+  // redundant and can go.
+  //
+  // Fail-open like every other side effect here: postAgentBaseSession
+  // never throws, and the leads + clients rows are already committed.
+  if (clientId != null) {
+    const medsForSync = (p.context?.medications ?? [])
+      .filter((m) => m?.name?.trim())
+      .map((m) => ({
+        name: m.name.trim(),
+        rxcui: m.rxcui?.trim() || null,
+        dose: m.dose?.trim() || null,
+      }));
+    const provsForSync = (p.context?.providers ?? [])
+      .filter((pr) => pr?.name?.trim())
+      .map((pr) => ({
+        name: pr.name.trim(),
+        npi: pr.npi?.trim() || null,
+        specialty: pr.specialty?.trim() || null,
+        address: pr.address?.trim() || null,
+      }));
+
+    const syncResult = await postAgentBaseSession({
+      sessionToken: `pms_${submissionId}`,
+      agentbaseClientId: clientId,
+      client: {
+        name: `${p.firstName} ${p.lastName}`.trim(),
+        phone: digits,
+        zip: p.zip || null,
+        county: p.county ?? null,
+        state: p.state || null,
+        // Lands on clients.line only if the session is later approved in
+        // the CRM inbox; the auto-link path this takes doesn't touch the
+        // clients row at all.
+        plan_type: 'MEDSUPP',
+      },
+      medications: medsForSync,
+      providers: provsForSync,
+      plansCompared: p.planLetter ? [`Plan ${p.planLetter}`] : [],
+      recommendation: p.carrier
+        ? `${p.carrier}${p.planLetter ? ` — Plan ${p.planLetter}` : ''}`
+        : null,
+      notes: ['Source: Plan Match Supplemental'],
+    });
+    if (!syncResult.ok) {
+      console.warn('[enroll:agentbase-session] sync skipped/failed', syncResult);
+    } else {
+      console.log('[enroll:agentbase-session] synced', {
+        client_id: clientId,
+        meds: medsForSync.length,
+        providers: provsForSync.length,
+      });
+    }
   }
 }
 

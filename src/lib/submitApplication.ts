@@ -22,11 +22,17 @@ export async function submitApplication(flow: FlowState, age: number): Promise<S
     Object.entries(flow.scoring.clusters).filter(([, v]) => v > 0),
   );
 
+  // rxcui is resolved on the Meds screen (search pick or OCR match) and
+  // stored on MedItem — but every version of this mapper before now
+  // dropped it here, at the last step before the wire. Downstream that
+  // is the difference between a medication AgentBase can price against
+  // a plan's formulary and a bare name it can only display.
   const medications = flow.meds.map((m) => ({
     name: m.name,
     dose: m.dose,
     status: m.status,
     statusText: m.statusText,
+    ...(m.rxcui ? { rxcui: m.rxcui } : {}),
   }));
 
   const payload = {
@@ -84,9 +90,14 @@ export async function submitApplication(flow: FlowState, age: number): Promise<S
       comboFlags: flow.scoring.comboFlags,
       escalationPattern:
         flow.scoring.comboFlags.find((f) => f.toLowerCase().includes('escalation')) ?? null,
+      // NPI plus the enrichment that rides with it, when the entry came
+      // from the registry search rather than being typed free-hand.
+      // AgentBase matches its providers directory on NPI first.
       providers: flow.providers.map((p) => ({
         name: p.name,
         ...(p.npi ? { npi: p.npi } : {}),
+        ...(p.specialty ? { specialty: p.specialty } : {}),
+        ...(p.address ? { address: p.address } : {}),
       })),
     },
   };
