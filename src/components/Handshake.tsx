@@ -11,7 +11,7 @@ export function Handshake() {
       <Frame tag="APPLICATION" hideDots>
         <h1 className="headline">Nothing to confirm yet.</h1>
         <div className="sub-text">Start a screening to apply.</div>
-        <button className="btn" onClick={() => navigate('/about')} type="button">
+        <button className="btn" onClick={() => navigate('/')} type="button">
           Start over →
         </button>
       </Frame>

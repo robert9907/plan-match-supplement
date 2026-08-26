@@ -20,7 +20,7 @@ export function RateProjection() {
   // user lands here without going through About (bookmark, refresh, external
   // link, stale URL), redirect to About so they enter the funnel from step 1.
   if (flow.zip.length !== 5 || !flow.gender) {
-    return <Navigate to="/about" replace />;
+    return <Navigate to="/" replace />;
   }
 
   const state = stateForZip(flow.zip);
@@ -40,7 +40,7 @@ export function RateProjection() {
   return (
     <Frame step={2}>
       <div className="rate-projection-page">
-        <BackRow onClick={() => navigate('/about')} />
+        <BackRow onClick={() => navigate('/')} />
         <div className="step-label">Step 2 of 5 · Your rate projection</div>
         <h1 className="headline">
           Here's what Plan G <em>costs you</em> over time.
