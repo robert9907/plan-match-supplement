@@ -200,7 +200,19 @@ export function Meds() {
         <PillScanSheet
           onClose={() => setScanOpen(false)}
           onConfirm={(drugs) => {
-            for (const { name, dose } of drugs) void addByName(name, dose);
+            for (const { name, dose, prescriber, prescriberNpi } of drugs) {
+              void addByName(name, dose);
+              // The prescriber is the one provider datum a pill bottle
+              // reliably carries. Supplements have no networks, so this
+              // is collected for the file — no NPI lookup, no scoring.
+              if (prescriber) {
+                flow.addProvider(
+                  prescriberNpi
+                    ? { name: prescriber, npi: prescriberNpi }
+                    : { name: prescriber },
+                );
+              }
+            }
             setScanOpen(false);
           }}
         />
