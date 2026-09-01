@@ -92,6 +92,12 @@ function labelToDrug(label: LabelScanResult): ScannedDrug | null {
   };
 }
 
+/** Paths that never touch a label — the typed fallback and the
+ *  library picker — have no prescriber to report. */
+function typedDrug(name: string, dose: string): ScannedDrug {
+  return { name, dose, prescriber: '', prescriberNpi: null, pharmacy: '' };
+}
+
 export function PillScanSheet({ onConfirm, onClose }: Props) {
   const [stage, setStage] = useState<Stage>('capturing');
   const [queue, setQueue] = useState<ScanQueueItem[]>([]);
@@ -210,9 +216,7 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
   function confirmTyped() {
     const cleaned = cleanDrugName(typed);
     if (!cleaned) return;
-    onConfirm([
-      { name: cleaned, dose: '', prescriber: '', prescriberNpi: null, pharmacy: '' },
-    ]);
+    onConfirm([typedDrug(cleaned, '')]);
   }
 
   function rescan() {
@@ -519,7 +523,7 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
                   key={d.rxcui}
                   className="ac-item"
                   onClick={() =>
-                    onConfirm([{ name: drugDisplayName(d), dose: d.strength }])
+                    onConfirm([typedDrug(drugDisplayName(d), d.strength)])
                   }
                 >
                   <div className="ac-name">{drugDisplayName(d)}</div>
