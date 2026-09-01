@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useCameraStream } from '../hooks/useCameraStream';
 import { useLabelScan, type LabelScanResult } from '../hooks/useLabelScan';
 import {
@@ -15,6 +15,10 @@ const SEARCH_DEBOUNCE_MS = 200;
 
 // Strip strength tokens + trailing brackets, then title-case. The OCR
 // result for "Gabapentin 300 MG Cap" should display as "Gabapentin".
+// Long edge cap for uploaded photos. A recent phone shoots 4000px+; past
+// ~1600 the vision model gains nothing and the base64 payload triples.
+const MAX_UPLOAD_EDGE = 1600;
+
 function cleanDrugName(raw: string): string {
   let out = (raw || '').trim();
   out = out.replace(/\s*\[[^\]]+\]\s*$/g, '');
@@ -100,11 +104,13 @@ function typedDrug(name: string, dose: string): ScannedDrug {
 
 export function PillScanSheet({ onConfirm, onClose }: Props) {
   const [stage, setStage] = useState<Stage>('capturing');
+  const [uploadBusy, setUploadBusy] = useState(false);
   const [queue, setQueue] = useState<ScanQueueItem[]>([]);
   const [flash, setFlash] = useState(false);
   const [typed, setTyped] = useState('');
   const [matches, setMatches] = useState<DrugSearchResult[]>([]);
   const idCounter = useRef(0);
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const cameraActive = stage === 'capturing';
   const { videoRef, status, error, capture, stop } = useCameraStream(cameraActive);
@@ -150,6 +156,72 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
           selected: false,
         });
       });
+  }
+
+  // Upload path for when the camera never opens — permission denied, no
+  // camera on the device, or a desktop browser. Without this the scanner
+  // dropped straight to typing a drug name, so a photo you already had
+  // was unusable.
+  async function fileToDataUrl(file: File): Promise<string> {
+    const raw = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ''));
+      reader.onerror = () => reject(new Error('Could not read that file'));
+      reader.readAsDataURL(file);
+    });
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = () => reject(new Error('Could not open that image'));
+        el.src = raw;
+      });
+      const longEdge = Math.max(img.naturalWidth, img.naturalHeight);
+      if (!longEdge || longEdge <= MAX_UPLOAD_EDGE) return raw;
+      const scale = MAX_UPLOAD_EDGE / longEdge;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return raw;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', 0.82);
+    } catch {
+      // HEIC and friends may not decode into a canvas. Send the original
+      // and let the server decide.
+      return raw;
+    }
+  }
+
+  async function onUploadPick(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploadBusy(true);
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const id = `scan-${Date.now()}-${idCounter.current++}`;
+      setQueue((prev) => [
+        ...prev,
+        { id, dataUrl, status: 'pending', label: null, error: null, selected: false },
+      ]);
+      const res = await scan(dataUrl);
+      if (res.label?.drugName) {
+        updateItem(id, { status: 'success', label: res.label, error: null, selected: true });
+        setStage('review');
+      } else {
+        updateItem(id, {
+          status: 'error',
+          label: res.label,
+          error: 'No label detected',
+          selected: false,
+        });
+      }
+    } catch {
+      // Stay on the fallback sheet; typing still works.
+    } finally {
+      setUploadBusy(false);
+    }
   }
 
   function onShutter() {
@@ -509,6 +581,23 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
           <div className="scan-sheet-title">
             {queue.length > 0 && successCount === 0 ? "Couldn't read label" : 'Type the medication'}
           </div>
+          {/* Deliberately no capture attribute — this path exists because
+              the camera is unavailable, so it must open the photo library. */}
+          <input
+            ref={uploadInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={onUploadPick}
+          />
+          <button
+            className="scan-sheet-retry"
+            type="button"
+            disabled={uploadBusy}
+            onClick={() => uploadInputRef.current?.click()}
+          >
+            {uploadBusy ? 'Reading your photo…' : 'Upload a photo of the label'}
+          </button>
           <input
             className="scan-sheet-input"
             placeholder="Medication name"
