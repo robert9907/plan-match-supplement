@@ -33,6 +33,21 @@ function cleanDrugName(raw: string): string {
 
 type Stage = 'capturing' | 'review' | 'fallback';
 
+const CREDENTIAL_SUFFIX =
+  /(?:^|[\s,])(?:M\.?D|D\.?O|N\.?P|P\.?A(?:-C)?|D\.?D\.?S|D\.?P\.?M|O\.?D|PharmD|APRN|CRNA|FNP|DNP|RN)\.?\s*$/i;
+
+/** Prescriber names come off a label in every shape: "MARCUS T.
+ *  ELLINGTON, MD", "Dr. Priya Raghavan", "J. Chen-Okafor NP". Only
+ *  prepend "Dr." when the name carries no credential of its own —
+ *  otherwise the review card reads "Dr. Marcus T. Ellington, MD". */
+export function formatPrescriber(raw: string): string {
+  const name = raw.trim().replace(/\s+/g, ' ');
+  if (!name) return '';
+  if (/^(?:dr\.?|doctor)\s/i.test(name)) return name;
+  if (CREDENTIAL_SUFFIX.test(name)) return name;
+  return `Dr. ${name}`;
+}
+
 interface ScanQueueItem {
   id: string;
   dataUrl: string;
@@ -47,13 +62,21 @@ interface ScanQueueItem {
 export interface ScannedDrug {
   name: string;
   dose: string;
+  /** Prescriber as printed on the label, normalised for display.
+   *  Empty string when the label carried none. */
+  prescriber: string;
+  /** NPI when the vision call managed to read one. Labels almost
+   *  never print it, so this is usually null. */
+  prescriberNpi: string | null;
+  /** Dispensing pharmacy — kept for the client file, not scored. */
+  pharmacy: string;
 }
 
 interface Props {
   /** Called once with every drug the user confirmed — single bottle
    *  scans pass a single-element array, multi-bottle pass N. Parent
-   *  runs classifyMed + addMed inside this callback and is responsible
-   *  for calling onClose afterwards. */
+   *  runs classifyMed + addMed, records any prescriber via addProvider,
+   *  and is responsible for calling onClose afterwards. */
   onConfirm: (drugs: ScannedDrug[]) => void;
   onClose: () => void;
 }
@@ -63,6 +86,9 @@ function labelToDrug(label: LabelScanResult): ScannedDrug | null {
   return {
     name: cleanDrugName(label.drugName),
     dose: label.strength ?? '',
+    prescriber: label.prescriber ? formatPrescriber(label.prescriber) : '',
+    prescriberNpi: label.prescriberNpi,
+    pharmacy: label.pharmacy ?? '',
   };
 }
 
@@ -184,7 +210,9 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
   function confirmTyped() {
     const cleaned = cleanDrugName(typed);
     if (!cleaned) return;
-    onConfirm([{ name: cleaned, dose: '' }]);
+    onConfirm([
+      { name: cleaned, dose: '', prescriber: '', prescriberNpi: null, pharmacy: '' },
+    ]);
   }
 
   function rescan() {
@@ -367,10 +395,7 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
           )}
           {queue[0].label.prescriber && (
             <div className="scan-sheet-hint" style={{ marginTop: 0 }}>
-              Prescribed by{' '}
-              {queue[0].label.prescriber.startsWith('Dr.')
-                ? queue[0].label.prescriber
-                : `Dr. ${queue[0].label.prescriber}`}
+              Prescribed by {formatPrescriber(queue[0].label.prescriber)}
             </div>
           )}
           <div className="scan-sheet-hint">
@@ -436,6 +461,11 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
                         </div>
                         {it.label?.directions && (
                           <div className="scan-multi-detail">{it.label.directions}</div>
+                        )}
+                        {it.label?.prescriber && (
+                          <div className="scan-multi-detail">
+                            {formatPrescriber(it.label.prescriber)}
+                          </div>
                         )}
                       </>
                     )}
