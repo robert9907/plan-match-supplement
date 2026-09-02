@@ -23,6 +23,9 @@ export interface UseCameraStream {
   stop: () => void;
 }
 
+// Longest edge we send to the vision endpoint.
+const MAX_CAPTURE_EDGE = 1600;
+
 export function useCameraStream(active: boolean): UseCameraStream {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -105,9 +108,14 @@ export function useCameraStream(active: boolean): UseCameraStream {
   const capture = useCallback((): string | null => {
     const v = videoRef.current;
     if (!v || !v.videoWidth || !v.videoHeight) return null;
+    // Cap the long edge. A recent phone streams 1920x1080 or better, and
+    // the frame goes out as base64 over the client's cellular connection —
+    // past ~1600px the vision model reads no better, it just costs upload.
+    const longEdge = Math.max(v.videoWidth, v.videoHeight);
+    const scale = Math.min(1, MAX_CAPTURE_EDGE / longEdge);
     const canvas = document.createElement('canvas');
-    canvas.width = v.videoWidth;
-    canvas.height = v.videoHeight;
+    canvas.width = Math.round(v.videoWidth * scale);
+    canvas.height = Math.round(v.videoHeight * scale);
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
     ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
