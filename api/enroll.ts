@@ -25,6 +25,7 @@ import {
   hasTcpaConsentCheck,
   type TcpaConsentRecord,
 } from './_lib/tcpa-consent.js';
+import { writeConsentLog } from './_lib/consent-log-write.js';
 
 // CMS Medicare Beneficiary Identifier — 11 chars, digits 1-9 in position 1,
 // no S/L/O/I/B/Z in alpha positions (same regex as plan-match).
@@ -785,14 +786,52 @@ async function bridgeToAgentBase(
         tcpa_consent: tcpaConsent,
       },
     };
+    // return=representation, not minimal: tcpa_consent_log.lead_id is a
+    // real FK and the consent row is worth far less without it — an
+    // unlinked consent record cannot be joined back to the enrolment it
+    // was collected on, which is the whole reason migration 076 added
+    // the column.
     const leadResp = await fetch(`${base}/rest/v1/leads`, {
       method: 'POST',
-      headers: { ...headers, Prefer: 'return=minimal' },
+      headers: { ...headers, Prefer: 'return=representation' },
       body: JSON.stringify(leadRow),
     });
     if (!leadResp.ok) {
       const text = await leadResp.text();
       throw new Error(`leads insert ${leadResp.status}: ${text.slice(0, 200)}`);
+    }
+
+    let leadId: number | null = null;
+    try {
+      const leadBody = (await leadResp.json()) as Array<{ id?: number | string }>;
+      const rawId = Array.isArray(leadBody) ? leadBody[0]?.id ?? null : null;
+      if (rawId != null) leadId = Number(rawId);
+    } catch {
+      // Body unreadable. The lead itself is inserted and that is the
+      // critical write, so carry on and log the consent without the
+      // backlink rather than failing the enrolment over a parse.
+      console.warn('[enroll:leads] could not read inserted lead id');
+    }
+
+    // ── tcpa_consent_log · the queryable consent record ───────────────
+    // leads.context.tcpa_consent above is jsonb: not schema-enforced,
+    // not joinable, and not what an audit query can reach. This is the
+    // same capture in the dedicated table, which held 9 rows against
+    // 156 leads because no Plan Match surface had ever written to it.
+    // Non-fatal by design — see the header of consent-log-write.ts.
+    if (tcpaConsent) {
+      const logged = await writeConsentLog({
+        base,
+        headers,
+        consent: tcpaConsent,
+        phone: digits,
+        leadId,
+        clientId,
+        submissionId,
+      });
+      if (!logged.ok) {
+        console.error(`[enroll:consent-log] NOT recorded: ${logged.reason}`);
+      }
     }
   } catch (err) {
     // leads is the critical write — if it fails, propagate so the

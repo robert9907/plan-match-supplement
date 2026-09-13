@@ -72,8 +72,16 @@ const origFetch = global.fetch;
   ) {
     return new Response(null, { status: 201 });
   }
-  // AgentBase leads INSERT
+  // AgentBase leads INSERT. return=representation now, because the
+  // consent-log write needs the new lead's id for its FK.
   if (method === 'POST' && url.includes('/rest/v1/leads')) {
+    return new Response(JSON.stringify([{ id: 9001 }]), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  // AgentBase tcpa_consent_log INSERT
+  if (method === 'POST' && url.includes('/rest/v1/tcpa_consent_log')) {
     return new Response(null, { status: 201 });
   }
   console.error('[smoke] unhandled fetch:', method, url);
@@ -176,6 +184,9 @@ const calls = {
     (l) => l.method === 'POST' && l.url.includes('/rest/v1/leads'),
   ),
   smsCalls: log.filter((l) => l.url.includes('/api/send-sms')),
+  consentLog: log.filter(
+    (l) => l.method === 'POST' && l.url.includes('/rest/v1/tcpa_consent_log'),
+  ),
 };
 
 console.log('\nCall counts:');
@@ -193,6 +204,11 @@ const checks: Array<[string, boolean]> = [
   ['clients INSERT once', calls.clientsInsert.length === 1],
   ['leads INSERT once', calls.leadsInsert.length === 1],
   ['no SMS fired (env unset)', calls.smsCalls.length === 0],
+  // One request carrying both channel rows — not one request per row.
+  ['consent log written once', calls.consentLog.length === 1],
+  ['consent log carries both channels',
+    Array.isArray(calls.consentLog[0]?.body) &&
+      (calls.consentLog[0]?.body as Array<{ channel?: string }>).length === 2],
 ];
 
 console.log('\nChecks:');

@@ -31,6 +31,7 @@ import {
   TCPA_CONSENT_PREAMBLE,
   TCPA_CONSENT_VERSION,
 } from '../api/_lib/tcpa-consent.ts';
+import { toE164 } from '../api/_lib/consent-log-write.ts';
 
 interface FetchLog {
   method: string;
@@ -115,6 +116,22 @@ async function run(payload: unknown, headers: Record<string, string>) {
       });
     }
     if (method === 'POST' && url.includes('/rest/v1/leads')) {
+      // Honour Prefer the way PostgREST does. A stub that always returns
+      // a body would let `return=minimal` keep passing the lead_id
+      // assertions below for the wrong reason — the mock, not the code,
+      // would be supplying the id.
+      const prefer = String(
+        (init?.headers as Record<string, string> | undefined)?.Prefer ?? '',
+      );
+      if (prefer.includes('return=minimal')) {
+        return new Response(null, { status: 201 });
+      }
+      return new Response(JSON.stringify([{ id: 9001 }]), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (method === 'POST' && url.includes('/rest/v1/tcpa_consent_log')) {
       return new Response(null, { status: 201 });
     }
     return new Response('unhandled', { status: 599 });
@@ -153,6 +170,12 @@ async function run(payload: unknown, headers: Record<string, string>) {
       (l) => l.method === 'POST' && l.url.includes('/supplement_applications'),
     ),
     lead: pick((l) => l.method === 'POST' && l.url.includes('/rest/v1/leads')),
+    consentLog: pick(
+      (l) => l.method === 'POST' && l.url.includes('/rest/v1/tcpa_consent_log'),
+    ),
+    consentLogCalls: log.filter(
+      (l) => l.method === 'POST' && l.url.includes('/rest/v1/tcpa_consent_log'),
+    ).length,
   };
 }
 
@@ -196,6 +219,43 @@ check('5-tuple: consent_text carries the not-a-condition preamble',
 check('5-tuple: raw authChecks still stored alongside',
   Array.isArray(five.supplement?.context?.authChecks));
 
+// ── tcpa_consent_log: the queryable record ─────────────────────────
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const cl = five.consentLog as any[];
+const voice = Array.isArray(cl) ? cl.find((r: any) => r.channel === 'voice') : null;
+const sms = Array.isArray(cl) ? cl.find((r: any) => r.channel === 'sms') : null;
+
+check('consent log: written in ONE request', five.consentLogCalls === 1);
+check('consent log: one row per channel consented to', Array.isArray(cl) && cl.length === 2);
+check('consent log: a voice row exists', !!voice);
+check('consent log: an sms row exists', !!sms);
+check('consent log: linked to the inserted lead', voice?.lead_id === 9001);
+check('consent log: linked to the upserted client', voice?.client_id === 4242);
+// Literal, not toE164(basePayload.phone) — calling the function under
+// test on both sides of the comparison makes the assertion true by
+// construction and unable to fail.
+check('consent log: phone stored E.164', voice?.phone === '+15550008888');
+check('toE164: bare 10-digit US', toE164('5550008888') === '+15550008888');
+check('toE164: 1-prefixed 11-digit', toE164('15550008888') === '+15550008888');
+check('toE164: already formatted', toE164('(555) 000-8888') === '+15550008888');
+check('toE164: empty is null', toE164('') === null);
+check('consent log: consent_source is DB-legal',
+  ['web_form', 'sms_keyword', 'voice_agent', 'enrollment', 'manual'].includes(voice?.consent_source));
+check('consent log: consent_method is DB-legal',
+  ['checkbox', 'sms_reply', 'verbal', 'electronic_signature'].includes(voice?.consent_method));
+check('consent log: channel is DB-legal',
+  Array.isArray(cl) && cl.every((r: any) => ['sms', 'voice', 'web'].includes(r.channel)));
+check('consent log: verdict is DB-legal',
+  Array.isArray(cl) && cl.every((r: any) => ['granted', 'denied', 'unclear', 'revoked'].includes(r.verdict)));
+check('consent log: consent_at is the checkbox stamp', voice?.consent_at === CONSENT_AT);
+check('consent log: consumer IP recorded, not the function run', voice?.consent_ip === CLIENT_IP);
+check('consent log: consent_text is verbatim, not paraphrased',
+  voice?.consent_text === sc?.consent_text);
+check('consent log: version carried in metadata',
+  voice?.metadata?.consent_version === TCPA_CONSENT_VERSION);
+check('consent log: sms row uses the existing marketing_sms vocabulary',
+  sms?.consent_type === 'marketing_sms');
+
 // ─── Case 2: tcpaConsentAt absent — stale bundle. Fall back to signedAt.
 const noStamp = await run(
   { ...basePayload, authChecks: [true, true, true, true, true] },
@@ -215,6 +275,7 @@ check('4-tuple: supplement_applications records NO consent',
   four.supplement?.context?.tcpa_consent === null);
 check('4-tuple: leads records NO consent',
   four.lead?.context?.tcpa_consent === null);
+check('4-tuple: nothing written to tcpa_consent_log', four.consentLogCalls === 0);
 
 // ─── Report ────────────────────────────────────────────────────────────
 console.log('\nChecks:');
