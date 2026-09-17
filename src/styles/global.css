@@ -2842,6 +2842,58 @@ textarea {
   margin-top: 2px;
 }
 
+/* ── Plan G / Plan N picker — drives header price, bullets and Apply ── */
+.plan-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 0 14px 10px;
+  padding: 3px;
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 999px;
+}
+.plan-seg-opt {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  color: var(--body-c);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.plan-seg-opt:hover:not(:disabled):not(.plan-seg-opt-active) {
+  background: rgba(15, 23, 42, 0.05);
+}
+.plan-seg-opt-active {
+  background: var(--card);
+  color: var(--dark);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12), 0 0 0 1.5px var(--green);
+}
+.plan-seg-opt:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.plan-seg-letter {
+  font-size: 12px;
+  font-weight: 700;
+}
+.plan-seg-price {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted-c);
+  font-variant-numeric: tabular-nums;
+}
+.plan-seg-opt-active .plan-seg-price {
+  color: var(--body-c);
+}
+
 .building-divider {
   height: 1px;
   background: rgba(15, 23, 42, 0.06);
@@ -3439,6 +3491,15 @@ textarea {
 }
 .compare-row-best {
   color: var(--teal);
+}
+.compare-col-ctas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.compare-col-ctas > .compare-col-cta {
+  margin-top: 0;
 }
 .compare-col-cta {
   width: 100%;
