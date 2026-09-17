@@ -32,8 +32,8 @@ interface PickRow {
   rateType: string;
   rateTypeHint: string | null;
   hhd: string;
-  applyCarrier: CarrierResult | null;
-  applyPlan: 'G' | 'N';
+  applyG: CarrierResult | null;
+  applyN: CarrierResult | null;
 }
 
 export function CompareModal({
@@ -48,9 +48,6 @@ export function CompareModal({
       picks.map((g) => {
         const cG = cheapestVariantFor(g, 'G');
         const cN = cheapestVariantFor(g, 'N');
-        // Default Apply CTA = the cheaper of the two filed plans.
-        const applyCarrier = cG?.carrier ?? cN?.carrier ?? null;
-        const applyPlan: 'G' | 'N' = cG ? 'G' : 'N';
         return {
           group: g,
           gLo: cG?.carrier.planGLo ?? 0,
@@ -60,8 +57,9 @@ export function CompareModal({
           rateType: rateTypeLabel(g.groupRateType),
           rateTypeHint: rateTypeHint(g.groupRateType),
           hhd: bestHhdLabel(g) ?? '—',
-          applyCarrier,
-          applyPlan,
+          // One Apply CTA per filed plan, each on that plan's cheapest filing.
+          applyG: cG?.carrier ?? null,
+          applyN: cN?.carrier ?? null,
         };
       }),
     [picks],
@@ -130,14 +128,27 @@ export function CompareModal({
                   hint="Applies when two adults at the same address enroll — spouse, civil union, or (some carriers) any household member. Exact rules vary by carrier."
                 />
 
-                {r.applyCarrier && (
-                  <button
-                    type="button"
-                    className={`compare-col-cta${topPick ? ' compare-col-cta-primary' : ''}`}
-                    onClick={() => r.applyCarrier && onApply(r.applyCarrier, r.applyPlan)}
-                  >
-                    Apply with Plan {r.applyPlan} →
-                  </button>
+                {(r.applyG || r.applyN) && (
+                  <div className="compare-col-ctas">
+                    {r.applyG && (
+                      <button
+                        type="button"
+                        className={`compare-col-cta${topPick ? ' compare-col-cta-primary' : ''}`}
+                        onClick={() => r.applyG && onApply(r.applyG, 'G')}
+                      >
+                        Apply with Plan G →
+                      </button>
+                    )}
+                    {r.applyN && (
+                      <button
+                        type="button"
+                        className={`compare-col-cta${topPick ? ' compare-col-cta-primary' : ''}`}
+                        onClick={() => r.applyN && onApply(r.applyN, 'N')}
+                      >
+                        Apply with Plan N →
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             );
