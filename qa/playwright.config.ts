@@ -13,8 +13,16 @@
 
 import { defineConfig, devices } from '@playwright/test';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = path.resolve(__dirname, '..');
+// package.json sets "type": "module", so Playwright loads this config as ESM,
+// where __dirname and require do not exist. Using either throws
+// "ReferenceError: __dirname is not defined in ES module scope" while the
+// config is still loading, which takes out the entire suite before a single
+// test runs — it did exactly that between 2026-09-17 and 2026-09-18. Derive
+// the directory from import.meta.url, and give globalSetup/globalTeardown
+// plain relative paths, which Playwright resolves against this file.
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const externalBase = process.env.QA_BASE_URL;
 const PORT = Number(process.env.QA_PORT ?? 4174);
 const baseURL = externalBase ?? `http://localhost:${PORT}`;
@@ -22,22 +30,22 @@ const baseURL = externalBase ?? `http://localhost:${PORT}`;
 export default defineConfig({
   testDir: './specs',
   outputDir: './test-results',
-  // Serial by default: the report is aggregated across personas and the
-  // findings list is shared.
+  // One worker: the punch list is aggregated across personas. Not serial —
+  // see the note in specs/medigap-compliance.spec.ts.
   workers: 1,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: [['list'], ['json', { outputFile: 'reports/playwright.json' }]],
-  globalSetup: require.resolve('./global-setup'),
-  globalTeardown: require.resolve('./global-teardown'),
+  globalSetup: './global-setup.ts',
+  globalTeardown: './global-teardown.ts',
 
   use: {
     baseURL,
     ...devices['Desktop Chrome'],
     // The widget ships inside a 420-ish px iframe on WordPress; test at the
-    // width most consumers actually see, since font-size findings depend on it.
-    // Must come AFTER the ...devices spread, which also sets viewport.
+    // width most consumers actually see, since font-size findings depend on
+    // it. Must come AFTER the ...devices spread, which also sets viewport.
     viewport: { width: 420, height: 1400 },
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
@@ -45,7 +53,12 @@ export default defineConfig({
     navigationTimeout: 30_000,
   },
 
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 420, height: 1400 } } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 420, height: 1400 } },
+    },
+  ],
 
   webServer: externalBase
     ? undefined
