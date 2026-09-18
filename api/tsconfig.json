@@ -1,0 +1,24 @@
+{
+  "//": "Typechecks the Vercel serverless functions under api/. The root tsconfig.json only includes \"src\", so without this file api/ — enroll, MBI crypto, scan-mbi, rates — shipped completely unchecked. Invoked by the root `typecheck:api` script and by the ship gate.",
+  "//module": "MUST stay NodeNext. package.json sets \"type\": \"module\", so Vercel loads the compiled functions as Node ESM, where strict resolution rejects extensionless relative imports at runtime (ERR_MODULE_NOT_FOUND on cold start). NodeNext is the only setting that reproduces that rule at compile time, so a missing .js extension fails the gate instead of taking /api/enroll down. Do not switch to bundler/ESNext to silence an error — add the extension.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": false,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmit": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}

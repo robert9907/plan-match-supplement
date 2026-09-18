@@ -8,7 +8,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "npm run typecheck:app && npm run typecheck:api",
+    "typecheck:app": "tsc --noEmit",
+    "typecheck:api": "tsc -p api/tsconfig.json"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
