@@ -10,9 +10,18 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { CheckResult } from './compliance-checks.js';
 
-export const REPORT_DIR = 'reports';
+// Anchored to qa/, NOT to process.cwd(). These were relative paths until
+// 2026-09-18, which meant the reports landed wherever playwright happened to
+// be invoked from: running `npm run test:compliance` from the repo root wrote
+// them to <repo>/reports/ as untracked files, which .gitignore does not cover
+// and which would then fail the ship gate's clean-tree check on the next push.
+// The run printed the right numbers while qa/reports/ kept a stale punch list.
+const QA_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+
+export const REPORT_DIR = path.join(QA_DIR, 'reports');
 export const FRAGMENT_DIR = path.join(REPORT_DIR, 'personas');
 export const JSON_REPORT = path.join(REPORT_DIR, 'medigap-compliance.json');
 export const MD_REPORT = path.join(REPORT_DIR, 'medigap-compliance.md');
