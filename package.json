@@ -8,9 +8,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "npm run typecheck:app && npm run typecheck:api",
+    "typecheck": "npm run typecheck:app && npm run typecheck:api && npm run typecheck:qa",
     "typecheck:app": "tsc --noEmit",
-    "typecheck:api": "tsc -p api/tsconfig.json"
+    "typecheck:api": "tsc -p api/tsconfig.json",
+    "typecheck:qa": "tsc -p qa/tsconfig.json",
+    "test:compliance": "playwright test --config=qa/playwright.config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
@@ -21,6 +23,7 @@
     "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.47.0",
     "@types/node": "^22.19.17",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

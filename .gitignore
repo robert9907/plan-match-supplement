@@ -11,3 +11,5 @@ tsconfig.tsbuildinfo
 *.tsbuildinfo
 .vercel
 .env*.local
+qa/reports
+qa/test-results

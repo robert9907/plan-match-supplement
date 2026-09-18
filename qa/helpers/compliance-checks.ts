@@ -1,0 +1,427 @@
+// ---------------------------------------------------------------------------
+// compliance-checks.ts — reusable assertions.
+//
+// Every check returns a CheckResult instead of throwing, so one failure never
+// short-circuits the sweep and the operator gets a full punch list in one run.
+// Severity distinguishes three different things that all look like "red" in a
+// naive harness:
+//
+//   fail  a disclosure that is required and missing, or text that is wrong
+//   warn  something a carrier compliance reviewer will ask about
+//   info  recorded for the report, no judgement (the ranking-language rule)
+//
+// Only `fail` breaks the build. Rob's ruling of 2026-09-17 is that the fit
+// score's "Top match" badge is reported and not changed, so it is `info`.
+// ---------------------------------------------------------------------------
+
+import type { Page } from '@playwright/test';
+import {
+  BROKER_PHONE,
+  CMS_NOT_REVIEWED,
+  CROSS_PRODUCT_REPORTED,
+  GI_RIGHTS_PATTERN,
+  INTAKE_FORBIDDEN_FIELDS,
+  MBI_ALLOWED_ROUTES,
+  MBI_FIELD_PATTERN,
+  MEDICARE_HOTLINE,
+  MIN_BODY_FONT_PX,
+  MIN_LANGUAGE_TAGLINES,
+  NOT_GOVERNMENT_ENDORSED,
+  NPN_IDENTIFIER,
+  OUT_OF_SCOPE_HARD,
+  PART_D_CARVEOUT_PATTERNS,
+  RANKING_LANGUAGE,
+  RATE_METHODOLOGY_PATTERNS,
+  RATES_ARE_ESTIMATES,
+  SECTION_1557_MARKERS,
+  TAGLINE_LANG_SELECTOR,
+  TTY_PATTERNS,
+  UNDERWRITING_PATTERNS,
+  UNLICENSED_NOTICE,
+  WRONG_BROKER_PHONE,
+} from '../fixtures/medigap-rules.js';
+import { scanForBannedLanguage } from '../fixtures/banned-language.js';
+
+export type Severity = 'fail' | 'warn' | 'info';
+
+export interface CheckResult {
+  rule: string;
+  /** False only when the rule was violated. Info rules pass by definition. */
+  pass: boolean;
+  severity: Severity;
+  detail: string;
+  data?: unknown;
+}
+
+const ok = (rule: string, detail: string, data?: unknown): CheckResult => ({
+  rule, pass: true, severity: 'fail', detail, data,
+});
+const bad = (rule: string, detail: string, severity: Severity = 'fail', data?: unknown): CheckResult => ({
+  rule, pass: false, severity, detail, data,
+});
+
+export async function pageText(page: Page): Promise<string> {
+  return page.evaluate(() => document.body?.innerText ?? '');
+}
+
+// ─── Identity ──────────────────────────────────────────────────────────────
+
+export function checkBrokerIdentity(text: string): CheckResult[] {
+  const out: CheckResult[] = [];
+
+  out.push(
+    NPN_IDENTIFIER.test(text)
+      ? ok('Broker NPN identifier', 'NPN #10447418 present')
+      : bad('Broker NPN identifier', 'no NPN identifier on this screen — 42 CFR §422.2260 "who is speaking" analogue; a Medigap surface still has to say whose agency it is'),
+  );
+
+  const wrong = WRONG_BROKER_PHONE.exec(text);
+  out.push(
+    wrong
+      ? bad('Broker phone number', `transposed phone number on screen: "${wrong[0]}" — must be ${BROKER_PHONE}`)
+      : ok('Broker phone number', 'no transposed phone number'),
+  );
+
+  return out;
+}
+
+// ─── Section 1557 (45 CFR §92.10) ──────────────────────────────────────────
+
+export async function checkSection1557(page: Page, text: string): Promise<CheckResult[]> {
+  const out: CheckResult[] = [];
+  const missing = SECTION_1557_MARKERS.filter((m) => !m.pattern.test(text)).map((m) => m.label);
+
+  out.push(
+    missing.length === 0
+      ? ok('Section 1557 notice', 'nondiscrimination notice, grievance contact and OCR pointer all present')
+      : bad('Section 1557 notice', `missing on this screen: ${missing.join(', ')}`, 'fail', missing),
+  );
+
+  const taglines = await page.locator(TAGLINE_LANG_SELECTOR).count();
+  out.push(
+    taglines >= MIN_LANGUAGE_TAGLINES
+      ? ok('Language taglines', `${taglines} tagged language taglines`)
+      : bad('Language taglines', `${taglines} taglines rendered, expected at least ${MIN_LANGUAGE_TAGLINES} (45 CFR §92.11 top-15)`, 'fail', { taglines }),
+  );
+
+  out.push(
+    TTY_PATTERNS.some((p) => p.test(text))
+      ? ok('TTY number', 'TTY reference present')
+      : bad('TTY number', 'a phone number is offered with no TTY alternative'),
+  );
+
+  return out;
+}
+
+// ─── Universal disclosures ─────────────────────────────────────────────────
+
+export function checkUniversalDisclosures(text: string): CheckResult[] {
+  const out: CheckResult[] = [];
+
+  out.push(
+    CMS_NOT_REVIEWED.test(text)
+      ? ok('CMS-not-reviewed clause', 'present')
+      : bad('CMS-not-reviewed clause', 'this surface shows CMS-sourced data without stating CMS has not reviewed or approved it'),
+  );
+
+  out.push(
+    MEDICARE_HOTLINE.test(text)
+      ? ok('1-800-MEDICARE pointer', 'present')
+      : bad('1-800-MEDICARE pointer', 'no pointer to Medicare.gov / 1-800-MEDICARE for official plan information'),
+  );
+
+  return out;
+}
+
+/** Entry screen only — the government-disclaimer placement. */
+export function checkNotGovernmentEndorsed(text: string): CheckResult {
+  return NOT_GOVERNMENT_ENDORSED.test(text)
+    ? ok('Not-government-endorsed disclaimer', 'present on the entry screen')
+    : bad('Not-government-endorsed disclaimer', 'entry screen does not state the agency is not connected with or endorsed by the U.S. Government or Medicare');
+}
+
+// ─── Marketing language ────────────────────────────────────────────────────
+
+/**
+ * Marketing language is a `warn`, not a `fail`.
+ *
+ * This is a deliberate line, not a loosened rule. The gate blocks on
+ * disclosures that are legally required and on anything touching PHI — those
+ * have a right answer. Whether a word is a prohibited superlative on a Medigap
+ * surface is a judgement call that belongs to Rob, and NAIC §22 is a
+ * marketing-standards regime, not a checklist like 45 CFR §92.10. Every hit is
+ * printed in the report with its surrounding context so the call can actually
+ * be made; nothing is hidden. Raise this to 'fail' once the copy is settled.
+ */
+export function checkBannedLanguage(text: string): CheckResult {
+  const hits = scanForBannedLanguage(text);
+  return hits.length === 0
+    ? ok('No misleading marketing language', 'no superlatives, urgency or absolute guarantees')
+    : bad(
+        'No misleading marketing language',
+        `${hits.length} hit(s): ${hits.map((h) => `${h.label} → "${h.context}"`).join(' | ')}`,
+        'warn',
+        hits,
+      );
+}
+
+/**
+ * Ranking language. Reported only — see the ruling in CLAUDE.md. Returns an
+ * info result whether or not anything matched, so the report always records
+ * the current state of the question rather than going silent when it passes.
+ */
+export function checkRankingLanguage(text: string): CheckResult {
+  const hits = RANKING_LANGUAGE.filter((r) => r.pattern.test(text)).map((r) => r.label);
+  return {
+    rule: 'Ranking language (reported, not enforced)',
+    pass: true,
+    severity: 'info',
+    detail: hits.length
+      ? `present on this screen: ${hits.join(', ')}. MCMG §30.6 would prohibit these on the MA surface; whether they bind a Medigap surface is open — Rob's ruling 2026-09-17 is flag, don't change.`
+      : 'none present on this screen',
+    data: hits,
+  };
+}
+
+// ─── Scope ─────────────────────────────────────────────────────────────────
+
+export function checkScope(text: string): CheckResult[] {
+  const out: CheckResult[] = [];
+
+  const violations = OUT_OF_SCOPE_HARD.filter((p) => p.pattern.test(text)).map((p) => p.product);
+  out.push(
+    violations.length === 0
+      ? ok('Scope of communication', 'no out-of-scope products')
+      : bad('Scope of communication', `markets products outside Medigap: ${violations.join(', ')}`, 'fail', violations),
+  );
+
+  for (const cp of CROSS_PRODUCT_REPORTED) {
+    if (!cp.pattern.test(text)) continue;
+    out.push({
+      rule: `Cross-product reference — ${cp.product}`,
+      pass: true,
+      severity: 'info',
+      detail: cp.why,
+    });
+  }
+
+  return out;
+}
+
+// ─── Medigap-specific ──────────────────────────────────────────────────────
+
+/** Run on any screen that displays a premium. NAIC Model Act §13. */
+export function checkRateDisclosures(text: string): CheckResult[] {
+  const out: CheckResult[] = [];
+
+  const methodologies = RATE_METHODOLOGY_PATTERNS.filter((p) => p.test(text)).length;
+  out.push(
+    methodologies > 0
+      ? ok('Rate-methodology disclosure', `${methodologies} of 3 rate types named`)
+      : bad('Rate-methodology disclosure', 'premiums displayed with no attained-age / issue-age / community-rated disclosure (NAIC Model Act §13)'),
+  );
+
+  out.push(
+    RATES_ARE_ESTIMATES.test(text)
+      ? ok('Rates are estimates', 'present')
+      : bad('Rates are estimates', 'premiums shown without stating they are estimates and not a quote'),
+  );
+
+  return out;
+}
+
+/**
+ * Run on any screen showing a qualification score or a premium.
+ *
+ * `oep` matters: during the 6-month open-enrollment window no medical
+ * underwriting applies, so requiring an "underwriting applies" statement on
+ * that path would be requiring a false statement. What is required on every
+ * path is that a displayed premium is not presented as a guaranteed rate.
+ */
+export function checkUnderwritingDisclosure(text: string, oep: boolean): CheckResult {
+  const [underwritingApplies, notGuaranteed] = UNDERWRITING_PATTERNS;
+  const missing: string[] = [];
+  if (!oep && !underwritingApplies.test(text)) missing.push('medical-underwriting statement');
+  if (!notGuaranteed.test(text)) missing.push('rates/acceptance are not guaranteed');
+
+  return missing.length === 0
+    ? ok('Underwriting disclosure', oep
+        ? 'OEP path — non-guarantee language present, underwriting statement correctly absent'
+        : 'underwriting and non-guarantee language both present')
+    : bad('Underwriting disclosure', `missing: ${missing.join(', ')}`);
+}
+
+/** Run on /results. 42 CFR §403.205. */
+export function checkGiRights(text: string): CheckResult {
+  return GI_RIGHTS_PATTERN.test(text)
+    ? ok('Guaranteed Issue rights', 'GI rights enumerated')
+    : bad('Guaranteed Issue rights', 'rates shown with no Guaranteed Issue rights explainer (42 CFR §403.205)');
+}
+
+/** Run on /results. Medigap excludes Part D and must say so. */
+export function checkPartDCarveOut(text: string): CheckResult {
+  const found = PART_D_CARVEOUT_PATTERNS.filter((p) => p.test(text)).length;
+  return found === PART_D_CARVEOUT_PATTERNS.length
+    ? ok('Part D carve-out', 'states Medigap excludes drugs and points to standalone Part D')
+    : bad('Part D carve-out', 'results shown without the full Medigap-excludes-prescription-drugs disclosure');
+}
+
+// ─── Licensure gate ────────────────────────────────────────────────────────
+
+export async function checkUnlicensedGate(page: Page, text: string): Promise<CheckResult[]> {
+  const out: CheckResult[] = [];
+
+  out.push(
+    UNLICENSED_NOTICE.test(text)
+      ? ok('Out-of-state notice', 'unlicensed-state notice shown')
+      : bad('Out-of-state notice', 'ZIP resolves outside NC/TX/GA but no licensure notice is shown'),
+  );
+
+  const continueBtn = page.locator('button.btn', { hasText: /rate projection/i }).first();
+  const disabled = (await continueBtn.count()) ? await continueBtn.isDisabled() : null;
+  out.push(
+    disabled === true
+      ? ok('Licensure gate', 'Continue is disabled for an unlicensed ZIP')
+      : bad('Licensure gate', disabled === null
+          ? 'could not find the Continue button to verify the licensure gate'
+          : 'Continue is ENABLED for a ZIP outside NC/TX/GA — the flow would quote an applicant Rob cannot write (NC GS §58-33-26 / TX Ins. §4001.101 / GA OCGA §33-23-4)'),
+  );
+
+  out.push(
+    MEDICARE_HOTLINE.test(text)
+      ? ok('Out-of-state referral', 'referred to 1-800-MEDICARE')
+      : bad('Out-of-state referral', 'unlicensed applicant is not referred anywhere'),
+  );
+
+  return out;
+}
+
+// ─── Typography ────────────────────────────────────────────────────────────
+
+export async function checkFontSize(page: Page): Promise<CheckResult> {
+  const result = await page.evaluate((min: number) => {
+    const offenders: Array<{ tag: string; text: string; px: number }> = [];
+    let smallestPx = Infinity;
+    for (const el of Array.from(document.body.querySelectorAll<HTMLElement>('*'))) {
+      const style = window.getComputedStyle(el);
+      if (style.visibility === 'hidden' || style.display === 'none') continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue;
+      const text = (el.textContent ?? '').trim();
+      if (text.length < 4) continue;
+      if (el.children.length > 0 && Array.from(el.children).some((c) => (c.textContent ?? '').trim().length > 4)) continue;
+      const px = parseFloat(style.fontSize);
+      if (!Number.isFinite(px)) continue;
+      if (px < smallestPx) smallestPx = px;
+      if (px < min) offenders.push({ tag: el.tagName.toLowerCase(), text: text.slice(0, 60), px });
+    }
+    return { smallestPx: Number.isFinite(smallestPx) ? smallestPx : null, offenders: offenders.slice(0, 25) };
+  }, MIN_BODY_FONT_PX);
+
+  const px = result.smallestPx;
+  if (px == null) return ok(`Font size ≥ ${MIN_BODY_FONT_PX}px`, 'no text elements found');
+  // `warn`: CMS sets a 12pt floor for printed MA marketing, but there is no
+  // binding minimum for a Medigap web surface. Small type on a screen built
+  // for 65-year-olds is still worth seeing in the report every run.
+  return px >= MIN_BODY_FONT_PX
+    ? ok(`Font size ≥ ${MIN_BODY_FONT_PX}px`, `smallest visible font ${px}px`)
+    : bad(`Font size ≥ ${MIN_BODY_FONT_PX}px`, `${result.offenders.length} element(s) below ${MIN_BODY_FONT_PX}px — smallest ${px}px`, 'warn', result);
+}
+
+// ─── PHI ───────────────────────────────────────────────────────────────────
+
+/**
+ * SSN / Medicaid ID must never be collected. The MBI is legitimate on /apply
+ * and nowhere else — this is the check that would catch it drifting earlier
+ * into the funnel, where it would be collected before the applicant has
+ * consented to anything.
+ */
+export async function checkIntakeFieldSafety(page: Page, route: string): Promise<CheckResult[]> {
+  const inputs = await page.evaluate(() =>
+    Array.from(document.querySelectorAll<HTMLInputElement>('input, textarea, select')).map((el) => ({
+      name: el.getAttribute('name') ?? '',
+      placeholder: el.getAttribute('placeholder') ?? '',
+      label: el.getAttribute('aria-label') ?? '',
+      id: el.getAttribute('id') ?? '',
+      autocomplete: el.getAttribute('autocomplete') ?? '',
+    })),
+  );
+
+  const out: CheckResult[] = [];
+  const haystacks = inputs.map((i) => `${i.name} ${i.placeholder} ${i.label} ${i.id} ${i.autocomplete}`.trim());
+
+  const forbidden = haystacks.filter((h) => INTAKE_FORBIDDEN_FIELDS.some((p) => p.test(h)));
+  out.push(
+    forbidden.length === 0
+      ? ok('No SSN / Medicaid ID collected', `${inputs.length} input(s), none PHI-forbidden`)
+      : bad('No SSN / Medicaid ID collected', `forbidden inputs: ${forbidden.join(' | ')}`, 'fail', forbidden),
+  );
+
+  const mbiFields = haystacks.filter((h) => MBI_FIELD_PATTERN.test(h));
+  if (mbiFields.length) {
+    const allowed = MBI_ALLOWED_ROUTES.some((r) => route.startsWith(r));
+    out.push(
+      allowed
+        ? ok('MBI collected only on /apply', `MBI input present on ${route}, which is the application screen`)
+        : bad('MBI collected only on /apply', `MBI input on ${route} — the MBI belongs on /apply only, after the applicant has seen the authorizations`, 'fail', mbiFields),
+    );
+  }
+
+  return out;
+}
+
+/** Scans the URL, the rendered text and the DOM for leaked identifiers. */
+export async function checkPhiExposure(page: Page, text: string): Promise<CheckResult> {
+  const url = page.url();
+  const html = await page.content();
+
+  const mbi = /\b[0-9][A-Z][A-Z0-9]{2}-[A-Z0-9]{3}-[A-Z0-9]{4}\b/g;
+  const ssn = /\b\d{3}-\d{2}-\d{4}\b/g;
+  const emailInQs = /[?&][^=&]*=[^&]*@[^&]+\.[a-z]{2,}/i;
+  const phoneInQs = /[?&][^=&]*=(?:\+?1)?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
+  const dobInQs = /[?&](dob|birth|bday)[^=]*=/i;
+
+  const findings: string[] = [];
+  if ([...text.matchAll(mbi)].length || [...html.matchAll(mbi)].length) findings.push('MBI pattern in page content');
+  if ([...text.matchAll(ssn)].length || [...html.matchAll(ssn)].length) findings.push('SSN-like pattern in page content');
+  if (emailInQs.test(url)) findings.push('email in URL query string');
+  if (phoneInQs.test(url)) findings.push('phone number in URL query string');
+  if (dobInQs.test(url)) findings.push('date of birth in URL query string');
+
+  return findings.length === 0
+    ? ok('PHI exposure', 'no identifiers in the URL or page content')
+    : bad('PHI exposure', findings.join('; '), 'fail', findings);
+}
+
+// ─── Aggregate ─────────────────────────────────────────────────────────────
+
+/** The rules that apply to every screen in the flow. */
+export async function runGlobalRules(page: Page, route: string): Promise<CheckResult[]> {
+  const text = await pageText(page);
+  return [
+    ...checkBrokerIdentity(text),
+    ...(await checkSection1557(page, text)),
+    ...checkUniversalDisclosures(text),
+    checkBannedLanguage(text),
+    checkRankingLanguage(text),
+    ...checkScope(text),
+    await checkFontSize(page),
+    ...(await checkIntakeFieldSafety(page, route)),
+    await checkPhiExposure(page, text),
+  ];
+}
+
+export interface Summary {
+  total: number;
+  failed: number;
+  warned: number;
+  info: number;
+  passed: number;
+}
+
+export function summarize(results: CheckResult[]): Summary {
+  const failed = results.filter((r) => !r.pass && r.severity === 'fail').length;
+  const warned = results.filter((r) => !r.pass && r.severity === 'warn').length;
+  const info = results.filter((r) => r.severity === 'info').length;
+  return { total: results.length, failed, warned, info, passed: results.length - failed - warned };
+}

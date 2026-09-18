@@ -19,7 +19,7 @@
     }
   ],
   "$comment_pushChecks": "scripts/check-medsup-view.sh already existed in this repo and nothing ran it. Migration 005 revoked anon SELECT on pm_medsup_rate / pm_medsup_carrier / pm_supp_carrier_rates and created the _public views that filter pm_medsup_carrier_exclusions (Physicians Select, MedMutual Protect, Physicians Life). A read against a base table means a suppressed carrier can reach a consumer screen, or a 401 on an anon path. The gate now runs that check on every push.",
-  "$comment_typecheck": "`npm run typecheck` runs typecheck:app (tsc --noEmit, root tsconfig, include=[src]) then typecheck:api (api/tsconfig.json, module=NodeNext). Both matter. Before api/tsconfig.json existed, everything under api/ — enroll, MBI crypto, scan-mbi, rates — shipped with no typecheck at all, and a missing .js extension in api/enroll.ts would have crashed the lambda at cold start.",
+  "$comment_typecheck": "`npm run typecheck` runs typecheck:app (root tsconfig, include=[src]), typecheck:api (api/tsconfig.json, module=NodeNext) and typecheck:qa (the compliance harness). All three matter. Before api/tsconfig.json existed, everything under api/ shipped with no typecheck at all; qa/ is in the list because a compliance suite that no longer compiles is a compliance suite that is not running.",
   "requireCleanTree": true,
   "$comment_brainPaths": "Files whose changes require a fresh full audit before shipping: the fit-score engine, rate lookup and carrier grouping, licensed-state gating, CMS premium constants, MBI validation, the Section 1557 language block, and the submission surface. Inert while fullAudit.enabled is false — this is the list the harness will consume when it lands.",
   "brainPaths": [
@@ -36,26 +36,29 @@
     "api/medsup-rates.ts"
   ],
   "fullAudit": {
-    "enabled": false,
-    "$comment": "DISABLED: this repo has no compliance harness yet. The only automated compliance coverage for Supplement is qa/tests/aca-supplement.spec.ts in the CONSUMER repo (~/Code/plan-match/qa), which smoke-tests the production landing + rates screens only — it does not drive the flow, does not cover the health screen / application / TCPA consent, and cannot be pointed at HEAD. Set enabled=true and wire the steps here when an in-repo harness lands.",
+    "enabled": true,
+    "$comment": "The Medigap compliance sweep. Unlike the MA consumer harness this one builds HEAD and serves it locally (qa/playwright.config.ts webServer) and stubs every API call, so it tests the commit being pushed and needs no network and no production data. Four personas: OEP NC, underwritten NC, underwritten TX, and an unlicensed NY ZIP. Set QA_BASE_URL to aim it at a deployed environment instead.",
+    "$comment_known_red": "AS OF 2026-09-18 THIS IS RED, deliberately. underwritten-tx fails on /rates: with no TX rows in pm_medsup_rate_public the rate widget never renders, so its 'not a quote or a guarantee of coverage' disclosure disappears — while the hardcoded paragraph in src/components/RateProjection.tsx still shows '$115-$180/month ... in your state' with an NC carrier list to a Texas applicant. Rob's call 2026-09-18: leave it red rather than exempt it. Brain-path pushes are blocked until the disclosure renders independently of the widget. Do not add an exemption to make this green.",
     "steps": [
       {
-        "name": "Supplement compliance harness (not wired yet)",
-        "command": "false 'no in-repo compliance harness — see $comment above'",
-        "timeoutSec": 3600,
+        "name": "Medigap compliance sweep",
+        "command": "npm run test:compliance",
+        "timeoutSec": 1800,
         "failPattern": "\\b[1-9]\\d*\\s+failed\\b"
       }
     ]
   },
-  "$comment_protectedPaths": "Edits here trigger an approval prompt for Rob. Two classes: (1) gate/validator files, so a failing check can't be 'fixed' by loosening it; (2) the compliance disclosure surface — the CMS/TPMO and Medicare.gov language, Section 1557 taglines and nondiscrimination notice, the Medigap GI-rights and rate-type disclosures, and the carrier-authorization + TCPA consent block. Those are regulated text, not copy. Nothing there gets reworded without Rob seeing the diff.",
+  "$comment_protectedPaths": "Edits here trigger an approval prompt for Rob. Three classes: (1) gate and validator files, so a failing check can't be 'fixed' by loosening it — qa/ is in this class, the whole compliance harness; (2) the medsup-view check, which is the only thing standing between a suppressed carrier and a consumer screen; (3) the regulated disclosure surface — the CMS/Medicare.gov language, Section 1557 taglines and nondiscrimination notice, the Medigap GI-rights and rate-type disclosures, and the carrier-authorization + TCPA consent block. Those are regulated text, not copy.",
   "protectedPaths": [
     ".claude/settings.json",
     ".claude/settings.local.json",
     ".claude/hooks/",
     ".githooks/",
     "scripts/gate/",
+    "scripts/check-medsup-view.sh",
     "CLAUDE.md",
     "api/tsconfig.json",
+    "qa/",
     "src/lib/section-1557.ts",
     "src/components/NondiscriminationFooter.tsx",
     "src/components/MedigapDisclosures.tsx",

@@ -1,0 +1,22 @@
+{
+  "//": "Typechecks the compliance harness. Separate from the app's tsconfig (include: [\"src\"]) and from api/tsconfig.json. Wired into the root `typecheck` script so a broken harness fails the commit gate like any other TypeScript error — a compliance suite that no longer compiles is a compliance suite that is not running.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmit": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "reports", "test-results", "playwright.validate.config.ts"]
+}
