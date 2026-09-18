@@ -57,6 +57,25 @@ export function RateProjection() {
           initialAge={initialAge}
         />
 
+        {/* Appointment + not-a-quote disclosure.
+            MOVED HERE from inside RateProjectionWidget on 2026-09-18. It used
+            to sit at the bottom of the widget's success branch, so all three
+            of the widget's early returns — load error, still loading, and zero
+            carriers — dropped it. A Texas applicant therefore saw dollar
+            figures on this screen with no not-a-quote disclosure at all,
+            because TX has no rows in pm_medsup_rate_public. Rendering it from
+            the page instead of the widget makes it structurally impossible for
+            a widget state to take it down with it. Do not move it back. */}
+        <div
+          className="ms-appointment-disclosure"
+          style={{ fontSize: 12, lineHeight: 1.4, color: '#6B7280', margin: '16px 4px 0' }}
+        >
+          Rates shown are from carriers Generation Health is appointed with and do not represent
+          every Medicare Supplement insurer available in your area. Premiums are estimates sourced
+          from Medicare.gov and are not a quote or a guarantee of coverage. Final acceptance and
+          premium are determined by each carrier's underwriting department. Rob Simm, NPN #10447418.
+        </div>
+
         <button className="btn" onClick={onContinue} type="button">
           {flow.isOep ? 'See your guaranteed plans →' : 'Continue to medications →'}
         </button>
@@ -81,13 +100,22 @@ export function RateProjection() {
           rate-setting methodologies: <em>attained-age-rated</em> (premium increases
           each year as you age), <em>issue-age-rated</em> (premium is fixed at the
           age you enrolled), or <em>community-rated</em> (same premium regardless
-          of age; typical in North Carolina). Sample Plan G quotes for a 65-year-old
-          non-tobacco applicant in your state typically fall in the $115–$180/month
-          range from carriers such as Aetna, Cigna, Humana, Mutual of Omaha,
-          UnitedHealthcare, Blue Cross NC, and Anthem — each files its own
-          methodology, so the rate-projection curve above blends all three. Actual
-          carrier-specific rate types are labeled next to each carrier on the
-          Results screen.
+          of age). Each carrier files its own methodology, so the rate-projection
+          curve above blends all three. Actual carrier-specific rate types are
+          labeled next to each carrier on the Results screen.
+          {/* The sample range and the carrier list below are North Carolina
+              filings. Showing them to a TX or GA applicant under the words "in
+              your state" is a misleading comparison under NAIC Model Act §22 —
+              which is what happened until 2026-09-18. Scope them to the state
+              they actually describe. */}
+          {state === 'NC' && (
+            <>
+              {' '}Sample Plan G quotes for a 65-year-old non-tobacco applicant in North
+              Carolina typically fall in the $115–$180/month range from carriers such as
+              Aetna, Cigna, Humana, Mutual of Omaha, UnitedHealthcare, Blue Cross NC, and
+              Anthem. Community-rated filings are typical in North Carolina.
+            </>
+          )}
         </div>
 
         <div className="disclaimer">

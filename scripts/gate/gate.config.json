@@ -1,0 +1,68 @@
+{
+  "$comment": "Plan Match Supplement gate config (~/Code/plan-match-supplement). Ported from the consumer widget's gate (~/Code/plan-match). The gate refuses to pass while any TODO placeholder remains. Commands run from the repo root. Package manager here is npm, not pnpm.",
+  "typecheck": {
+    "name": "TypeScript",
+    "command": "npm run typecheck",
+    "timeoutSec": 480
+  },
+  "pushChecks": [
+    {
+      "name": "TypeScript",
+      "command": "npm run typecheck",
+      "timeoutSec": 480
+    },
+    {
+      "name": "Medigap carrier suppression",
+      "command": "bash scripts/check-medsup-view.sh",
+      "timeoutSec": 60,
+      "passPattern": "^PASS:"
+    }
+  ],
+  "$comment_pushChecks": "scripts/check-medsup-view.sh already existed in this repo and nothing ran it. Migration 005 revoked anon SELECT on pm_medsup_rate / pm_medsup_carrier / pm_supp_carrier_rates and created the _public views that filter pm_medsup_carrier_exclusions (Physicians Select, MedMutual Protect, Physicians Life). A read against a base table means a suppressed carrier can reach a consumer screen, or a 401 on an anon path. The gate now runs that check on every push.",
+  "$comment_typecheck": "`npm run typecheck` runs typecheck:app (root tsconfig, include=[src]), typecheck:api (api/tsconfig.json, module=NodeNext) and typecheck:qa (the compliance harness). All three matter. Before api/tsconfig.json existed, everything under api/ shipped with no typecheck at all; qa/ is in the list because a compliance suite that no longer compiles is a compliance suite that is not running.",
+  "requireCleanTree": true,
+  "$comment_brainPaths": "Files whose changes require a fresh full audit before shipping: the fit-score engine, rate lookup and carrier grouping, licensed-state gating, CMS premium constants, MBI validation, the Section 1557 language block, and the submission surface. Inert while fullAudit.enabled is false — this is the list the harness will consume when it lands.",
+  "brainPaths": [
+    "src/lib/scoringEngine.ts",
+    "src/lib/medsupRates.ts",
+    "src/lib/carrierGroups.ts",
+    "src/lib/cmsPremiums.ts",
+    "src/lib/licensedStates.ts",
+    "src/lib/mbiValidation.ts",
+    "src/lib/section-1557.ts",
+    "src/lib/submitApplication.ts",
+    "api/enroll.ts",
+    "api/rates.ts",
+    "api/medsup-rates.ts"
+  ],
+  "fullAudit": {
+    "enabled": true,
+    "$comment": "The Medigap compliance sweep. Unlike the MA consumer harness this one builds HEAD and serves it locally (qa/playwright.config.ts webServer) and stubs every API call, so it tests the commit being pushed and needs no network and no production data. Four personas: OEP NC, underwritten NC, underwritten TX, and an unlicensed NY ZIP. Set QA_BASE_URL to aim it at a deployed environment instead.",
+    "$comment_known_red": "RESOLVED 2026-09-18. This was red on the underwritten-tx /rates screen: the rate widget's early returns (load error / loading / zero carriers) dropped the 'not a quote or a guarantee of coverage' disclosure, while a hardcoded paragraph still showed '$115-$180/month ... in your state' with an NC carrier list to a Texas applicant. Fixed by rendering that disclosure from RateProjection.tsx instead of from inside the widget, and by scoping the sample range and carrier list to NC. All four personas pass. If this goes red again, fix the disclosure — do not add an exemption.",
+    "steps": [
+      {
+        "name": "Medigap compliance sweep",
+        "command": "npm run test:compliance",
+        "timeoutSec": 1800,
+        "failPattern": "\\b[1-9]\\d*\\s+failed\\b"
+      }
+    ]
+  },
+  "$comment_protectedPaths": "Edits here trigger an approval prompt for Rob. Three classes: (1) gate and validator files, so a failing check can't be 'fixed' by loosening it — qa/ is in this class, the whole compliance harness; (2) the medsup-view check, which is the only thing standing between a suppressed carrier and a consumer screen; (3) the regulated disclosure surface — the CMS/Medicare.gov language, Section 1557 taglines and nondiscrimination notice, the Medigap GI-rights and rate-type disclosures, and the carrier-authorization + TCPA consent block. Those are regulated text, not copy.",
+  "protectedPaths": [
+    ".claude/settings.json",
+    ".claude/settings.local.json",
+    ".claude/hooks/",
+    ".githooks/",
+    "scripts/gate/",
+    "scripts/check-medsup-view.sh",
+    "CLAUDE.md",
+    "api/tsconfig.json",
+    "qa/",
+    "src/lib/section-1557.ts",
+    "src/components/NondiscriminationFooter.tsx",
+    "src/components/MedigapDisclosures.tsx",
+    "src/components/MedSupRateDisclosure.tsx",
+    "src/components/Application.tsx"
+  ]
+}

@@ -11,3 +11,8 @@ tsconfig.tsbuildinfo
 *.tsbuildinfo
 .vercel
 .env*.local
+qa/reports
+qa/test-results
+
+# Cowork session scratch — never part of the repo
+Claude outputs/
