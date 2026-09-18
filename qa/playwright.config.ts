@@ -34,10 +34,11 @@ export default defineConfig({
 
   use: {
     baseURL,
+    ...devices['Desktop Chrome'],
     // The widget ships inside a 420-ish px iframe on WordPress; test at the
     // width most consumers actually see, since font-size findings depend on it.
+    // Must come AFTER the ...devices spread, which also sets viewport.
     viewport: { width: 420, height: 1400 },
-    ...devices['Desktop Chrome'],
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     actionTimeout: 15_000,
