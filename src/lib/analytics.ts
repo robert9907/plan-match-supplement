@@ -78,6 +78,32 @@ function isDevOrigin(): boolean {
   return false;
 }
 
+// Rob spent an afternoon on 2026-08-31 debugging a tracker that went silent
+// with zero output — the exclusion above tripped on a stale gh_dev=1 cookie
+// and there was no signal in the console. warnSuppressed exists so the next
+// time an event doesn't fire, the reason is visible in one line.
+let warnedOnce = false;
+function warnSuppressed(reason: string): void {
+  if (warnedOnce) return;
+  warnedOnce = true;
+  // console.info, not warn — suppression is often deliberate (dev opt-out,
+  // DNT). The message is diagnostic, not an error to escalate.
+  console.info(`[analytics] events suppressed: ${reason}`);
+}
+
+// Named reason for an isDevOrigin() match, so the log tells you which of
+// the four rules fired rather than making you re-derive it.
+function devOriginReason(): string {
+  if (typeof window === 'undefined') return 'window undefined';
+  const h = (window.location.hostname || '').toLowerCase();
+  if (h === 'localhost' || h === '127.0.0.1' || h === '::1') return `dev host ${h}`;
+  if (h.endsWith('.vercel.app')) return `vercel preview host ${h}`;
+  if (typeof document !== 'undefined' && /(^|;\s*)gh_dev=1(;|$)/.test(document.cookie)) {
+    return 'gh_dev=1 cookie present (per-device opt-out)';
+  }
+  return 'isDevOrigin returned true (rule unknown)';
+}
+
 // ─── ID helpers (must match the WPCode snippet on generationhealth.me
 //     and the plan-match / plan-match-aca trackers byte-for-byte, or
 //     cross-domain visitors split into multiple ids) ──────────────────────
@@ -160,20 +186,89 @@ export interface EventOpts {
   county?: string | null;
 }
 
-// ─── Public API ───────────────────────────────────────────────────────────
-export function logPlanMatchEvent(
+// In-memory guard for in-flight sends: prevents a re-render from firing
+// the same event again while the first fetch is still pending. Cleared
+// on settle. The persistent guard (sessionStorage) is written only after
+// a 2xx response, in sendOnce below.
+const inflight = new Map<string, Promise<boolean>>();
+
+// Fire an event that must land at most once per session for `dedupKey`.
+//
+// The order matters: write the persistent guard AFTER a successful send,
+// not before. Rob shipped a session on 2026-08-31 where four 401s (missing
+// env key on supplement) had already marked pm_opened / pm_impression as
+// "sent" in sessionStorage, so every subsequent load in that session
+// silently skipped firing — a transient env misconfig became permanent
+// silence for the visitor. Guarding on success turns that into an
+// automatic recovery: the moment the key lands, the next load fires.
+function sendOnce(
+  dedupKey: string,
   eventType: string,
   params: Record<string, unknown> = {},
   opts: EventOpts = {}
 ): void {
-  if (typeof window === 'undefined') return;
+  // Already succeeded earlier in this session — skip.
+  try {
+    if (sessionStorage.getItem(dedupKey)) return;
+  } catch {
+    /* private-mode sessionStorage throws — fall through and rely on the
+       in-memory guard, which at least prevents same-render double-fires. */
+  }
+  // In flight from a still-pending call — skip so a re-render doesn't
+  // double up on the network.
+  if (inflight.has(dedupKey)) return;
+  const p = logPlanMatchEvent(eventType, params, opts)
+    .then((ok) => {
+      if (ok) {
+        try {
+          sessionStorage.setItem(dedupKey, '1');
+        } catch {
+          /* private-mode; guard stays in memory only for this render */
+        }
+      }
+      return ok;
+    })
+    .catch(() => false)
+    .finally(() => {
+      inflight.delete(dedupKey);
+    });
+  inflight.set(dedupKey, p);
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────
+// Returns a Promise that resolves to true on a 2xx response, false on any
+// early exit or non-2xx / network failure. Callers that need at-most-once
+// semantics (sendOnce above) key the persistent guard off this boolean;
+// fire-and-forget callers (logPmPageview, logPmContacted, logPmEnrolled)
+// can safely ignore the returned Promise.
+export async function logPlanMatchEvent(
+  eventType: string,
+  params: Record<string, unknown> = {},
+  opts: EventOpts = {}
+): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
   const nav = navigator as Navigator & { doNotTrack?: string };
   const win = window as Window & { doNotTrack?: string };
-  if (nav.doNotTrack === '1' || win.doNotTrack === '1') return;
-  if (isDevOrigin()) return;
+  if (nav.doNotTrack === '1' || win.doNotTrack === '1') {
+    warnSuppressed('navigator.doNotTrack === "1"');
+    return false;
+  }
+  if (isDevOrigin()) {
+    warnSuppressed(devOriginReason());
+    return false;
+  }
   if (!CORE_TYPES.has(eventType) && !eventType.startsWith(PASSTHROUGH_PREFIX)) {
     console.warn(`[analytics] unknown pm event: ${eventType}`);
-    return;
+    return false;
+  }
+  // Bail before the fetch when we know the key is missing — otherwise every
+  // event is a guaranteed 401 that clutters the network tab and gets
+  // reported as a mystery failure. The module-load console.error already
+  // announced the missing key; this line prevents the follow-on noise and
+  // keeps the failure legible.
+  if (!ANALYTICS_KEY) {
+    warnSuppressed('VITE_SUPABASE_ANON_KEY / _PUBLISHABLE_KEY missing at build time — set the env var in Vercel and redeploy');
+    return false;
   }
 
   // product tag is forced onto every event so a server-side count over
@@ -209,7 +304,7 @@ export function logPlanMatchEvent(
   };
 
   try {
-    fetch(ENDPOINT, {
+    const res = await fetch(ENDPOINT, {
       method: 'POST',
       keepalive: true,
       headers: {
@@ -219,11 +314,18 @@ export function logPlanMatchEvent(
         Prefer: 'return=minimal',
       },
       body: JSON.stringify(body),
-    }).catch(() => {
-      /* swallow — never block the flow on telemetry */
     });
-  } catch {
-    /* swallow */
+    if (!res.ok) {
+      // 401 is the diagnostic case for a wrong / missing key at the server;
+      // 5xx is Supabase / network flakes. Either way, sendOnce sees false
+      // and leaves the persistent guard clear so the next load retries.
+      warnSuppressed(`analytics POST failed: ${res.status} ${res.statusText}`);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    warnSuppressed(`analytics POST threw: ${err instanceof Error ? err.message : String(err)}`);
+    return false;
   }
 }
 
@@ -234,47 +336,40 @@ export function logPmPageview(): void {
   logPlanMatchEvent('pageview');
 }
 
-// Semantic "opened Plan Match" — fires once per session. Session dedup
-// via sessionStorage rather than a ref because refs reset on StrictMode
-// remount and the source app's Welcome.tsx firedRef pattern is fragile.
-// Rob's stated bug: 414 opens from 3 distinct visitors on 2026-07-12,
-// caused by re-render re-fires; do not reproduce.
+// Semantic "opened Plan Match" — fires once per session. Dedup key is
+// promoted to sessionStorage only after a 2xx response, so a transient
+// 401 does not turn into permanent silence for the session (see sendOnce).
+// The in-memory inflight guard prevents re-render re-fires while the
+// network is pending. Rob's stated main-app bug: 414 opens from 3 distinct
+// visitors on 2026-07-12, caused by re-render re-fires; do not reproduce.
 export function logPmOpened(step: string = 'welcome', county?: string | null): void {
   if (typeof window === 'undefined') return;
   if (isDevOrigin()) return;
-  try {
-    const key = `pm_opened:${getSessionId()}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, '1');
-  } catch {
-    /* private-mode sessionStorage throws — fall through, fire once per mount */
-  }
-  logPlanMatchEvent('pm_opened', { step }, { step, county });
+  sendOnce(`pm_opened:${getSessionId()}`, 'pm_opened', { step }, { step, county });
 }
 
 // Impression event. "The widget entered viewport." Fires once per PAGE
-// VIEW (path + placement), not once per IntersectionObserver hit.
-// Placement values follow the marketing taxonomy: hero (full-viewport
-// on load), inline (in-article), footer (page bottom), sticky (sticky
-// bar). Supplement is a full-page phone-shell so effectively always
-// 'hero'.
+// VIEW (path + placement) on success — a failed send leaves the guard
+// clear so the next visit retries. Placement values follow the marketing
+// taxonomy: hero (full-viewport on load), inline (in-article), footer
+// (page bottom), sticky (sticky bar). Supplement is a full-page phone-
+// shell so effectively always 'hero'.
 export type PmPlacement = 'hero' | 'inline' | 'footer' | 'sticky';
 export function logPmImpression(placement: PmPlacement = 'hero', county?: string | null): void {
   if (typeof window === 'undefined') return;
   if (isDevOrigin()) return;
-  try {
-    const key = `pm_imp:${getSessionId()}:${location.pathname}:${placement}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, '1');
-  } catch {
-    /* private-mode */
-  }
-  logPlanMatchEvent('pm_impression', { placement }, { step: 'impression', county });
+  sendOnce(
+    `pm_imp:${getSessionId()}:${location.pathname}:${placement}`,
+    'pm_impression',
+    { placement },
+    { step: 'impression', county }
+  );
 }
 
 // Per-step funnel event. Dedupes per (session, step) via sessionStorage
-// so back-navigation and StrictMode double-mounts don't double-count.
-// Canonical step buckets (Rob 2026-08-31):
+// on 2xx response so back-navigation and StrictMode double-mounts don't
+// double-count once the event has actually landed. Canonical step buckets
+// (Rob 2026-08-31):
 //   started    welcome
 //   profiled   zip, about, priorities, meds-intro, meds-list, providers,
 //              compare, processing
@@ -286,14 +381,7 @@ export function logPmImpression(placement: PmPlacement = 'hero', county?: string
 export function logPmStep(step: string, county?: string | null): void {
   if (typeof window === 'undefined' || !step) return;
   if (isDevOrigin()) return;
-  try {
-    const key = `gh_step:${getSessionId()}:${step}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, '1');
-  } catch {
-    /* fall through */
-  }
-  logPlanMatchEvent('pm_step', { step }, { step, county });
+  sendOnce(`gh_step:${getSessionId()}:${step}`, 'pm_step', { step }, { step, county });
 }
 
 // Contact / enroll wrappers — kept for parity with the source tracker's

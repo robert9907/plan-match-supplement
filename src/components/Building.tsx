@@ -7,7 +7,7 @@
 // Copy uses likelihood/estimate phrasing to match the compliance pass —
 // no "will," "is," or diagnosis-implying language.
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { CarrierResult } from '../lib/scoringEngine';
 import type { CarrierGroup, CarrierVariant } from '../lib/carrierGroups';
 import { bestHhdLabel, cheapestVariantFor } from '../lib/carrierGroups';
@@ -110,7 +110,10 @@ function Floor({
  *  genuinely per-carrier bullets ("Lowest premium…" / "Within $8/mo of
  *  the lowest…" / "differs from most top carriers"). */
 export interface GroupContext {
-  cheapestPrice: number;
+  /** Lowest low-end premium per plan letter across eligible carriers, so
+   *  price bullets compare Plan G to Plan G and Plan N to Plan N. 0 when
+   *  no eligible carrier filed that plan. */
+  cheapestByPlan: { G: number; N: number };
   eligibleCount: number;
   majorityRateType: 'ATTAINED_AGE' | 'ISSUE_AGE' | 'COMMUNITY_RATED' | null;
   majorityRateClass: string | null;
@@ -138,6 +141,10 @@ interface BuildingProps {
   onAddToTop3: () => void;
   onRemoveFromTop3: () => void;
   onApply: (carrier: CarrierResult, plan: 'G' | 'N') => void;
+  /** Plan letter the card opens on. Results passes the plan the user
+   *  last applied with for this family; otherwise the card defaults to
+   *  the cheaper filed plan. Ignored if the family didn't file it. */
+  defaultPlan?: 'G' | 'N';
   /** When set, the collapsed header renders a "?" info dot beside the
    *  displayed plan letter that opens the Plan G/N popover. Results
    *  only wires this on the first card that filed that plan letter. */
@@ -161,6 +168,7 @@ export function Building({
   onAddToTop3,
   onRemoveFromTop3,
   onApply,
+  defaultPlan,
   onExplainPlanG,
   onExplainPlanN,
   onDragStart,
@@ -173,18 +181,30 @@ export function Building({
   const cheapestG = cheapestVariantFor(group, 'G');
   const cheapestN = cheapestVariantFor(group, 'N');
 
-  // Header shows the cheaper of the two plans as the "from" price.
-  // Same pick drives the default plan for the Apply CTA.
-  const primaryVariant =
+  // The user picks Plan G or Plan N on the card; header price, reasoning
+  // bullets and the Apply CTA all follow that pick. Opens on defaultPlan
+  // when the family filed it, else the cheaper of the two filed plans.
+  const cheaperPlan: 'G' | 'N' | null =
     cheapestG && cheapestN
       ? cheapestG.carrier.planGLo <= cheapestN.carrier.planNLo
-        ? { variant: cheapestG, plan: 'G' as const }
-        : { variant: cheapestN, plan: 'N' as const }
+        ? 'G'
+        : 'N'
       : cheapestG
-        ? { variant: cheapestG, plan: 'G' as const }
+        ? 'G'
         : cheapestN
-          ? { variant: cheapestN, plan: 'N' as const }
+          ? 'N'
           : null;
+  const [pickedPlan, setPickedPlan] = useState<'G' | 'N' | null>(() =>
+    defaultPlan && (defaultPlan === 'G' ? cheapestG : cheapestN) ? defaultPlan : cheaperPlan,
+  );
+  const plan: 'G' | 'N' | null =
+    pickedPlan && (pickedPlan === 'G' ? cheapestG : cheapestN) ? pickedPlan : cheaperPlan;
+  const primaryVariant =
+    plan === 'G' && cheapestG
+      ? { variant: cheapestG, plan: 'G' as const }
+      : plan === 'N' && cheapestN
+        ? { variant: cheapestN, plan: 'N' as const }
+        : null;
   const headerLo =
     primaryVariant?.plan === 'G'
       ? primaryVariant.variant.carrier.planGLo
@@ -201,8 +221,10 @@ export function Building({
     headerLo === headerHi ? `$${headerLo}` : `$${headerLo}–$${headerHi}`;
 
   const reasons = useMemo(
-    () => reasonsForGroup(group, overallScore, context, headerLo),
-    [group, overallScore, context, headerLo],
+    () => (primaryVariant ? reasonsForGroup(group, overallScore, context, primaryVariant, headerLo) : []),
+    // primaryVariant is derived from group + plan
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [group, overallScore, context, plan, headerLo],
   );
 
   return (
@@ -222,10 +244,8 @@ export function Building({
         <div className="building-id">
           <div className="building-name">{group.parent}</div>
           <div className="building-meta">
-            {primaryVariant && <>Plan {primaryVariant.plan}</>}
             {rateTypeLabel && (
               <>
-                {primaryVariant ? ' · ' : ''}
                 <span title={rateTypeHint ?? undefined}>
                   {rateTypeLabel}
                   {rateTypeHint && (
@@ -245,6 +265,31 @@ export function Building({
           </div>
         )}
       </div>
+
+      {(cheapestG || cheapestN) && (
+        <div className="plan-seg" role="radiogroup" aria-label={`Choose a plan from ${group.parent}`}>
+          {(['G', 'N'] as const).map((letter) => {
+            const v = letter === 'G' ? cheapestG : cheapestN;
+            const lo = v ? (letter === 'G' ? v.carrier.planGLo : v.carrier.planNLo) : 0;
+            const active = plan === letter;
+            return (
+              <button
+                key={letter}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                disabled={!v}
+                className={`plan-seg-opt${active ? ' plan-seg-opt-active' : ''}`}
+                onClick={() => setPickedPlan(letter)}
+                title={v ? undefined : `${group.parent} doesn't offer Plan ${letter} in your area`}
+              >
+                <span className="plan-seg-letter">Plan {letter}</span>
+                <span className="plan-seg-price">{v ? `from $${lo}` : 'Not offered'}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {!expanded && (
         <>
@@ -360,14 +405,13 @@ function reasonsForGroup(
   group: CarrierGroup,
   overallScore: number,
   ctx: GroupContext,
+  primary: { variant: CarrierVariant; plan: 'G' | 'N' },
   primaryPrice: number,
 ): string[] {
   const bullets: string[] = [];
-  const cheapestG = cheapestVariantFor(group, 'G');
-  const cheapestN = cheapestVariantFor(group, 'N');
-  const primary = cheapestG ?? cheapestN;
-  if (!primary) return bullets;
-  const c = primary.carrier;
+  const c = primary.variant.carrier;
+  const plan = primary.plan;
+  const cheapestPrice = ctx.cheapestByPlan[plan];
 
   // Track whether we produced anything that meaningfully differentiates
   // this carrier from its neighbours. If we didn't, we'll lead with an
@@ -377,16 +421,16 @@ function reasonsForGroup(
 
   // 1. Price positioning — always distinct per carrier (uses ctx). Skip
   //    the "vs the rest" framing when there's only one eligible carrier.
-  if (ctx.eligibleCount > 1 && ctx.cheapestPrice > 0 && primaryPrice > 0) {
-    if (primaryPrice === ctx.cheapestPrice) {
-      bullets.push('Lowest premium among your top carrier matches');
+  if (ctx.eligibleCount > 1 && cheapestPrice > 0 && primaryPrice > 0) {
+    if (primaryPrice === cheapestPrice) {
+      bullets.push(`Lowest Plan ${plan} premium among your top carrier matches`);
       hasDifferentiator = true;
     } else {
-      const delta = primaryPrice - ctx.cheapestPrice;
+      const delta = primaryPrice - cheapestPrice;
       if (delta <= 10) {
-        bullets.push(`Within $${delta}/mo of the lowest premium in your area`);
+        bullets.push(`Within $${delta}/mo of the lowest Plan ${plan} premium in your area`);
       } else {
-        bullets.push(`$${delta}/mo above the lowest premium in your area`);
+        bullets.push(`$${delta}/mo above the lowest Plan ${plan} premium in your area`);
       }
       hasDifferentiator = true;
     }

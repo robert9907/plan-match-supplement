@@ -179,27 +179,23 @@ export function Results() {
   const eligibleContext = useMemo<GroupContext>(() => {
     if (eligibleGroups.length === 0) {
       return {
-        cheapestPrice: 0,
+        cheapestByPlan: { G: 0, N: 0 },
         eligibleCount: 0,
         majorityRateType: null,
         majorityRateClass: null,
       };
     }
-    const prices: number[] = [];
+    const pricesG: number[] = [];
+    const pricesN: number[] = [];
     const rateTypeCounts: Record<string, number> = {};
     const rateClassCounts: Record<string, number> = {};
     for (const g of eligibleGroups) {
       const cG = cheapestVariantFor(g, 'G');
       const cN = cheapestVariantFor(g, 'N');
       const primary = cG ?? cN;
+      if (cG) pricesG.push(cG.carrier.planGLo);
+      if (cN) pricesN.push(cN.carrier.planNLo);
       if (primary) {
-        const lo =
-          cG && cN
-            ? Math.min(cG.carrier.planGLo, cN.carrier.planNLo)
-            : cG
-              ? cG.carrier.planGLo
-              : cN!.carrier.planNLo;
-        if (lo > 0) prices.push(lo);
         const rc = primary.carrier.rateClass.name;
         rateClassCounts[rc] = (rateClassCounts[rc] ?? 0) + 1;
       }
@@ -215,7 +211,10 @@ export function Results() {
         : null;
     const majorityRateClass = pickMajority(rateClassCounts);
     return {
-      cheapestPrice: prices.length > 0 ? Math.min(...prices) : 0,
+      cheapestByPlan: {
+        G: pricesG.length > 0 ? Math.min(...pricesG) : 0,
+        N: pricesN.length > 0 ? Math.min(...pricesN) : 0,
+      },
       eligibleCount: eligibleGroups.length,
       majorityRateType,
       majorityRateClass,
@@ -363,13 +362,13 @@ export function Results() {
     const stale = !flow.gender || !flow.tobacco;
     return (
       <Frame step={5}>
-        <BackRow onClick={() => navigate('/about')} />
+        <BackRow onClick={() => navigate('/')} />
         <div className="step-label">Step 6 of 6 · Your results</div>
         {stale ? (
           <>
             <h1 className="headline">Let's start from the beginning.</h1>
             <div className="sub-text">We need a few details first before we can show your qualification.</div>
-            <button className="btn" onClick={() => navigate('/about')} type="button">
+            <button className="btn" onClick={() => navigate('/')} type="button">
               Go to About you →
             </button>
           </>
@@ -377,7 +376,7 @@ export function Results() {
           <>
             <h1 className="headline">Couldn't load carrier rates.</h1>
             <div className="sub-text">{loadError}</div>
-            <button className="btn" onClick={() => navigate('/about')} type="button">
+            <button className="btn" onClick={() => navigate('/')} type="button">
               Start over →
             </button>
           </>
@@ -567,6 +566,12 @@ export function Results() {
             onAddToTop3={() => addToTop3(group)}
             onRemoveFromTop3={() => removeFromTop3(group)}
             onApply={onApply}
+            defaultPlan={
+              flow.selectedCarrier &&
+              group.variants.some((v) => v.carrier.name === flow.selectedCarrier!.name)
+                ? flow.selectedPlan
+                : undefined
+            }
             onExplainPlanG={
               firstSlotWithPlanG === -1 && idx === firstPlanGIdx
                 ? openPlanG

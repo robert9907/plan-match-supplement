@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useCameraStream } from '../hooks/useCameraStream';
 import { useLabelScan, type LabelScanResult } from '../hooks/useLabelScan';
 import {
@@ -15,6 +15,10 @@ const SEARCH_DEBOUNCE_MS = 200;
 
 // Strip strength tokens + trailing brackets, then title-case. The OCR
 // result for "Gabapentin 300 MG Cap" should display as "Gabapentin".
+// Long edge cap for uploaded photos. A recent phone shoots 4000px+; past
+// ~1600 the vision model gains nothing and the base64 payload triples.
+const MAX_UPLOAD_EDGE = 1600;
+
 function cleanDrugName(raw: string): string {
   let out = (raw || '').trim();
   out = out.replace(/\s*\[[^\]]+\]\s*$/g, '');
@@ -33,6 +37,21 @@ function cleanDrugName(raw: string): string {
 
 type Stage = 'capturing' | 'review' | 'fallback';
 
+const CREDENTIAL_SUFFIX =
+  /(?:^|[\s,])(?:M\.?D|D\.?O|N\.?P|P\.?A(?:-C)?|D\.?D\.?S|D\.?P\.?M|O\.?D|PharmD|APRN|CRNA|FNP|DNP|RN)\.?\s*$/i;
+
+/** Prescriber names come off a label in every shape: "MARCUS T.
+ *  ELLINGTON, MD", "Dr. Priya Raghavan", "J. Chen-Okafor NP". Only
+ *  prepend "Dr." when the name carries no credential of its own —
+ *  otherwise the review card reads "Dr. Marcus T. Ellington, MD". */
+export function formatPrescriber(raw: string): string {
+  const name = raw.trim().replace(/\s+/g, ' ');
+  if (!name) return '';
+  if (/^(?:dr\.?|doctor)\s/i.test(name)) return name;
+  if (CREDENTIAL_SUFFIX.test(name)) return name;
+  return `Dr. ${name}`;
+}
+
 interface ScanQueueItem {
   id: string;
   dataUrl: string;
@@ -47,13 +66,21 @@ interface ScanQueueItem {
 export interface ScannedDrug {
   name: string;
   dose: string;
+  /** Prescriber as printed on the label, normalised for display.
+   *  Empty string when the label carried none. */
+  prescriber: string;
+  /** NPI when the vision call managed to read one. Labels almost
+   *  never print it, so this is usually null. */
+  prescriberNpi: string | null;
+  /** Dispensing pharmacy — kept for the client file, not scored. */
+  pharmacy: string;
 }
 
 interface Props {
   /** Called once with every drug the user confirmed — single bottle
    *  scans pass a single-element array, multi-bottle pass N. Parent
-   *  runs classifyMed + addMed inside this callback and is responsible
-   *  for calling onClose afterwards. */
+   *  runs classifyMed + addMed, records any prescriber via addProvider,
+   *  and is responsible for calling onClose afterwards. */
   onConfirm: (drugs: ScannedDrug[]) => void;
   onClose: () => void;
 }
@@ -63,16 +90,27 @@ function labelToDrug(label: LabelScanResult): ScannedDrug | null {
   return {
     name: cleanDrugName(label.drugName),
     dose: label.strength ?? '',
+    prescriber: label.prescriber ? formatPrescriber(label.prescriber) : '',
+    prescriberNpi: label.prescriberNpi,
+    pharmacy: label.pharmacy ?? '',
   };
+}
+
+/** Paths that never touch a label — the typed fallback and the
+ *  library picker — have no prescriber to report. */
+function typedDrug(name: string, dose: string): ScannedDrug {
+  return { name, dose, prescriber: '', prescriberNpi: null, pharmacy: '' };
 }
 
 export function PillScanSheet({ onConfirm, onClose }: Props) {
   const [stage, setStage] = useState<Stage>('capturing');
+  const [uploadBusy, setUploadBusy] = useState(false);
   const [queue, setQueue] = useState<ScanQueueItem[]>([]);
   const [flash, setFlash] = useState(false);
   const [typed, setTyped] = useState('');
   const [matches, setMatches] = useState<DrugSearchResult[]>([]);
   const idCounter = useRef(0);
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const cameraActive = stage === 'capturing';
   const { videoRef, status, error, capture, stop } = useCameraStream(cameraActive);
@@ -118,6 +156,72 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
           selected: false,
         });
       });
+  }
+
+  // Upload path for when the camera never opens — permission denied, no
+  // camera on the device, or a desktop browser. Without this the scanner
+  // dropped straight to typing a drug name, so a photo you already had
+  // was unusable.
+  async function fileToDataUrl(file: File): Promise<string> {
+    const raw = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ''));
+      reader.onerror = () => reject(new Error('Could not read that file'));
+      reader.readAsDataURL(file);
+    });
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = () => reject(new Error('Could not open that image'));
+        el.src = raw;
+      });
+      const longEdge = Math.max(img.naturalWidth, img.naturalHeight);
+      if (!longEdge || longEdge <= MAX_UPLOAD_EDGE) return raw;
+      const scale = MAX_UPLOAD_EDGE / longEdge;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return raw;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', 0.82);
+    } catch {
+      // HEIC and friends may not decode into a canvas. Send the original
+      // and let the server decide.
+      return raw;
+    }
+  }
+
+  async function onUploadPick(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploadBusy(true);
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const id = `scan-${Date.now()}-${idCounter.current++}`;
+      setQueue((prev) => [
+        ...prev,
+        { id, dataUrl, status: 'pending', label: null, error: null, selected: false },
+      ]);
+      const res = await scan(dataUrl);
+      if (res.label?.drugName) {
+        updateItem(id, { status: 'success', label: res.label, error: null, selected: true });
+        setStage('review');
+      } else {
+        updateItem(id, {
+          status: 'error',
+          label: res.label,
+          error: 'No label detected',
+          selected: false,
+        });
+      }
+    } catch {
+      // Stay on the fallback sheet; typing still works.
+    } finally {
+      setUploadBusy(false);
+    }
   }
 
   function onShutter() {
@@ -184,7 +288,7 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
   function confirmTyped() {
     const cleaned = cleanDrugName(typed);
     if (!cleaned) return;
-    onConfirm([{ name: cleaned, dose: '' }]);
+    onConfirm([typedDrug(cleaned, '')]);
   }
 
   function rescan() {
@@ -367,10 +471,7 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
           )}
           {queue[0].label.prescriber && (
             <div className="scan-sheet-hint" style={{ marginTop: 0 }}>
-              Prescribed by{' '}
-              {queue[0].label.prescriber.startsWith('Dr.')
-                ? queue[0].label.prescriber
-                : `Dr. ${queue[0].label.prescriber}`}
+              Prescribed by {formatPrescriber(queue[0].label.prescriber)}
             </div>
           )}
           <div className="scan-sheet-hint">
@@ -437,6 +538,11 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
                         {it.label?.directions && (
                           <div className="scan-multi-detail">{it.label.directions}</div>
                         )}
+                        {it.label?.prescriber && (
+                          <div className="scan-multi-detail">
+                            {formatPrescriber(it.label.prescriber)}
+                          </div>
+                        )}
                       </>
                     )}
                     {it.status === 'pending' && (
@@ -475,6 +581,23 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
           <div className="scan-sheet-title">
             {queue.length > 0 && successCount === 0 ? "Couldn't read label" : 'Type the medication'}
           </div>
+          {/* Deliberately no capture attribute — this path exists because
+              the camera is unavailable, so it must open the photo library. */}
+          <input
+            ref={uploadInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={onUploadPick}
+          />
+          <button
+            className="scan-sheet-retry"
+            type="button"
+            disabled={uploadBusy}
+            onClick={() => uploadInputRef.current?.click()}
+          >
+            {uploadBusy ? 'Reading your photo…' : 'Upload a photo of the label'}
+          </button>
           <input
             className="scan-sheet-input"
             placeholder="Medication name"
@@ -489,7 +612,7 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
                   key={d.rxcui}
                   className="ac-item"
                   onClick={() =>
-                    onConfirm([{ name: drugDisplayName(d), dose: d.strength }])
+                    onConfirm([typedDrug(drugDisplayName(d), d.strength)])
                   }
                 >
                   <div className="ac-name">{drugDisplayName(d)}</div>
