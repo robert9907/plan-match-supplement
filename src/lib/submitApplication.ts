@@ -81,12 +81,14 @@ export async function submitApplication(flow: FlowState, age: number): Promise<S
     // Auth + sig
     authChecks: flow.application.authChecks,
     signedAt: flow.application.signedAt,
-    // The moment authChecks[4] flipped true. api/enroll.ts has declared and
-    // documented this field as burden-of-proof evidence under TCPA 47 USC 227
-    // since the one-to-one consent split, but no client ever sent it — so
-    // authChecks[4] proved consent was given and nothing proved when. Without
-    // it the only record of the timestamp is a browser tab that is closing.
-    tcpaConsentAt: flow.application.tcpaConsentAt,
+    // FlowContext has stamped this since W2 Fix 4 — the moment
+    // authChecks[4] flipped true — but every version of this mapper
+    // dropped it here, at the last step before the wire. All 14 rows in
+    // supplement_applications carry a consent checkbox and not one
+    // carries the time it was ticked. It is the burden-of-proof field
+    // under 47 CFR 64.1200(f)(9); sending it is the whole point of
+    // capturing it.
+    tcpaConsentAt: flow.application.tcpaConsentAt ?? null,
 
     // Full screening context
     context: {

@@ -72,8 +72,16 @@ const origFetch = global.fetch;
   ) {
     return new Response(null, { status: 201 });
   }
-  // AgentBase leads INSERT
+  // AgentBase leads INSERT. return=representation now, because the
+  // consent-log write needs the new lead's id for its FK.
   if (method === 'POST' && url.includes('/rest/v1/leads')) {
+    return new Response(JSON.stringify([{ id: 9001 }]), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  // AgentBase tcpa_consent_log INSERT
+  if (method === 'POST' && url.includes('/rest/v1/tcpa_consent_log')) {
     return new Response(null, { status: 201 });
   }
   console.error('[smoke] unhandled fetch:', method, url);
@@ -151,8 +159,23 @@ const calls = {
   supplementInsert: log.filter(
     (l) => l.method === 'POST' && l.url.includes('/supplement_applications'),
   ),
+  // Two distinct GETs hit this path. The live lookup filters
+  // deleted_at=is.null; the tombstone guard that followed it filters
+  // deleted_at=not.is.null. A bare '/clients?phone=ilike.' match counts
+  // both, which is why this check read 2-of-1 and sat red — the guard
+  // outgrew the filter, the code was fine. Assert each separately so a
+  // future regression in EITHER is visible.
   clientsLookup: log.filter(
-    (l) => l.method === 'GET' && l.url.includes('/clients?phone=ilike.'),
+    (l) =>
+      l.method === 'GET' &&
+      l.url.includes('/clients?phone=ilike.') &&
+      l.url.includes('deleted_at=is.null'),
+  ),
+  clientsTombstoneProbe: log.filter(
+    (l) =>
+      l.method === 'GET' &&
+      l.url.includes('/clients?phone=ilike.') &&
+      l.url.includes('deleted_at=not.is.null'),
   ),
   clientsInsert: log.filter(
     (l) => l.method === 'POST' && /\/rest\/v1\/clients$/.test(l.url.split('?')[0]),
@@ -161,6 +184,9 @@ const calls = {
     (l) => l.method === 'POST' && l.url.includes('/rest/v1/leads'),
   ),
   smsCalls: log.filter((l) => l.url.includes('/api/send-sms')),
+  consentLog: log.filter(
+    (l) => l.method === 'POST' && l.url.includes('/rest/v1/tcpa_consent_log'),
+  ),
 };
 
 console.log('\nCall counts:');
@@ -174,9 +200,15 @@ const checks: Array<[string, boolean]> = [
   ['submissionId present', typeof capturedBody?.submissionId === 'string'],
   ['supplement_applications POST once', calls.supplementInsert.length === 1],
   ['clients lookup once', calls.clientsLookup.length === 1],
+  ['tombstone guard probed once', calls.clientsTombstoneProbe.length === 1],
   ['clients INSERT once', calls.clientsInsert.length === 1],
   ['leads INSERT once', calls.leadsInsert.length === 1],
   ['no SMS fired (env unset)', calls.smsCalls.length === 0],
+  // One request carrying both channel rows — not one request per row.
+  ['consent log written once', calls.consentLog.length === 1],
+  ['consent log carries both channels',
+    Array.isArray(calls.consentLog[0]?.body) &&
+      (calls.consentLog[0]?.body as Array<{ channel?: string }>).length === 2],
 ];
 
 console.log('\nChecks:');
