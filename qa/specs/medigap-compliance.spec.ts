@@ -17,7 +17,7 @@ import { expect, test } from '@playwright/test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { personasFromEnv, type Persona } from '../fixtures/personas.js';
+import { PERSONAS, personasFromEnv, type Persona } from '../fixtures/personas.js';
 import { installApiMocks, type RequestLog } from '../helpers/api-mock.js';
 import {
   checkGiRights,
@@ -25,13 +25,29 @@ import {
   checkPartDCarveOut,
   checkRateDisclosures,
   checkUnderwritingDisclosure,
+  checkSubmissionPayload,
+  checkTcpaSeparation,
   checkUnlicensedGate,
   pageText,
   runGlobalRules,
   summarize,
   type CheckResult,
 } from '../helpers/compliance-checks.js';
-import { blockedState, driveToResults, type ScreenName } from '../helpers/flow-driver.js';
+import {
+  blockedState,
+  carrierAuthRows,
+  continueFromDetails,
+  continueFromReview,
+  driveToResults,
+  enterApply,
+  fillApplyDetails,
+  sign,
+  submitApplication,
+  tcpaRow,
+  tickCarrierAuths,
+  tickTcpa,
+  type ScreenName,
+} from '../helpers/flow-driver.js';
 
 import { FRAGMENT_DIR, type Finding } from '../helpers/report.js';
 
@@ -47,10 +63,12 @@ function record(persona: Persona, screen: string, results: CheckResult[]): void 
   for (const r of results) findings.push({ ...r, persona: persona.id, screen });
 }
 
-async function flush(personaId: string): Promise<void> {
+async function flush(fragment: string): Promise<void> {
   await fs.mkdir(FRAGMENT_DIR, { recursive: true });
-  const mine = findings.filter((f) => f.persona === personaId);
-  await fs.writeFile(path.join(FRAGMENT_DIR, `${personaId}.json`), JSON.stringify(mine, null, 2));
+  // The /apply test records under one persona but is its own fragment, so it
+  // writes everything it collected rather than filtering by persona id.
+  const mine = fragment === 'apply' ? findings : findings.filter((f) => f.persona === fragment);
+  await fs.writeFile(path.join(FRAGMENT_DIR, `${fragment}.json`), JSON.stringify(mine, null, 2));
 }
 
 // Deliberately NOT serial. A compliance sweep exists to produce a full punch
@@ -163,5 +181,78 @@ test.describe('Medigap compliance sweep', () => {
     });
   }
 
-});
+  // ─── /apply ──────────────────────────────────────────────────────────────
+  //
+  // Walked once, with the persona that reaches results on the underwritten
+  // path. /apply is stage-based behind a single route and does not branch on
+  // persona, so walking it four times would cost four minutes to assert the
+  // same DOM. What it does carry is the MBI, the carrier authorizations, the
+  // FCC one-to-one TCPA consent and the e-signature — the highest-risk screen
+  // in the product, and the one the sweep used to stop short of.
+  test('apply — TCPA consent, MBI handling and submission payload', async ({ page, baseURL }) => {
+    test.setTimeout(180_000);
+    const persona = PERSONAS.find((p) => p.id === 'underwritten-nc')!;
+    const log: RequestLog = await installApiMocks(page, persona);
 
+    try {
+      await driveToResults(page, persona, baseURL!, async () => {});
+      await enterApply(page);
+
+      record(persona, 'apply:review', await runGlobalRules(page, '/apply'));
+      await continueFromReview(page);
+
+      await fillApplyDetails(page, persona);
+      record(persona, 'apply:details', await runGlobalRules(page, '/apply'));
+      await continueFromDetails(page);
+
+      record(persona, 'apply:sign', await runGlobalRules(page, '/apply'));
+
+      const signText = await pageText(page);
+      const submitBtn = page.locator('button.btn', { hasText: /Submit application/i }).first();
+
+      // Tick ONLY the carrier authorizations first. If a consent timestamp
+      // appears now, accepting the authorizations is being treated as TCPA
+      // consent — the exact bundling the one-to-one rule prohibits.
+      await tickCarrierAuths(page);
+      const timestampAfterCarrierAuthsOnly = /Consent recorded/i.test(await pageText(page));
+      const submitEnabledBeforeConsent = await submitBtn.isEnabled();
+
+      await tickTcpa(page);
+      const timestampAfterTcpa = /Consent recorded/i.test(await pageText(page));
+
+      record(persona, 'apply:sign', checkTcpaSeparation({
+        carrierAuthCount: await carrierAuthRows(page).count(),
+        tcpaRowCount: await tcpaRow(page).count(),
+        tcpaHeadingPresent: /TCPA Communication Consent/i.test(signText),
+        notAConditionPresent: /not a\s+condition of purchase/i.test(signText),
+        optOutPresent: /Reply STOP/i.test(signText) && /data rates may apply/i.test(signText),
+        timestampAfterTcpa,
+        timestampAfterCarrierAuthsOnly,
+        submitEnabledBeforeConsent,
+      }));
+
+      await sign(page);
+      await submitApplication(page);
+
+      record(persona, 'apply:submit', checkSubmissionPayload(log.enrollBodies, log.analyticsBodies, page.url()));
+    } catch (err) {
+      record(persona, 'apply', [{
+        rule: 'Application flow completes',
+        pass: false,
+        severity: 'fail',
+        detail: `/apply could not be walked to submission: ${(err as Error).message.split('\n')[0]}`,
+      }]);
+    }
+
+    await flush('apply');
+
+    const mine = findings.filter((f) => f.screen.startsWith('apply'));
+    const hard = mine.filter((f) => !f.pass && f.severity === 'fail');
+    expect(
+      hard.length,
+      `apply: ${hard.length} failing check(s)\n` +
+        hard.map((f) => `  [${f.screen}] ${f.rule} — ${f.detail}`).join('\n'),
+    ).toBe(0);
+  });
+
+});

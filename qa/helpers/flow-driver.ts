@@ -203,3 +203,95 @@ export async function blockedState(page: Page): Promise<{ url: string; message: 
   const message = (await alert.count()) ? ((await alert.innerText()).trim() || null) : null;
   return { url: page.url(), message };
 }
+
+// ---------------------------------------------------------------------------
+// /apply — the highest-risk screen in the product.
+//
+// It collects the MBI, four carrier authorizations, the FCC one-to-one TCPA
+// consent, and an e-signature, then POSTs the lot. Everything below exists so
+// the sweep can assert on that, rather than stopping at /results.
+//
+// Three in-page stages behind one route: review → details → sign. The route
+// never changes, so stage is identified by the step-label text.
+// ---------------------------------------------------------------------------
+
+export type ApplyStage = 'review' | 'details' | 'sign';
+
+/** Click the first carrier's Apply button on /results. */
+export async function enterApply(page: Page): Promise<void> {
+  await page.locator('button.building-apply').first().click();
+  await expect(page).toHaveURL(/\/apply/, { timeout: 15_000 });
+  await expect(page.locator('.step-label')).toContainText(/Application/i, { timeout: 15_000 });
+}
+
+export async function continueFromReview(page: Page): Promise<void> {
+  await page.locator('button.btn').last().click();
+  await expect(page.locator('.step-label')).toContainText(/Medicare & contact info/i, { timeout: 15_000 });
+}
+
+/**
+ * Fill the details stage. The values are deliberately synthetic: 1EG4-TE5-MK72
+ * is the MBI CMS publishes as its own format example, so no real beneficiary
+ * identifier is ever typed, stored in a fixture, or POSTed by this suite.
+ */
+export async function fillApplyDetails(page: Page, persona: Persona): Promise<void> {
+  const fill = async (placeholder: string, value: string) => {
+    const loc = page.locator(`input[placeholder="${placeholder}"]`).first();
+    if (await loc.count()) await loc.fill(value);
+  };
+  await fill('James', 'Testcase');
+  await fill('Wilson', 'Applicant');
+  await fill('1EG4-TE5-MK72', '1EG4TE5MK72');
+  await fill('••••', '1234');
+  const dates = page.locator('input[placeholder="06/01/2026"]');
+  const dateCount = await dates.count();
+  for (let i = 0; i < dateCount; i++) await dates.nth(i).fill('06/01/2026');
+  await fill('(919) 555-1234', '9195551234');
+  await fill('james@email.com', 'testcase@example.invalid');
+  await fill('123 Main Street', '1 Test Street');
+  await fill('Durham', 'Durham');
+  await fill('NC', persona.state ?? 'NC');
+  await fill('27707', persona.zip);
+  await page.waitForTimeout(200);
+}
+
+export async function continueFromDetails(page: Page): Promise<void> {
+  await page.locator('button.btn').last().click();
+  await expect(page.locator('.step-label')).toContainText(/Authorization/i, { timeout: 15_000 });
+}
+
+/** The four carrier authorization rows, excluding the TCPA one. */
+export function carrierAuthRows(page: Page) {
+  return page.locator('.auth-check').filter({ hasNot: page.locator('text=/expressly consent to be contacted/i') });
+}
+
+/** The single TCPA consent row. */
+export function tcpaRow(page: Page) {
+  return page.locator('.auth-check').filter({ hasText: /expressly consent to be contacted/i });
+}
+
+export async function tickCarrierAuths(page: Page): Promise<void> {
+  const rows = page.locator('.auth-check');
+  const total = await rows.count();
+  for (let i = 0; i < total; i++) {
+    const row = rows.nth(i);
+    if (/expressly consent to be contacted/i.test(await row.innerText())) continue;
+    await row.click();
+  }
+  await page.waitForTimeout(150);
+}
+
+export async function tickTcpa(page: Page): Promise<void> {
+  await tcpaRow(page).first().click();
+  await page.waitForTimeout(150);
+}
+
+export async function sign(page: Page): Promise<void> {
+  await page.locator('.sig-pad').first().click();
+  await page.waitForTimeout(150);
+}
+
+export async function submitApplication(page: Page): Promise<void> {
+  await page.locator('button.btn', { hasText: /Submit application/i }).first().click();
+  await page.waitForTimeout(1200);
+}

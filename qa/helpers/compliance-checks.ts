@@ -370,8 +370,18 @@ export async function checkIntakeFieldSafety(page: Page, route: string): Promise
   return out;
 }
 
-/** Scans the URL, the rendered text and the DOM for leaked identifiers. */
-export async function checkPhiExposure(page: Page, text: string): Promise<CheckResult> {
+/**
+ * Scans the URL, the rendered text and the DOM for leaked identifiers.
+ *
+ * `route` matters for one pattern only. An MBI in the page content is a
+ * finding everywhere EXCEPT the application screen, where the applicant is
+ * deliberately typing one into a form — flagging it there would report the
+ * product working as designed. The URL check stays absolute: an MBI, SSN,
+ * email, phone or DOB in a query string is a finding on every route,
+ * /apply included, because that is what ends up in browser history, in
+ * referrer headers and in server logs.
+ */
+export async function checkPhiExposure(page: Page, text: string, route = ''): Promise<CheckResult> {
   const url = page.url();
   const html = await page.content();
 
@@ -382,7 +392,10 @@ export async function checkPhiExposure(page: Page, text: string): Promise<CheckR
   const dobInQs = /[?&](dob|birth|bday)[^=]*=/i;
 
   const findings: string[] = [];
-  if ([...text.matchAll(mbi)].length || [...html.matchAll(mbi)].length) findings.push('MBI pattern in page content');
+  const mbiAllowedHere = MBI_ALLOWED_ROUTES.some((r) => route.startsWith(r));
+  if (!mbiAllowedHere && ([...text.matchAll(mbi)].length || [...html.matchAll(mbi)].length)) {
+    findings.push('MBI pattern in page content');
+  }
   if ([...text.matchAll(ssn)].length || [...html.matchAll(ssn)].length) findings.push('SSN-like pattern in page content');
   if (emailInQs.test(url)) findings.push('email in URL query string');
   if (phoneInQs.test(url)) findings.push('phone number in URL query string');
@@ -407,7 +420,7 @@ export async function runGlobalRules(page: Page, route: string): Promise<CheckRe
     ...checkScope(text),
     await checkFontSize(page),
     ...(await checkIntakeFieldSafety(page, route)),
-    await checkPhiExposure(page, text),
+    await checkPhiExposure(page, text, route),
   ];
 }
 
@@ -424,4 +437,123 @@ export function summarize(results: CheckResult[]): Summary {
   const warned = results.filter((r) => !r.pass && r.severity === 'warn').length;
   const info = results.filter((r) => r.severity === 'info').length;
   return { total: results.length, failed, warned, info, passed: results.length - failed - warned };
+}
+
+// ─── /apply — TCPA, consent mechanics, PHI ─────────────────────────────────
+//
+// 47 CFR §64.1200(f)(9), the FCC One-to-One Consent rule effective 2025-01-27,
+// requires prior express written consent to be obtained "separately and
+// conspicuously". The failure mode it exists to prevent is a single composite
+// click that bundles marketing consent in with the authorizations a consumer
+// has to accept to get the product at all. These checks assert the separation
+// is real in the DOM, not just visual.
+
+export interface TcpaEvidence {
+  carrierAuthCount: number;
+  tcpaRowCount: number;
+  tcpaHeadingPresent: boolean;
+  notAConditionPresent: boolean;
+  optOutPresent: boolean;
+  /** Timestamp line visible after the TCPA box is ticked. */
+  timestampAfterTcpa: boolean;
+  /** Timestamp line visible after ONLY the carrier auths are ticked. */
+  timestampAfterCarrierAuthsOnly: boolean;
+  submitEnabledBeforeConsent: boolean;
+}
+
+export function checkTcpaSeparation(e: TcpaEvidence): CheckResult[] {
+  const out: CheckResult[] = [];
+
+  out.push(
+    e.tcpaRowCount === 1 && e.carrierAuthCount >= 1
+      ? ok('TCPA consent is its own control', `${e.carrierAuthCount} carrier authorization(s) plus 1 separate TCPA control`)
+      : bad('TCPA consent is its own control', `expected 1 TCPA control separate from the carrier authorizations, found ${e.tcpaRowCount} TCPA and ${e.carrierAuthCount} carrier rows — a bundled consent is exactly what 47 CFR §64.1200(f)(9) prohibits`),
+  );
+
+  out.push(
+    e.tcpaHeadingPresent
+      ? ok('TCPA consent is conspicuously identified', 'has its own heading')
+      : bad('TCPA consent is conspicuously identified', 'no distinct TCPA heading — consent must be conspicuously identified, not folded into the authorization list'),
+  );
+
+  out.push(
+    e.notAConditionPresent
+      ? ok('TCPA not a condition of purchase', 'stated')
+      : bad('TCPA not a condition of purchase', 'consent is collected without stating it is not a condition of purchase'),
+  );
+
+  out.push(
+    e.optOutPresent
+      ? ok('TCPA opt-out disclosure', 'STOP / HELP and message-rate language present')
+      : bad('TCPA opt-out disclosure', 'no STOP/HELP opt-out or message-and-data-rates language'),
+  );
+
+  // The burden-of-proof evidence: consent has to be timestamped, and only the
+  // TCPA toggle may produce it.
+  out.push(
+    e.timestampAfterTcpa
+      ? ok('TCPA consent is timestamped', 'a consent timestamp appears once the TCPA box is ticked')
+      : bad('TCPA consent is timestamped', 'ticking TCPA consent records no visible timestamp — this is the burden-of-proof evidence if the consent is ever challenged'),
+  );
+
+  out.push(
+    !e.timestampAfterCarrierAuthsOnly
+      ? ok('Carrier authorizations do not imply TCPA consent', 'ticking the carrier authorizations alone stamps nothing')
+      : bad('Carrier authorizations do not imply TCPA consent', 'a consent timestamp appeared after ticking only the carrier authorizations — accepting the authorizations is being construed as TCPA consent'),
+  );
+
+  out.push(
+    !e.submitEnabledBeforeConsent
+      ? ok('Submit gated on full consent', 'submit stays disabled until every authorization, TCPA consent and the signature are complete')
+      : bad('Submit gated on full consent', 'the application could be submitted before consent and signature were complete'),
+  );
+
+  return out;
+}
+
+/**
+ * What actually left the browser. The submission legitimately carries the
+ * applicant's details; the analytics beacon must not, and neither may the URL.
+ */
+export function checkSubmissionPayload(enrollBodies: unknown[], analyticsBodies: unknown[], url: string): CheckResult[] {
+  const out: CheckResult[] = [];
+  const enroll = JSON.stringify(enrollBodies);
+  const beacon = JSON.stringify(analyticsBodies);
+
+  out.push(
+    enrollBodies.length > 0
+      ? ok('Application submitted', `${enrollBodies.length} submission POST captured`)
+      : bad('Application submitted', 'no submission POST was made — the flow did not complete'),
+  );
+
+  // The consent timestamp has to travel with the submission, or the record of
+  // it exists only in a browser tab that is about to close.
+  out.push(
+    /tcpaConsentAt|tcpa_consent_at/i.test(enroll)
+      ? ok('Consent timestamp reaches the server', 'tcpaConsentAt present in the submission')
+      : bad('Consent timestamp reaches the server', 'the submission carries no TCPA consent timestamp — the only proof of consent would be in the closed browser tab'),
+  );
+
+  const beaconLeaks = [
+    ['MBI', /\b[0-9][A-Z][A-Z0-9]{2}-?[A-Z0-9]{3}-?[A-Z0-9]{4}\b/],
+    ['name', /"(firstName|lastName)"/i],
+    ['email', /[\w.+-]+@[\w-]+\.[a-z]{2,}/i],
+    ['phone', /"phone"|\b\d{10}\b/],
+    ['date of birth', /"dob"|"birth/i],
+    ['security PIN', /"securityPin"/i],
+  ].filter(([, rx]) => (rx as RegExp).test(beacon)).map(([label]) => label as string);
+
+  out.push(
+    beaconLeaks.length === 0
+      ? ok('Analytics beacon carries no applicant data', `${analyticsBodies.length} beacon event(s), none carrying an identifier`)
+      : bad('Analytics beacon carries no applicant data', `the funnel beacon posted: ${beaconLeaks.join(', ')}`, 'fail', analyticsBodies),
+  );
+
+  out.push(
+    !/[?&]/.test(url) || !/mbi|ssn|dob|email|phone|pin/i.test(url)
+      ? ok('No applicant data in the URL', 'submission URL carries no identifiers')
+      : bad('No applicant data in the URL', `identifiers in the URL: ${url}`),
+  );
+
+  return out;
 }
