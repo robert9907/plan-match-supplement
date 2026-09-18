@@ -139,26 +139,42 @@ Rob's call (2026-09-17): **flag, don't change.** Leave "Top match" alone until a
 compliance harness reports on it and he reviews the findings. Do not rename it on your own
 initiative, and do not add a ranking-language exemption either.
 
-## Compliance test coverage — know what does NOT exist
+## Compliance test coverage
 
-There is **no compliance harness in this repo**. The only automated coverage is
-`qa/tests/aca-supplement.spec.ts` in `~/Code/plan-match/qa`, and it is thin:
+`qa/` is the Medigap compliance sweep. `npm run test:compliance`. It builds HEAD, serves it
+locally, and stubs every API call with `page.route()` — the absolute-URL library endpoints and
+the Supabase analytics beacon included — so a run is offline, deterministic, and describes the
+commit being pushed rather than whatever is deployed.
 
-- it hits the **production** landing page and rates screen only — two screens, no flow drive-through
-- nothing covers the health screen, MBI scan, application, or TCPA consent block
-- it cannot be pointed at HEAD, so it never gates a change
-- its `checkScope(page, ['Medigap'])` call is **wrong for this surface** — Results legitimately
-  mentions Part D, so that check reports a false positive. Allow `['Medigap', 'PDP']` when that
-  spec is next touched.
+Four personas walk the real funnel: `oep-nc`, `underwritten-nc`, `underwritten-tx`,
+`unlicensed-ny`. ~245 checks. The punch list lands in `qa/reports/medigap-compliance.md`.
 
-`fullAudit.enabled` is `false` in `scripts/gate/gate.config.json` for this reason. When an
-in-repo harness lands, wire it there and flip the flag.
+Findings carry a severity, and the distinction is deliberate:
+
+- **`fail`** — a legally required disclosure is missing, or something touches PHI. These block
+  the push. There is a right answer and the harness knows it.
+- **`warn`** — a judgement call that belongs to Rob: marketing wording, small type. Printed in
+  full with surrounding context every run, never gating.
+- **`info`** — recorded without acting. The `"Top match"` ranking-language question lives here.
+
+Do not promote a `fail` to `warn` to get a green run. Fix the disclosure or ask Rob.
+
+Two things this does NOT cover: the `/apply` screen and the TCPA consent block are not yet
+walked (the sweep stops at `/results`), and `underwritten-tx` stops at `/health` by design —
+see `blockedAt` in `qa/fixtures/personas.ts`.
+
+Separately, `qa/tests/aca-supplement.spec.ts` in `~/Code/plan-match/qa` still smoke-tests this
+surface against production, and its `checkScope(page, ['Medigap'])` call is **wrong here** —
+Results legitimately mentions Part D, so it reports a false positive. Allow `['Medigap', 'PDP']`
+when that spec is next touched.
 
 ## Gates — enforced by hooks, not by memory
 
-- Every `git commit`: `npm run typecheck` (app + api) must pass.
+- Every `git commit`: `npm run typecheck` (app + api + qa) must pass.
 - Every `git push`: typecheck **and** `scripts/check-medsup-view.sh`, on a clean tree, with the
   pushed branch checked out.
+- A push touching `brainPaths` also needs a passing compliance sweep on that exact commit:
+  `node scripts/gate/full-audit.mjs`. `fullAudit.enabled` is **true**.
 - Dry run anytime: `node scripts/gate/ship-gate.mjs manual`.
 - Edits to `scripts/gate/`, `.claude/hooks/`, `.githooks/`, `CLAUDE.md`, `api/tsconfig.json`, or
   any of the compliance components listed above trigger an approval prompt for Rob.

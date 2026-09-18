@@ -479,14 +479,11 @@ export function RateProjectionWidget({
         </table>
       </div>
 
-      <div
-        className="ms-appointment-disclosure"
-        style={{ fontSize: 12, lineHeight: 1.4, color: '#6B7280', margin: '16px 4px 0' }}
-      >
-        Rates shown are from carriers Generation Health is appointed with and do not represent
-        every Medicare Supplement insurer available in your area. Premiums are estimates sourced
-        from Medicare.gov and are not a quote or a guarantee of coverage. Rob Simm, NPN #10447418.
-      </div>
+      {/* The appointment + not-a-quote disclosure that used to live here now
+          renders from RateProjection.tsx. It sat below this widget's success
+          branch, so the load-error, loading and zero-carrier returns above all
+          dropped it — leaving dollar figures on the page with no disclosure for
+          any state without rate rows. Do not re-add it here. */}
 
       <MedSupRateDisclosure gender={gender === 'F' ? 'female' : 'male'} />
     </div>

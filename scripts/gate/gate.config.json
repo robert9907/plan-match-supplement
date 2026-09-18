@@ -38,7 +38,7 @@
   "fullAudit": {
     "enabled": true,
     "$comment": "The Medigap compliance sweep. Unlike the MA consumer harness this one builds HEAD and serves it locally (qa/playwright.config.ts webServer) and stubs every API call, so it tests the commit being pushed and needs no network and no production data. Four personas: OEP NC, underwritten NC, underwritten TX, and an unlicensed NY ZIP. Set QA_BASE_URL to aim it at a deployed environment instead.",
-    "$comment_known_red": "AS OF 2026-09-18 THIS IS RED, deliberately. underwritten-tx fails on /rates: with no TX rows in pm_medsup_rate_public the rate widget never renders, so its 'not a quote or a guarantee of coverage' disclosure disappears — while the hardcoded paragraph in src/components/RateProjection.tsx still shows '$115-$180/month ... in your state' with an NC carrier list to a Texas applicant. Rob's call 2026-09-18: leave it red rather than exempt it. Brain-path pushes are blocked until the disclosure renders independently of the widget. Do not add an exemption to make this green.",
+    "$comment_known_red": "RESOLVED 2026-09-18. This was red on the underwritten-tx /rates screen: the rate widget's early returns (load error / loading / zero carriers) dropped the 'not a quote or a guarantee of coverage' disclosure, while a hardcoded paragraph still showed '$115-$180/month ... in your state' with an NC carrier list to a Texas applicant. Fixed by rendering that disclosure from RateProjection.tsx instead of from inside the widget, and by scoping the sample range and carrier list to NC. All four personas pass. If this goes red again, fix the disclosure — do not add an exemption.",
     "steps": [
       {
         "name": "Medigap compliance sweep",
