@@ -1,0 +1,4 @@
+{
+  "_note": "Confirmed same-company name pairs, used by scripts/audit-medsup-provenance.mjs. The key is the name in pm_medsup_carrier; the values are the names CMS files that company under. An entry here is a claim that two names are one company — confirm it against the filing. Matching premiums are not evidence of shared identity, and treating them as such is the mistake the audit exists to catch.",
+  "aliases": {}
+}
