@@ -53,16 +53,22 @@ if (existsSync('.env.local')) {
 }
 const URL_BASE = (process.env.SUPABASE_URL ?? '').replace(/\/$/, '');
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
-if (!URL_BASE || !KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY (or .env.local).');
-  process.exit(1);
-}
-// Guard against pointing this at the CRM by mistake — pm_* lives in
-// plan-match-prod and nowhere else.
-if (!/rpcbrkmvalvdmroqzpaq/.test(URL_BASE)) {
-  console.error(`SUPABASE_URL is ${URL_BASE}`);
-  console.error('pm_medsup_* lives in plan-match-prod (rpcbrkmvalvdmroqzpaq). Refusing to run.');
-  process.exit(1);
+
+// Only the modes that actually talk to the database need credentials.
+// --template and the --apply dry run read local files and print; demanding
+// a service-role key for them just blocks the step that needs none.
+function requireCreds() {
+  if (!URL_BASE || !KEY) {
+    console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY (or .env.local).');
+    process.exit(1);
+  }
+  // Guard against pointing this at the CRM by mistake — pm_* lives in
+  // plan-match-prod and nowhere else.
+  if (!/rpcbrkmvalvdmroqzpaq/.test(URL_BASE)) {
+    console.error(`SUPABASE_URL is ${URL_BASE}`);
+    console.error('pm_medsup_* lives in plan-match-prod (rpcbrkmvalvdmroqzpaq). Refusing to run.');
+    process.exit(1);
+  }
 }
 
 const AGES = [65, 70, 75, 80, 85, 90, 95];
@@ -114,6 +120,7 @@ const money = (n) => `$${Number(n).toFixed(2)}`;
 
 // ─── mode: --init-carriers ──────────────────────────────────────────────────
 async function initCarriers() {
+  requireCreds();
   const [filed, exclusions] = await Promise.all([
     rest(`pm_supp_carrier_rates?state=eq.${state}&plan=eq.G&select=company,rate_type,phone,website,rate_min,rate_max`),
     rest('pm_medsup_carrier_exclusions?select=match_pattern,carrier_label'),
@@ -335,6 +342,7 @@ async function apply() {
     return;
   }
 
+  requireCreds();
   await rest('pm_medsup_carrier?on_conflict=state,carrier_name', {
     method: 'POST',
     headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
