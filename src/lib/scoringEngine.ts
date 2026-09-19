@@ -168,8 +168,22 @@ function tobaccoMultiplier(tobacco: 'Yes' | 'No'): number {
 interface CarrierRates {
   gRate: number;
   nRate: number;
-  gHhd?: number;
-  nHhd?: number;
+  /** Premium under the household form — see discountCopy. Not the saving. */
+  gHhdPremium?: number;
+  nHhdPremium?: number;
+  /** Which household form the premium above came from. */
+  gHhdForm?: HouseholdForm;
+  nHhdForm?: HouseholdForm;
+}
+
+type HouseholdForm = 'roommate' | 'standard';
+
+function householdPremium(
+  r: { hhdRoommatePremium?: number; hhdStandardPremium?: number },
+): { premium?: number; form?: HouseholdForm } {
+  if (r.hhdRoommatePremium != null) return { premium: r.hhdRoommatePremium, form: 'roommate' };
+  if (r.hhdStandardPremium != null) return { premium: r.hhdStandardPremium, form: 'standard' };
+  return {};
 }
 
 function buildCarrierMap(
@@ -181,34 +195,79 @@ function buildCarrierMap(
   const planNRates = lookupRates(zip, 'N', genderKey);
   const map = new Map<string, CarrierRates>();
   for (const r of planGRates) {
+    const h = householdPremium(r);
     map.set(r.company, {
       gRate: r.rate,
       nRate: 0,
-      gHhd: r.hhdRoommate ?? r.hhdStandard,
+      gHhdPremium: h.premium,
+      gHhdForm: h.form,
     });
   }
   for (const r of planNRates) {
     const existing = map.get(r.company);
+    const h = householdPremium(r);
     if (existing) {
       existing.nRate = r.rate;
-      existing.nHhd = r.hhdRoommate ?? r.hhdStandard;
+      existing.nHhdPremium = h.premium;
+      existing.nHhdForm = h.form;
     } else {
       map.set(r.company, {
         gRate: 0,
         nRate: r.rate,
-        nHhd: r.hhdRoommate ?? r.hhdStandard,
+        nHhdPremium: h.premium,
+        nHhdForm: h.form,
       });
     }
   }
   return map;
 }
 
-function discountCopy(rates: CarrierRates): string {
-  if (rates.gHhd && rates.gHhd > 0) {
-    return `Household discount: $${rates.gHhd.toFixed(0)}/mo for Plan G`;
+/**
+ * The household saving, stated as a saving.
+ *
+ * This used to print the household PREMIUM as though it were the discount —
+ * `$${rates.gHhd.toFixed(0)}/mo` where gHhd was hhd_rm_min. Atlantic Capital
+ * files $101.84 standard and $94.71 household, so the screen read "Household
+ * discount: $95/mo" for a $7.13 saving. The discount is the difference.
+ *
+ * Three ways the difference is not quotable, all of which return 'None listed'
+ * rather than a number:
+ *   - No household premium filed for that plan.
+ *   - The plan has no standard rate to subtract from. buildCarrierMap seeds
+ *     `gRate: 0` for a carrier that filed Plan N only, so `gRate - gHhdPremium`
+ *     there is a large negative, not a zero — the guard is `> 0`, not `>= 0`.
+ *   - The household premium is not below the standard rate. HealthSpring files
+ *     hhd at exactly 1.740x rate_min in all 192 of its rows across NC and TX,
+ *     which is a scraper column error rather than a discount. Suppressing the
+ *     line there states nothing, which is the honest outcome until the scrape
+ *     is fixed; do not "fix" it by taking the absolute value.
+ *
+ * Eligibility conditions ride on the `title` of `.slot-hhd` in Results.tsx.
+ */
+export function householdSaving(
+  rate: number | undefined,
+  householdPremium: number | undefined,
+): number | null {
+  if (rate == null || householdPremium == null) return null;
+  if (!(rate > 0) || !(householdPremium > 0) || !(rate > householdPremium)) return null;
+  return rate - householdPremium;
+}
+
+export function discountCopy(rates: {
+  gRate?: number;
+  nRate?: number;
+  gHhdPremium?: number;
+  nHhdPremium?: number;
+}): string {
+  const saving = householdSaving;
+
+  const g = saving(rates.gRate, rates.gHhdPremium);
+  if (g !== null) {
+    return `Household discount: $${g.toFixed(0)}/mo off Plan G`;
   }
-  if (rates.nHhd && rates.nHhd > 0) {
-    return `Household discount: $${rates.nHhd.toFixed(0)}/mo for Plan N`;
+  const n = saving(rates.nRate, rates.nHhdPremium);
+  if (n !== null) {
+    return `Household discount: $${n.toFixed(0)}/mo off Plan N`;
   }
   return 'None listed';
 }

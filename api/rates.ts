@@ -26,8 +26,9 @@ interface CarrierRate {
   company: string;
   rate: number;
   rateType: RateType;
-  hhdStandard?: number;
-  hhdRoommate?: number;
+  /** Premium under the household form — not the saving. See lib/cmsPremiums. */
+  hhdStandardPremium?: number;
+  hhdRoommatePremium?: number;
 }
 
 interface DbRow {
@@ -127,11 +128,11 @@ function shapeRow(row: DbRow): CarrierRate {
   };
   if (row.hhd_std_min != null) {
     const v = parseFloat(row.hhd_std_min);
-    if (Number.isFinite(v)) out.hhdStandard = v;
+    if (Number.isFinite(v)) out.hhdStandardPremium = v;
   }
   if (row.hhd_rm_min != null) {
     const v = parseFloat(row.hhd_rm_min);
-    if (Number.isFinite(v)) out.hhdRoommate = v;
+    if (Number.isFinite(v)) out.hhdRoommatePremium = v;
   }
   return out;
 }
