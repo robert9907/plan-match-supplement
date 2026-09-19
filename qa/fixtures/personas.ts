@@ -10,9 +10,12 @@
 //   underwritten-nc  Switching plans → full path. Medical underwriting
 //                    applies, so the score, the rate class, and the
 //                    "acceptance is not guaranteed" language all render.
-//   underwritten-tx  Rate increase, tobacco → TX. Exercises the state branch
-//                    and the "rates not loaded for TX" message, which must be
-//                    an explicit message and not a silent spinner.
+//   underwritten-tx  Rate increase, tobacco → TX. Exercises the state branch.
+//                    Texas has NO rows in pm_medsup_rate_public, so the
+//                    projection chart on /rates renders "Coming to Texas
+//                    soon" — but pm_supp_carrier_rates_public DOES have TX,
+//                    so /results renders a full carrier list. Two different
+//                    rate sources; do not conflate them again.
 //   unlicensed-ny    NY ZIP → the licensure gate must hold: Continue stays
 //                    disabled and the 1-800-MEDICARE referral shows.
 // ---------------------------------------------------------------------------
@@ -122,10 +125,12 @@ export const PERSONAS: Persona[] = [
     health: ALL_NO,
     heightIn: 71,
     weightLbs: 210,
-    reachesResults: false,
-    blockedAt: 'health',
-    blockedReason:
-      'pm_medsup_rate_public has no TX rows (api/medsup-rates.ts ALLOWED_STATES = NC only), so prefetchRates rejects and "Check my qualification" cannot advance. The applicant has by then answered 12 health questions and listed their medications.',
+    // Reaches results. This persona asserted blockedAt: 'health' until
+    // 2026-09-19, on the belief that no TX rate data existed anywhere. That
+    // was wrong, and the mock had been written to agree with it — the suite
+    // was green because it tested the assumption rather than the product.
+    // Production serves 24 carrier families / 29 plans for a Dallas ZIP.
+    reachesResults: true,
   },
   {
     id: 'unlicensed-ny',

@@ -181,4 +181,7 @@ export const RANKING_LANGUAGE: Array<{ label: string; pattern: RegExp }> = [
   { label: '"#1 match"', pattern: /#\s?1\s+match\b/i },
   { label: '"our recommendation"', pattern: /\bour\s+recommendation\b/i },
   { label: '"best rate"', pattern: /\bbest\s+rate\b(?!\s+class)/i },
+  // Live on /results: "Ranked 1 of 24 carriers based on your profile".
+  { label: '"Ranked N of M"', pattern: /\branked\s+\d+\s+of\s+\d+\b/i },
+  { label: '"lowest ... premium in your area"', pattern: /\blowest\s+plan\s+[a-z]\s+premium\b/i },
 ];
