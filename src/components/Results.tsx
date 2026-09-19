@@ -16,6 +16,7 @@ import { FitScoreExplainer } from './FitScoreExplainer';
 import { PlanLetterPopover } from './PlanLetterPopover';
 import { BackRow, Frame } from './Frame';
 import { MedigapDisclosures } from './MedigapDisclosures';
+import { RateSourceDisclosure } from './RateSourceDisclosure';
 import { IconPill, IconHeart, IconScale, IconSmokingNo } from './Icons';
 
 // Number of ranked picks the user can drop into the top-3 slot row.
@@ -615,11 +616,6 @@ export function Results() {
         and rates are determined by each carrier's underwriting department. Exact quote provided before enrollment.
         <br />
         <br />
-        Rates shown are from carriers Generation Health is appointed with and do not represent every Medicare Supplement
-        insurer available in your area. Premiums are estimates sourced from Medicare.gov and are not a quote or a
-        guarantee of coverage. Rob Simm, NPN #10447418.
-        <br />
-        <br />
         Contact Medicare.gov or 1-800-MEDICARE for a complete listing of insurers. This tool does not provide medical
         advice. Medicare Supplement plans do not cover prescription drugs. You'll need a separate standalone Part D
         prescription drug plan to cover your medications.
@@ -640,6 +636,8 @@ export function Results() {
           CFR § 403.205 (GI) and NAIC Model Act §13 (rating methodology).
           Mounted on Results so the consumer sees them next to the rates
           they're being asked to compare. */}
+      <RateSourceDisclosure />
+
       <MedigapDisclosures />
 
       <div className="results-footer-tel">

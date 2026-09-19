@@ -37,6 +37,7 @@ import {
   TAGLINE_LANG_SELECTOR,
   TTY_PATTERNS,
   UNDERWRITING_PATTERNS,
+  UNQUALIFIED_APPOINTMENT_CLAIM,
   UNLICENSED_NOTICE,
   WRONG_BROKER_PHONE,
 } from '../fixtures/medigap-rules.js';
@@ -219,6 +220,13 @@ export function checkRateDisclosures(text: string): CheckResult[] {
     methodologies > 0
       ? ok('Rate-methodology disclosure', `${methodologies} of 3 rate types named`)
       : bad('Rate-methodology disclosure', 'premiums displayed with no attained-age / issue-age / community-rated disclosure (NAIC Model Act §13)'),
+  );
+
+  const claim = UNQUALIFIED_APPOINTMENT_CLAIM.exec(text);
+  out.push(
+    claim
+      ? bad('Rate source described accurately', `the screen claims the rates shown are carriers Generation Health is appointed with ("${claim[0]}"), but they are the CMS filings for the state minus the suppression list`)
+      : ok('Rate source described accurately', 'no unqualified appointment claim'),
   );
 
   out.push(

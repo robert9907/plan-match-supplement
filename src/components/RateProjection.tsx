@@ -10,6 +10,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useFlow } from '../context/FlowContext';
 import { stateForZip } from '../lib/medsupRates';
 import { BackRow, Frame } from './Frame';
+import { RateSourceDisclosure } from './RateSourceDisclosure';
 import { RateProjectionWidget } from './RateProjectionWidget';
 
 export function RateProjection() {
@@ -66,15 +67,7 @@ export function RateProjection() {
             because TX has no rows in pm_medsup_rate_public. Rendering it from
             the page instead of the widget makes it structurally impossible for
             a widget state to take it down with it. Do not move it back. */}
-        <div
-          className="ms-appointment-disclosure"
-          style={{ fontSize: 12, lineHeight: 1.4, color: '#6B7280', margin: '16px 4px 0' }}
-        >
-          Rates shown are from carriers Generation Health is appointed with and do not represent
-          every Medicare Supplement insurer available in your area. Premiums are estimates sourced
-          from Medicare.gov and are not a quote or a guarantee of coverage. Final acceptance and
-          premium are determined by each carrier's underwriting department. Rob Simm, NPN #10447418.
-        </div>
+        <RateSourceDisclosure />
 
         <button className="btn" onClick={onContinue} type="button">
           {flow.isOep ? 'See your guaranteed plans →' : 'Continue to medications →'}
