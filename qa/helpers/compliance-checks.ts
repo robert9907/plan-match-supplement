@@ -212,8 +212,64 @@ export function checkScope(text: string): CheckResult[] {
 // ─── Medigap-specific ──────────────────────────────────────────────────────
 
 /** Run on any screen that displays a premium. NAIC Model Act §13. */
+/**
+ * A premium a carrier never filed must never reach the screen as a number.
+ *
+ * Added 2026-09-19 after the NC projection chart was found rendering
+ * "Lowest 20yr total  $0" under a real carrier's name. pm_medsup_rate is
+ * ragged — three NC carriers had seven male age bands and no female rows at
+ * all — and the widget's 20-year total summed the bands that had a premium
+ * and skipped the ones that did not. A carrier with nothing filed totalled
+ * zero, and zero wins every minimum. The same defect class produced
+ * percentage changes measured against a $1 fallback base.
+ *
+ * This runs on page text, so it catches the symptom no matter which layer
+ * reintroduces it — the widget, the API, or the seed data underneath.
+ * lib/projectionStats.ts and scripts/_smoke-projection-stats.ts guard the
+ * arithmetic itself.
+ */
+export function checkPremiumRepresentation(text: string): CheckResult[] {
+  const out: CheckResult[] = [];
+
+  // $0, $0.00, $0/mo — never a real Medigap premium or a real 20-year total.
+  const zero = /\$\s?0(?:\.00)?(?!\d)/.exec(text);
+  out.push(
+    zero
+      ? bad(
+          'No zero-dollar premium shown',
+          `a premium or total rendered as "${zero[0]}". A carrier with no filed rate is unknown, not free — it must render as an em dash, not a number`,
+        )
+      : ok('No zero-dollar premium shown', 'no $0 figure on the screen'),
+  );
+
+  // A base of $1 turns any real premium into a four- or five-digit percentage.
+  const pcts = [...text.matchAll(/([+-]?\d[\d,]*)\s?%/g)]
+    .map((m) => Math.abs(Number(m[1].replace(/,/g, ''))))
+    .filter((n) => Number.isFinite(n) && n > 500);
+  out.push(
+    pcts.length > 0
+      ? bad(
+          'Percentage changes are plausible',
+          `${pcts.length} percentage(s) above 500% on screen (largest ${Math.max(...pcts)}%) — the signature of a change computed against a fallback base rather than a filed premium`,
+        )
+      : ok('Percentage changes are plausible', 'no implausible percentage on the screen'),
+  );
+
+  // Arithmetic that escaped as text.
+  const junk = /\$\s?(?:NaN|Infinity|undefined|null)|\bNaN%|\bundefined\b/.exec(text);
+  out.push(
+    junk
+      ? bad('No broken figures rendered', `the screen contains "${junk[0]}"`)
+      : ok('No broken figures rendered', 'no NaN/undefined/Infinity in the rendered text'),
+  );
+
+  return out;
+}
+
 export function checkRateDisclosures(text: string): CheckResult[] {
   const out: CheckResult[] = [];
+
+  out.push(...checkPremiumRepresentation(text));
 
   const methodologies = RATE_METHODOLOGY_PATTERNS.filter((p) => p.test(text)).length;
   out.push(

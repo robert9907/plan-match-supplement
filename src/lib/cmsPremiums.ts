@@ -15,10 +15,18 @@ export interface CarrierRate {
   /** Age-65, non-tobacco monthly premium in dollars. */
   rate: number;
   rateType: RateType;
-  /** Household discount — standard form, when filed. */
-  hhdStandard?: number;
-  /** Household discount — roommate/cohabitant form, when filed. */
-  hhdRoommate?: number;
+  // These are PREMIUMS, not savings. pm_supp_carrier_rates.hhd_std_min /
+  // hhd_rm_min hold the monthly rate that applies under the carrier's
+  // household form — across 3,384 rows they average 95.5% of rate_min. The
+  // discount is `rate - hhdStandardPremium`. The old names were `hhdStandard`
+  // / `hhdRoommate` documented as "household discount", and scoringEngine
+  // duly printed the premium as the saving: Atlantic Capital's $7.13 discount
+  // rendered as "Household discount: $95/mo". Renamed so the next reader
+  // cannot make the same inference from the type alone.
+  /** Monthly premium under the standard household form, when filed. */
+  hhdStandardPremium?: number;
+  /** Monthly premium under the roommate/cohabitant form, when filed. */
+  hhdRoommatePremium?: number;
 }
 
 interface Bundle {

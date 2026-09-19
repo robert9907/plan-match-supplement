@@ -32,23 +32,56 @@ interface CarrierRate {
   company: string;
   rate: number;
   rateType: RateType;
-  hhdStandard?: number;
-  hhdRoommate?: number;
+  /**
+   * The monthly premium under the carrier's household form — NOT the saving.
+   * This fixture previously carried fractions (0.12, 0.05, 0.10) on the
+   * assumption that the field was a percentage, which is how the suite came
+   * to render "$0/mo" once the rule against zero-dollar premiums landed. The
+   * real column (pm_supp_carrier_rates.hhd_std_min / hhd_rm_min) is a premium
+   * averaging 95.5% of rate_min across 3,384 rows. Keep these premium-shaped
+   * or the fixture stops describing production.
+   */
+  hhdStandardPremium?: number;
+  hhdRoommatePremium?: number;
 }
 
 // Carrier names are real filings, chosen so scoringEngine's carrier-specific
 // rules (Mutual of Omaha, Aetna, Cigna, Humana, BCBS of NC) actually fire.
 // None of them is on the migration-005 suppression list — a suppressed carrier
 // must never be reachable, and putting one in a fixture would normalise it.
+// Household premiums here sit at 0.88-0.94 of the standard rate, the band
+// production actually occupies, so discountCopy has a real difference to
+// report. HealthSpring is deliberately the exception: it files hhd at exactly
+// 1.740x rate_min in all 192 of its rows across NC and TX, a scraper column
+// error rather than a discount, and the widget must state nothing rather than
+// invent a saving from it.
 const CARRIERS_G: CarrierRate[] = [
-  { company: 'Mutual of Omaha Insurance Company', rate: 142.35, rateType: 'ATTAINED_AGE', hhdStandard: 0.12 },
-  { company: 'Aetna Health Insurance Company', rate: 151.8, rateType: 'ATTAINED_AGE', hhdStandard: 0.05 },
+  { company: 'Mutual of Omaha Insurance Company', rate: 142.35, rateType: 'ATTAINED_AGE', hhdStandardPremium: 133.81 },
+  { company: 'Aetna Health Insurance Company', rate: 151.8, rateType: 'ATTAINED_AGE', hhdStandardPremium: 141.17 },
   { company: 'Cigna National Health Insurance Company', rate: 138.9, rateType: 'ISSUE_AGE' },
-  { company: 'Humana Medicare Supplement', rate: 164.25, rateType: 'ATTAINED_AGE', hhdRoommate: 0.1 },
+  { company: 'Humana Medicare Supplement', rate: 164.25, rateType: 'ATTAINED_AGE', hhdRoommatePremium: 145.2 },
   { company: 'Blue Medicare Supplement (BCBSNC)', rate: 173.0, rateType: 'COMMUNITY_RATED' },
+  { company: 'HealthSpring Insurance Company', rate: 149.5, rateType: 'ATTAINED_AGE', hhdRoommatePremium: 260.13 },
 ];
 
-const CARRIERS_N: CarrierRate[] = CARRIERS_G.map((c) => ({ ...c, rate: Math.round((c.rate * 0.82 + Number.EPSILON) * 100) / 100 }));
+// Scale the household premium with the rate. Carrying the Plan G figure onto a
+// Plan N rate 18% lower would put every household premium above its own plan's
+// rate and silently suppress the line for the wrong reason.
+const scale = (v: number | undefined, f: number): number | undefined =>
+  v == null ? undefined : Math.round((v * f + Number.EPSILON) * 100) / 100;
+
+const CARRIERS_N: CarrierRate[] = [
+  ...CARRIERS_G.map((c) => ({
+    ...c,
+    rate: Math.round((c.rate * 0.82 + Number.EPSILON) * 100) / 100,
+    hhdStandardPremium: scale(c.hhdStandardPremium, 0.82),
+    hhdRoommatePremium: scale(c.hhdRoommatePremium, 0.82),
+  })),
+  // Plan N only. buildCarrierMap seeds gRate: 0 for this carrier, so a
+  // discount computed as `gRate - gHhdPremium` is a large negative rather than
+  // a zero — the case a `<= 0` guard lets through and a `> 0` guard catches.
+  { company: 'Nassau Life Insurance Company', rate: 121.4, rateType: 'ATTAINED_AGE', hhdRoommatePremium: 112.9 },
+];
 
 const PALETTE = ['#0d2f5e', '#1f6feb', '#2da44e', '#bf8700', '#8250df'];
 

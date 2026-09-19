@@ -4025,6 +4025,32 @@ textarea {
   border-radius: 50%;
   flex-shrink: 0;
 }
+/* A carrier with no filed premium for the selected gender. It stays in the
+   legend — dropping it silently would hide that the market is wider than the
+   chart — but it must not look like a priced option. */
+.gh-ms .ms-leg-norate {
+  font-style: italic;
+  opacity: 0.4;
+}
+.gh-ms .ms-leg-norate.ms-on {
+  opacity: 0.7;
+}
+.gh-ms .ms-leg-norate .ms-d {
+  background: transparent !important;
+  border: 1px dashed currentColor;
+}
+/* Headline stat with nothing to show. Same size as the figure it replaces so
+   the layout does not shift, but plainly not a dollar amount. */
+.gh-ms .ms-big-stat-none .ms-amount {
+  color: var(--ms-muted);
+}
+/* States how much of the field the curve above actually covers. */
+.gh-ms .ms-coverage-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ms-muted);
+}
 
 /* ── Chart ──────────────────────────────────────────────────────────── */
 .gh-ms .ms-chart-section {
