@@ -44,6 +44,9 @@
 //
 //   ok            the stated name is among the companies that filed that
 //                 figure, directly or through an entry in the alias file
+//   declared      the premium is outside every filed range, but this carrier
+//                 declares itself a named policy form of a company that IS
+//                 filed, within a recorded allowance. Reported, never silent.
 //   NEEDS A NAME  exactly one company filed it and it is not the stated one,
 //                 with no alias on record — either an alias you should add,
 //                 or the defect this script is for
@@ -53,6 +56,24 @@
 // second run is quiet. Adding one is a claim that two names are the same
 // company — make it from the filing, not from the fact that the numbers
 // happen to agree.
+//
+// Why "declared" exists
+// ---------------------
+// pm_supp_carrier_rates carries one figure per COMPANY. A quoting tool sells
+// a FORM, and a company can have several. BlueCross BlueShield of Texas files
+// one Plan G figure with CMS and HealthSherpa quotes two products; Mutual of
+// Omaha's MM25H sits above the range its company filed. Neither is a wrong
+// premium under a real carrier's name, which is what this script is for, so
+// failing them teaches you to skim the output — the one outcome that would
+// make the script worse than nothing.
+//
+// The escape is deliberately narrow. A declaration names the CMS company, a
+// maximum offset from its filed range, why the offset exists, and what the
+// figure came from. Any field missing, or an offset over 40%, is itself a
+// failure — you cannot wave a row through by writing less. Every declaration
+// used is printed, with the offset it consumed, and if the premium ALSO
+// falls inside some other company's range that is printed too: that is the
+// NC failure mode, and a declaration must not hide it.
 //
 // Age 65 is the anchor because it is the only band the scrape covers. A
 // carrier whose age-65 figure is right can still have a wrong curve above it.
@@ -95,14 +116,34 @@ if (states.length === 0) {
 
 const ALIAS_PATH = 'data/medsup-projection/carrier-aliases.json';
 let aliases = {};
+let forms = {};
 if (existsSync(ALIAS_PATH)) {
   try {
     const raw = JSON.parse(readFileSync(ALIAS_PATH, 'utf8'));
     aliases = raw.aliases ?? raw;
+    forms = raw.forms ?? {};
   } catch (err) {
     console.error(`${ALIAS_PATH} is not valid JSON: ${err.message}`);
     process.exit(1);
   }
+}
+
+/** The most an offset may ever be allowed to be, whatever a declaration asks for. */
+const MAX_DECLARED_OFFSET_PCT = 40;
+
+/**
+ * What is wrong with this declaration, or null if nothing is. A declaration
+ * that omits its reasoning is not a weaker declaration, it is not one.
+ */
+function declarationProblem(d) {
+  if (typeof d?.cms_company !== 'string' || !d.cms_company.trim()) return 'cms_company is missing';
+  const pct = d.max_offset_pct;
+  if (typeof pct !== 'number' || !Number.isFinite(pct) || pct < 0) return 'max_offset_pct must be a non-negative number';
+  if (pct > MAX_DECLARED_OFFSET_PCT) return `max_offset_pct ${pct} exceeds the ${MAX_DECLARED_OFFSET_PCT}% ceiling`;
+  if (typeof d.why !== 'string' || d.why.trim().length < 40) return 'why must say, in a sentence or more, what the form is';
+  if (typeof d.evidence !== 'string' || d.evidence.trim().length < 20) return 'evidence must say where the figure came from';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.verified_on ?? ''))) return 'verified_on must be YYYY-MM-DD';
+  return null;
 }
 
 async function rest(path) {
@@ -130,6 +171,7 @@ const EPS = 0.005;
 
 let unresolved = 0;
 const suggestions = [];
+const declaredUsed = [];
 
 for (const state of states) {
   console.log(`\n${'─'.repeat(72)}\n${state}\n${'─'.repeat(72)}`);
@@ -193,6 +235,56 @@ for (const state of states) {
       if (range && premium >= range.lo - EPS && premium <= range.hi + EPS) candidates.push(company);
     }
 
+    const accepted = new Set([normalize(stated), ...(aliases[stated] ?? []).map(normalize)]);
+    if (candidates.some((c) => accepted.has(normalize(c)))) continue;
+
+    // A declared policy form of a company that IS filed. Narrow on purpose:
+    // see the header. Checked before MISMATCH and before NEEDS A NAME,
+    // because a form offset explains both shapes.
+    const decl = (forms[state] ?? {})[stated];
+    if (decl) {
+      const problem = declarationProblem(decl);
+      if (problem) {
+        unresolved++;
+        console.log(`  BAD DECLARE   ${label}`);
+        console.log(`                the declaration in ${ALIAS_PATH} is not usable: ${problem}`);
+        continue;
+      }
+      const own = filed.get(decl.cms_company);
+      const range = own?.[gender];
+      if (!range) {
+        unresolved++;
+        console.log(`  BAD DECLARE   ${label}`);
+        console.log(`                declares the form of "${decl.cms_company}", which filed nothing`);
+        console.log('                in this state for this gender. Check the company name.');
+        continue;
+      }
+      const tol = decl.max_offset_pct / 100;
+      const inside = premium >= range.lo - EPS && premium <= range.hi + EPS;
+      const offset = inside ? 0 : premium > range.hi ? (premium - range.hi) / range.hi : (premium - range.lo) / range.lo;
+      if (premium >= range.lo * (1 - tol) - EPS && premium <= range.hi * (1 + tol) + EPS) {
+        const spread = range.lo === range.hi ? money(range.lo) : `${money(range.lo)}–${money(range.hi)}`;
+        declaredUsed.push(
+          `  ${state}  ${label}\n` +
+          `        declared form of ${decl.cms_company}, filed ${spread}\n` +
+          `        offset ${offset >= 0 ? '+' : ''}${(offset * 100).toFixed(2)}% of an allowance of ${decl.max_offset_pct}%` +
+          (candidates.length
+            ? `\n        ALSO inside the filed range of: ${candidates.join(', ')}`
+            : ''),
+        );
+        continue;
+      }
+      unresolved++;
+      console.log(`  OVER ALLOWED  ${label}`);
+      console.log(
+        `                declared as a form of ${decl.cms_company} (filed ${money(range.lo)}–${money(range.hi)}), ` +
+        `but this is ${offset >= 0 ? '+' : ''}${(offset * 100).toFixed(2)}%`,
+      );
+      console.log(`                against a declared allowance of ${decl.max_offset_pct}%. Re-quote it, or raise the`);
+      console.log('                allowance and say in `why` what changed.');
+      continue;
+    }
+
     if (candidates.length === 0) {
       unresolved++;
       console.log(`  MISMATCH      ${label}`);
@@ -205,9 +297,6 @@ for (const state of states) {
       }
       continue;
     }
-
-    const accepted = new Set([normalize(stated), ...(aliases[stated] ?? []).map(normalize)]);
-    if (candidates.some((c) => accepted.has(normalize(c)))) continue;
 
     unresolved++;
     console.log(`  NEEDS A NAME  ${label}`);
@@ -227,6 +316,13 @@ for (const state of states) {
 }
 
 console.log('');
+if (declaredUsed.length > 0) {
+  console.log(`${declaredUsed.length} row(s) passed on a declared policy form, not on a filed figure:\n`);
+  for (const d of declaredUsed) console.log(d);
+  console.log('');
+  console.log('Each of those is a premium no company filed under that name, allowed through');
+  console.log(`because ${ALIAS_PATH} says why. Re-read them when the filings refresh.\n`);
+}
 if (suggestions.length > 0) {
   console.log(`If those are the same company, record it in ${ALIAS_PATH}:\n`);
   console.log('{\n  "aliases": {');
