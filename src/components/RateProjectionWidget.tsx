@@ -508,7 +508,11 @@ export function RateProjectionWidget({
                   <span className="ms-th-name">{carrierShortName(c.n)}</span>
                 </th>
               ))}
-              <th className="ms-th-best">Best</th>
+              {/* "Lowest", not "Best". The column reports the smallest filed
+                  premium at that age band, which is a fact about the figures
+                  above it. "Best" is a judgement about which policy someone
+                  should buy, and this table knows nothing about that. */}
+              <th className="ms-th-best">Lowest</th>
             </tr>
           </thead>
           <tbody>

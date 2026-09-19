@@ -37,6 +37,7 @@
   "$comment_brainPaths": "Files whose changes require a fresh full audit before shipping: the fit-score engine, rate lookup and carrier grouping, licensed-state gating, CMS premium constants, MBI validation, the Section 1557 language block, and the submission surface. Inert while fullAudit.enabled is false — this is the list the harness will consume when it lands.",
   "brainPaths": [
     "src/lib/scoringEngine.ts",
+    "src/lib/buildChart.ts",
     "src/lib/medsupRates.ts",
     "src/lib/projectionStats.ts",
     "src/lib/carrierGroups.ts",

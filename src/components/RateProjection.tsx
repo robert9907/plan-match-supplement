@@ -70,7 +70,7 @@ export function RateProjection() {
         <RateSourceDisclosure />
 
         <button className="btn" onClick={onContinue} type="button">
-          {flow.isOep ? 'See your guaranteed plans →' : 'Continue to medications →'}
+          {flow.isOep ? 'See your guaranteed-issue plans →' : 'Continue to medications →'}
         </button>
 
         {/* NAIC Medicare Supplement Insurance Minimum Standards Model Act §13

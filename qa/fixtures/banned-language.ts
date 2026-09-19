@@ -50,7 +50,9 @@ export const BANNED_PATTERNS: BannedPattern[] = [
     label: '"guaranteed"',
     allowInContexts: [
       // 42 CFR §403.205 — the statutory term. Required, not marketing.
-      /guaranteed\s+issue/i,
+      // Hyphenated or spaced: "guaranteed-issue" is the statutory term
+      // (42 CFR §403.205), not a promise about this applicant.
+      /guaranteed[\s-]+issue/i,
       /\bGI\s+rights?\b/i,
       // During the 6-month OEP window acceptance IS guaranteed by law, so
       // "guaranteed acceptance" on an OEP result is accurate, not a promise.
@@ -64,7 +66,15 @@ export const BANNED_PATTERNS: BannedPattern[] = [
     pattern: /\balways\b/gi,
     category: 'guarantee',
     label: '"always" (absolute claim)',
-    allowInContexts: [/is not always|not always\b/i],
+    // "doesn't always mean a decline" is a hedge — the opposite of an
+    // absolute claim. The detector was firing on the negation itself. This
+    // narrows what counts as a hit; it does not stop "always" being caught
+    // where it is actually asserted.
+    allowInContexts: [
+      /is not always|not always\b/i,
+      /\b(does|do|did|will|would|can|could|is|are|was|were|has|have)n['’]?t\s+always\b/i,
+      /\b(does|do|did|will|would|can|could|is|are|was|were|has|have)\s+not\s+always\b/i,
+    ],
   },
   {
     pattern: /\bnever\b/gi,

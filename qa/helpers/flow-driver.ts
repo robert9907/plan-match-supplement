@@ -66,7 +66,9 @@ export async function settleRates(page: Page): Promise<void> {
 }
 
 export async function continueFromRates(page: Page, persona: Persona): Promise<void> {
-  const label = persona.oep ? /guaranteed plans/i : /Continue to medications/i;
+  // Matches both spellings: the button says "guaranteed-issue plans" and the
+  // hyphen is what makes it the statutory term rather than a promise.
+  const label = persona.oep ? /guaranteed[\s-]issue plans/i : /Continue to medications/i;
   await page.locator('button.btn', { hasText: label }).first().click();
 }
 

@@ -2410,7 +2410,7 @@ textarea {
 }
 .results-header-kicker {
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--muted-c);
   text-transform: uppercase;
@@ -2444,7 +2444,7 @@ textarea {
   padding: 0;
   color: var(--muted-c);
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -2494,7 +2494,7 @@ textarea {
   line-height: 1;
 }
 .factor-pill-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted-c);
   letter-spacing: 0.04em;
@@ -2562,7 +2562,7 @@ textarea {
   letter-spacing: 0.02em;
 }
 .slot-title-meta {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 .slot-row {
@@ -2593,7 +2593,7 @@ textarea {
 }
 .slot-index-mini {
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--muted-c);
 }
@@ -2680,7 +2680,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--body-c);
   letter-spacing: 0.01em;
@@ -2787,7 +2787,7 @@ textarea {
   color: var(--green);
   border-radius: 999px;
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -2837,7 +2837,7 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 .building-price-unit {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-c);
   margin-top: 2px;
 }
@@ -2885,7 +2885,7 @@ textarea {
   font-weight: 700;
 }
 .plan-seg-price {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--muted-c);
   font-variant-numeric: tabular-nums;
@@ -2901,7 +2901,7 @@ textarea {
 }
 
 .building-rank {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-c);
   padding: 10px 14px 6px;
   letter-spacing: 0.02em;
@@ -4336,7 +4336,7 @@ textarea {
   flex: 1;
 }
 .fit-explainer-row-weight {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-c);
 }
 .fit-explainer-row-score {
@@ -4489,7 +4489,7 @@ textarea {
   letter-spacing: -0.01em;
 }
 .plan-letter-popover-tagline {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--muted-c);
   text-transform: uppercase;
@@ -4539,7 +4539,7 @@ textarea {
   margin-bottom: 10px;
 }
 .plan-letter-popover-risk-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--muted-c);
   text-transform: uppercase;
@@ -4553,7 +4553,7 @@ textarea {
 }
 .plan-letter-popover-foot {
   margin: 0;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-c);
   line-height: 1.4;
 }
