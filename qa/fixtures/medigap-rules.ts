@@ -105,6 +105,22 @@ export const PART_D_CARVEOUT_PATTERNS = [
   /separate standalone Part D|standalone Part D prescription drug plan/i,
 ];
 
+/**
+ * A regression guard, not a disclosure requirement.
+ *
+ * Until 2026-09-19 both /rates and /results said the rates shown were "from
+ * carriers Generation Health is appointed with". They are not — they are the
+ * CMS Plan Finder filings for the state, filtered only by the three-carrier
+ * suppression list: 34 of 38 filed companies in NC against 15 actual
+ * appointments. A consumer could pick a carrier believing Rob was their agent
+ * for it and find he could not submit the application.
+ *
+ * If the product ever does filter to appointments, delete this rule — but
+ * change the data first and the copy second, never the other way round.
+ */
+export const UNQUALIFIED_APPOINTMENT_CLAIM =
+  /(rates|carriers|plans)[^.]{0,60}(Generation Health|we)\s+(is|are|am)\s+appointed with/i;
+
 /** Rates are estimates, never a quote. */
 export const RATES_ARE_ESTIMATES =
   /estimates|not a quote|are not a quote|Rates are estimates/i;
