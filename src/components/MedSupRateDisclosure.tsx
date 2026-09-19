@@ -42,7 +42,7 @@ export function MedSupRateDisclosure({
           style={{
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 700,
             color: 'rgba(13,47,94,0.6)',
             marginBottom: 6,

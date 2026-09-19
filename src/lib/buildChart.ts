@@ -95,7 +95,10 @@ export function classifyBuild(heightIn: number, weightLbs: number): BuildClass |
 export function buildClassDescription(cls: BuildClass): { label: string; tone: 'pass' | 'warn' | 'fail' } {
   switch (cls) {
     case 'standard':
-      return { label: '✓ Standard weight — best rates', tone: 'pass' };
+      // Not "best rates". Standard build means no weight-based rate-up, which
+      // is a statement about underwriting. What the applicant actually pays
+      // depends on the carrier, the plan and the rest of the health screen.
+      return { label: '✓ Standard weight — no weight-based rate-up', tone: 'pass' };
     case 'class1':
       return { label: '⚠ Class I — approx. +10%', tone: 'warn' };
     case 'class2':
