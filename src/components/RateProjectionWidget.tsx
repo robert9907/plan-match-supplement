@@ -221,10 +221,23 @@ export function RateProjectionWidget({
         </div>
         <div className="ms-fallback">
           <div className="ms-fallback-icon">🛠</div>
-          <div className="ms-fallback-title">Coming to {stateLabel(state)} soon</div>
+          <div className="ms-fallback-title">
+            Projection chart not available for {stateLabel(state)} yet
+          </div>
+          {/* Scoped to the CHART, deliberately. This said "we're still
+              finalizing carrier rate filings for your state", which reads as
+              "we have no rates for you" — and then /results prices 29 plans
+              for the same applicant three screens later. Two different
+              sources: this chart reads pm_medsup_rate_public (age-banded,
+              NC only), while the carrier results read
+              pm_supp_carrier_rates_public (the CMS Plan Finder scrape, which
+              covers TX and GA). Telling a consumer their state has no rate
+              filings while quoting them is the kind of contradiction a
+              carrier reviewer asks about. Keep this scoped to the chart. */}
           <div className="ms-fallback-body">
-            We're still finalizing carrier rate filings for your state. In the meantime, continue
-            below — your carrier matches and quotes are still live.
+            The 20-year premium projection is only built for North Carolina so far.
+            Your {stateLabel(state)} carrier matches and quotes are live — continue below
+            to see them.
           </div>
         </div>
       </div>
