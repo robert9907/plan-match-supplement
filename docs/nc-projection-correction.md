@@ -1,6 +1,18 @@
 # NC projection chart — correction table
 
-**Status: proposal. Nothing here has been written to the database.**
+**Status: action 1 applied 2026-09-19. Actions 2–7 are still proposals.**
+
+> **Applied.** `active = false` on GPM Health and Life (id 6), AHIC (id 12) and
+> Aflac (id 14) in `pm_medsup_carrier`, NC. `pm_medsup_rate_public` filters
+> `c.active = true`, so all three are off the projection chart. No rate rows
+> were touched and nothing was deleted. Reverse with:
+> `update pm_medsup_carrier set active=true where id in (6,12,14);`
+>
+> Side effect worth recording: those three were the only NC carriers with zero
+> female rows. NC now shows 9 carriers and **every one of them has female
+> rates**, so the class of defect that put "Lowest 20yr total $0" under a real
+> carrier's name is now structurally absent from NC as well as guarded against
+> in code.
 
 `audit-medsup-provenance.mjs` fails on NC: age-65 premiums that cannot be tied
 to the carrier they are shown under. This is the cross-map it asked for —
@@ -195,7 +207,7 @@ Nothing below is a write. Each line needs your approval.
 
 | # | action | scope | reversible |
 |---|---|---|---|
-| 1 | `active = false` on GPM, Aflac, AHIC | 3 carrier rows | yes |
+| 1 | ~~`active = false` on GPM, Aflac, AHIC~~ **done 2026-09-19** | 3 carrier rows | yes |
 | 2 | Fix `rating_type` on the 3 AARP rows and Medico | 4 carrier rows | yes |
 | 3 | Add aliases: Cigna→HealthSpring, BCBSNC→BlueCross BlueShield of NC | aliases file | n/a, no DB |
 | 4 | Declare the five Group-B fees and AARP Select | aliases file | n/a, no DB |
@@ -203,8 +215,8 @@ Nothing below is a write. Each line needs your approval.
 | 6 | Re-quote GPM, Aflac, AHIC, Humana Achieve, BCBSNC — both genders, all seven bands | HealthSherpa, 14 runs | n/a |
 | 7 | Re-seed the re-quoted carriers through `seed-medsup-projection.mjs` | after 6 | — |
 
-(1) is the only one I would treat as urgent: it is live, it is wrong by 42% and
-77%, and it is wrong in a rate comparison.
+(1) was the only one I treated as urgent: it was live, wrong by 42% and 77%,
+and wrong inside a rate comparison. It is done.
 
 Step 6 is the same 14-run procedure the TX capture used, and the age-65 range
 check in `seed-medsup-projection.mjs` would have refused both GPM and Aflac on
