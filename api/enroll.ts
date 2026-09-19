@@ -21,6 +21,12 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { applyCors } from './_lib/cors.js';
 import { postAgentBaseSession } from './_lib/agentbase-session.js';
 import { encrypt, hashPin, maskMbi } from './_lib/crypto.js';
+import {
+  buildTcpaConsentRecord,
+  hasTcpaConsentCheck,
+  type TcpaConsentRecord,
+} from './_lib/tcpa-consent.js';
+import { writeConsentLog } from './_lib/consent-log-write.js';
 
 // CMS Medicare Beneficiary Identifier — 11 chars, digits 1-9 in position 1,
 // no S/L/O/I/B/Z in alpha positions (same regex as plan-match).
@@ -160,6 +166,29 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   });
 }
 
+/**
+ * Caller IP and user-agent, captured for the consent record.
+ *
+ * x-forwarded-for is a comma-separated chain appended to hop by hop;
+ * the left-most entry is the original client, everything after it is
+ * proxy infrastructure. Vercel sets x-real-ip to the same value, so it
+ * is the fallback rather than the primary — one header behaving oddly
+ * should not cost us the field.
+ */
+function requestMeta(req: VercelRequest): { ip: string | null; userAgent: string | null } {
+  const fwd = req.headers['x-forwarded-for'];
+  const chain = Array.isArray(fwd) ? fwd[0] : fwd;
+  const first = (chain || '').split(',')[0]?.trim();
+  const realIp = req.headers['x-real-ip'];
+  const ip =
+    first || (Array.isArray(realIp) ? realIp[0] : realIp) || null;
+  const ua = req.headers['user-agent'];
+  return {
+    ip: ip || null,
+    userAgent: (Array.isArray(ua) ? ua[0] : ua) || null,
+  };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Wrap the entire handler so no crash path can escape as a non-JSON 500.
   // The prior structure had a try/catch around persistToSupabase only —
@@ -194,9 +223,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ ok: false, errors });
     }
 
+    // Built once and written to BOTH sinks, so supplement_applications
+    // and AgentBase leads can never disagree about what was consented
+    // to. Null when the submission carried no TCPA checkbox at all
+    // (the 4-tuple back-compat path validate() still accepts): the
+    // application is kept, but no record is written claiming a consent
+    // that was never given. See hasTcpaConsentCheck for why.
+    const meta = requestMeta(req);
+    const tcpaConsent: TcpaConsentRecord | null = hasTcpaConsentCheck(payload.authChecks)
+      ? buildTcpaConsentRecord({
+          // The client stamps tcpaConsentAt the instant the box is
+          // ticked, which is the moment consent was actually given.
+          // signedAt is the later e-signature and is the fallback for
+          // bundles cached from before the mapper sent the field.
+          tcpaAt: payload.tcpaConsentAt ?? payload.signedAt ?? null,
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+          source: 'plan_match_supplement',
+        })
+      : null;
+    if (!tcpaConsent) {
+      console.warn('[enroll] submission has no TCPA consent checkbox', {
+        auth_checks_length: Array.isArray(payload.authChecks) ? payload.authChecks.length : null,
+      });
+    }
+
     let submissionId: string;
     try {
-      submissionId = await persistToSupabase(payload);
+      submissionId = await persistToSupabase(payload, tcpaConsent);
     } catch (err) {
       console.error('[enroll] persistence failed:', err);
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -211,7 +265,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 51-day silent-failure incident that motivated this change.
     try {
       await withTimeout(
-        bridgeToAgentBase(payload, submissionId),
+        bridgeToAgentBase(payload, submissionId, tcpaConsent),
         BEST_EFFORT_TIMEOUT_MS,
         'agentbase-bridge',
       );
@@ -337,7 +391,10 @@ function dobIso(p: EnrollPayload): string | null {
 
 // ─── Supabase insert (PostgREST, service role) ──────────────────────────
 
-async function persistToSupabase(p: EnrollPayload): Promise<string> {
+async function persistToSupabase(
+  p: EnrollPayload,
+  tcpaConsent: TcpaConsentRecord | null,
+): Promise<string> {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.');
@@ -396,10 +453,11 @@ async function persistToSupabase(p: EnrollPayload): Promise<string> {
       providers: p.context?.providers ?? [],
       authChecks: p.authChecks,
       signedAt: p.signedAt,
-      // Declared and documented on the payload type since the one-to-one
-      // consent split, but never persisted until 2026-09-18. Lands in the
-      // existing context JSONB, so no migration is needed.
-      tcpaConsentAt: p.tcpaConsentAt ?? null,
+      // The authChecks array is positional bare booleans — it records
+      // THAT five boxes were ticked, never what any of them said. This
+      // is the same block in the versioned, self-describing shape every
+      // other lead source writes.
+      tcpa_consent: tcpaConsent,
     },
   };
 
@@ -491,7 +549,11 @@ function computeBmi(heightInches: unknown, weightLbs: unknown): number | null {
   return Math.round(bmi * 10) / 10;
 }
 
-async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promise<void> {
+async function bridgeToAgentBase(
+  p: EnrollPayload,
+  submissionId: string,
+  tcpaConsent: TcpaConsentRecord | null,
+): Promise<void> {
   const url = process.env.AGENTBASE_SUPABASE_URL;
   const key = process.env.AGENTBASE_SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
@@ -732,16 +794,59 @@ async function bridgeToAgentBase(p: EnrollPayload, submissionId: string): Promis
         combo_flags: p.context?.comboFlags ?? [],
         escalation_pattern: p.context?.escalationPattern ?? null,
         providers: providerObjects,
+        // Same shape plan-match/api/enroll.ts and AgentBase's
+        // /api/sms-lead-intake write, so one query over
+        // leads.context->'tcpa_consent' answers "on what basis may we
+        // dial this person" across every source.
+        tcpa_consent: tcpaConsent,
       },
     };
+    // return=representation, not minimal: tcpa_consent_log.lead_id is a
+    // real FK and the consent row is worth far less without it — an
+    // unlinked consent record cannot be joined back to the enrolment it
+    // was collected on, which is the whole reason migration 076 added
+    // the column.
     const leadResp = await fetch(`${base}/rest/v1/leads`, {
       method: 'POST',
-      headers: { ...headers, Prefer: 'return=minimal' },
+      headers: { ...headers, Prefer: 'return=representation' },
       body: JSON.stringify(leadRow),
     });
     if (!leadResp.ok) {
       const text = await leadResp.text();
       throw new Error(`leads insert ${leadResp.status}: ${text.slice(0, 200)}`);
+    }
+
+    let leadId: number | null = null;
+    try {
+      const leadBody = (await leadResp.json()) as Array<{ id?: number | string }>;
+      const rawId = Array.isArray(leadBody) ? leadBody[0]?.id ?? null : null;
+      if (rawId != null) leadId = Number(rawId);
+    } catch {
+      // Body unreadable. The lead itself is inserted and that is the
+      // critical write, so carry on and log the consent without the
+      // backlink rather than failing the enrolment over a parse.
+      console.warn('[enroll:leads] could not read inserted lead id');
+    }
+
+    // ── tcpa_consent_log · the queryable consent record ───────────────
+    // leads.context.tcpa_consent above is jsonb: not schema-enforced,
+    // not joinable, and not what an audit query can reach. This is the
+    // same capture in the dedicated table, which held 9 rows against
+    // 156 leads because no Plan Match surface had ever written to it.
+    // Non-fatal by design — see the header of consent-log-write.ts.
+    if (tcpaConsent) {
+      const logged = await writeConsentLog({
+        base,
+        headers,
+        consent: tcpaConsent,
+        phone: digits,
+        leadId,
+        clientId,
+        submissionId,
+      });
+      if (!logged.ok) {
+        console.error(`[enroll:consent-log] NOT recorded: ${logged.reason}`);
+      }
     }
   } catch (err) {
     // leads is the critical write — if it fails, propagate so the

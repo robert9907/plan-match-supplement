@@ -40,7 +40,7 @@ interface CarrierRate {
 // rules (Mutual of Omaha, Aetna, Cigna, Humana, BCBS of NC) actually fire.
 // None of them is on the migration-005 suppression list — a suppressed carrier
 // must never be reachable, and putting one in a fixture would normalise it.
-const NC_G: CarrierRate[] = [
+const CARRIERS_G: CarrierRate[] = [
   { company: 'Mutual of Omaha Insurance Company', rate: 142.35, rateType: 'ATTAINED_AGE', hhdStandard: 0.12 },
   { company: 'Aetna Health Insurance Company', rate: 151.8, rateType: 'ATTAINED_AGE', hhdStandard: 0.05 },
   { company: 'Cigna National Health Insurance Company', rate: 138.9, rateType: 'ISSUE_AGE' },
@@ -48,7 +48,7 @@ const NC_G: CarrierRate[] = [
   { company: 'Blue Medicare Supplement (BCBSNC)', rate: 173.0, rateType: 'COMMUNITY_RATED' },
 ];
 
-const NC_N: CarrierRate[] = NC_G.map((c) => ({ ...c, rate: Math.round((c.rate * 0.82 + Number.EPSILON) * 100) / 100 }));
+const CARRIERS_N: CarrierRate[] = CARRIERS_G.map((c) => ({ ...c, rate: Math.round((c.rate * 0.82 + Number.EPSILON) * 100) / 100 }));
 
 const PALETTE = ['#0d2f5e', '#1f6feb', '#2da44e', '#bf8700', '#8250df'];
 
@@ -60,7 +60,7 @@ function ageBand(base: number, step: number): Record<number, number> {
   return out;
 }
 
-const NC_PROJECTION = NC_G.map((c, i) => ({
+const NC_PROJECTION = CARRIERS_G.map((c, i) => ({
   n: c.company,
   c: PALETTE[i % PALETTE.length],
   ra: c.rateType,
@@ -147,23 +147,28 @@ export async function installApiMocks(
   await page.route('**/api/rates*', async (route) => {
     log.urls.push(route.request().url());
     if (opts.failRates) return json(route, { ok: false, error: 'Rate fetch failed' }, 500);
-    if (state !== 'NC') {
-      // Mirrors api/medsup-rates.ts ALLOWED_STATES — only NC is seeded today.
-      return json(route, {
-        ok: false,
-        error: `Supplement rates not yet loaded for ${state}. Contact your agent for a quote.`,
-      });
-    }
-    return json(route, { ok: true, state, refZip: persona.zip, rates: { G: NC_G, N: NC_N } });
+    // api/rates.ts reads pm_supp_carrier_rates_public — the 4,400-row CMS Plan
+    // Finder scrape — and is NOT state-restricted. Every licensed state gets
+    // carriers here. This mock returned an error for TX until 2026-09-19,
+    // which was simply wrong: production serves a full TX results screen.
+    return json(route, { ok: true, state, refZip: persona.zip, rates: { G: CARRIERS_G, N: CARRIERS_N } });
   });
 
   // ── Rate-projection widget ───────────────────────────────────────────────
   await page.route('**/api/medsup-rates*', async (route) => {
     log.urls.push(route.request().url());
+    // A DIFFERENT table from /api/rates: pm_medsup_rate_public, the 163-row
+    // hand-built age-band set behind the projection chart, whose
+    // ALLOWED_STATES is NC only. Outside NC the handler returns 200 with
+    // available:false and an EMPTY carrier list — so the widget takes its
+    // zero-carriers branch ("Coming to <state> soon"), not its error branch.
     if (state !== 'NC') {
       return json(route, {
-        ok: false,
-        error: `Supplement rates not yet loaded for ${state}. Contact your agent for a quote.`,
+        ok: true,
+        state,
+        available: false,
+        message: `Supplement rates not yet loaded for ${state}. Contact your agent for a quote.`,
+        carriers: [],
       });
     }
     return json(route, { ok: true, state, carriers: NC_PROJECTION });

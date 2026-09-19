@@ -4,6 +4,12 @@ import { formatDob, useFlow } from '../context/FlowContext';
 import { useAutoAdvance } from '../hooks/useAutoAdvance';
 import { heightLabel } from '../lib/buildChart';
 import { submitApplication } from '../lib/submitApplication';
+import {
+  TCPA_CONSENT_DISCLOSURE_PREFIX,
+  TCPA_CONSENT_DISCLOSURE_SUFFIX,
+  TCPA_CONSENT_PREAMBLE,
+  TCPA_CONSENT_SELLER,
+} from '../lib/tcpa-consent';
 import { BackRow, Frame } from './Frame';
 import { MbiCardScan, type MbiScanResult } from './MbiCardScan';
 
@@ -716,8 +722,7 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
           className="sub-text"
           style={{ marginTop: 4, marginBottom: 10 }}
         >
-          Required separately by the FCC One-to-One Consent rule. Not a
-          condition of purchase.
+          {TCPA_CONSENT_PREAMBLE}
         </div>
         <div
           className="auth-check"
@@ -728,13 +733,9 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
             className={`auth-checkbox${app.authChecks[4] ? ' checked' : ''}`}
           />
           <div className="auth-text">
-            I expressly consent to be contacted by{' '}
-            <strong>Rob Simm / GenerationHealth.me (NPN #10447418)</strong>{' '}
-            regarding Medicare Supplement insurance options via
-            autodialed and/or prerecorded calls, text messages, and
-            email at the contact information I have provided. Msg
-            frequency varies. Msg &amp; data rates may apply. Reply STOP
-            to opt out, HELP for help.
+            {TCPA_CONSENT_DISCLOSURE_PREFIX}
+            <strong>{TCPA_CONSENT_SELLER}</strong>
+            {TCPA_CONSENT_DISCLOSURE_SUFFIX}
           </div>
         </div>
         {app.tcpaConsentAt && (
