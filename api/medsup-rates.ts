@@ -126,7 +126,12 @@ function shape(rows: RawRow[]): MedsupCarrier[] {
   }));
 }
 
-const ALLOWED_STATES = new Set(['NC']);
+// Add a state here only once pm_medsup_rate holds a real age curve for it —
+// TX was seeded from a HealthSherpa capture of ZIP 75201 on 2026-09-19,
+// 8 carriers x 2 genders x 7 bands. Flipping this ahead of the data is safe
+// but pointless: the carriers.length === 0 guard below returns the same
+// "not yet loaded" payload, just with a shorter cache.
+const ALLOWED_STATES = new Set(['NC', 'TX']);
 
 function unavailableMessage(state: string): string {
   return `Supplement rates not yet loaded for ${state}. Contact your agent for a quote.`;
@@ -142,8 +147,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(400).json({ ok: false, error: 'state required (2-letter abbr)' });
     return;
   }
-  // Outside NC we have no rate filings yet. Return an explicit
-  // available:false + message so the widget renders a "contact your
+  // Outside the states above we have no age-banded filings. Return an
+  // explicit available:false + message so the widget renders a "contact your
   // agent" state instead of a blank rate table.
   if (!ALLOWED_STATES.has(state)) {
     res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=604800');

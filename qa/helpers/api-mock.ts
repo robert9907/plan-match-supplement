@@ -25,6 +25,7 @@
 
 import type { Page, Route } from '@playwright/test';
 import type { Persona } from '../fixtures/personas.js';
+import { TX_PROJECTION } from '../fixtures/tx-projection.js';
 
 type RateType = 'ATTAINED_AGE' | 'ISSUE_AGE' | 'COMMUNITY_RATED';
 
@@ -190,12 +191,23 @@ export async function installApiMocks(
   // ── Rate-projection widget ───────────────────────────────────────────────
   await page.route('**/api/medsup-rates*', async (route) => {
     log.urls.push(route.request().url());
-    // A DIFFERENT table from /api/rates: pm_medsup_rate_public, the 163-row
-    // hand-built age-band set behind the projection chart, whose
-    // ALLOWED_STATES is NC only. Outside NC the handler returns 200 with
-    // available:false and an EMPTY carrier list — so the widget takes its
-    // zero-carriers branch ("Coming to <state> soon"), not its error branch.
-    if (state !== 'NC') {
+    // A DIFFERENT table from /api/rates: pm_medsup_rate_public, the age-banded
+    // set behind the projection chart. The handler's ALLOWED_STATES decides
+    // whether a state gets a curve; outside it, 200 with available:false and
+    // an EMPTY carrier list, so the widget takes its zero-carriers branch
+    // ("Coming to <state> soon") rather than its error branch.
+    //
+    // This used to read `state !== 'NC'`, which meant every TX persona
+    // exercised the empty branch no matter what the product did. That is the
+    // failure the underwritten-tx persona was corrected for on 2026-09-19 —
+    // a suite green because it agreed with an assumption. Keep this table in
+    // step with ALLOWED_STATES in api/medsup-rates.ts.
+    const PROJECTION: Record<string, typeof NC_PROJECTION | typeof TX_PROJECTION> = {
+      NC: NC_PROJECTION,
+      TX: TX_PROJECTION,
+    };
+    const carriers = PROJECTION[state];
+    if (!carriers) {
       return json(route, {
         ok: true,
         state,
@@ -204,7 +216,7 @@ export async function installApiMocks(
         carriers: [],
       });
     }
-    return json(route, { ok: true, state, carriers: NC_PROJECTION });
+    return json(route, { ok: true, state, available: true, carriers });
   });
 
   // ── Shared library: drug search ──────────────────────────────────────────

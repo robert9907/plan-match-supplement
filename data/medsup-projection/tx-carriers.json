@@ -1,6 +1,6 @@
 {
   "state": "TX",
-  "generated": "2026-09-19T20:44:46.079Z",
+  "generated": "2026-09-19T23:22:52.921Z",
   "source": "HealthSherpa for Medicare, agent portal, quoted 2026-09-19",
   "zip": "75201",
   "derived_by": "scripts/_build-tx-rates-from-capture.mjs",
