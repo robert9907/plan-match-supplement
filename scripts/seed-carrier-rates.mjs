@@ -134,6 +134,56 @@ for (let r = 1; r < rows.length; r++) {
   });
 }
 
+// ─── Household-premium sanity check ────────────────────────────────
+//
+// hhd_std_min / hhd_rm_min are the monthly premium under the carrier's
+// household form, so they belong BELOW rate_min. Across the rows already
+// loaded they sit at 0.877-1.0 of it.
+//
+// HealthSpring does not: it lands at exactly 1.740x rate_min in all 192 of
+// its rows across NC and TX, every row, both entities, both genders. A
+// constant to three decimals is not a scrape of independent figures — it is
+// a derived relationship, and 1.740 is 2 x 0.87. The likely reading is that
+// medicare.gov quotes HealthSpring's household figure as the COMBINED
+// premium for two people at a 13% discount each, where every other carrier
+// quotes it per person. That has not been confirmed against the source page,
+// so nothing here divides by two — guessing a premium is the failure mode
+// this whole check exists to prevent.
+//
+// Downstream, scoringEngine's discountCopy suppresses the household line
+// when the premium is not below the rate, so a bad value cannot reach a
+// screen. This check is so it cannot enter the database unnoticed either.
+const anomalies = records.filter((r) => {
+  const hhd = r.hhd_rm_min ?? r.hhd_std_min;
+  return hhd != null && r.rate_min != null && hhd >= r.rate_min;
+});
+
+if (anomalies.length > 0) {
+  const byCompany = new Map();
+  for (const a of anomalies) {
+    const hhd = a.hhd_rm_min ?? a.hhd_std_min;
+    const ratio = hhd / a.rate_min;
+    const e = byCompany.get(a.company) ?? { n: 0, lo: Infinity, hi: -Infinity, states: new Set() };
+    e.n++;
+    e.lo = Math.min(e.lo, ratio);
+    e.hi = Math.max(e.hi, ratio);
+    e.states.add(a.state);
+    byCompany.set(a.company, e);
+  }
+  console.error(`\nHousehold premium is not below the standard rate in ${anomalies.length} row(s):`);
+  for (const [company, e] of [...byCompany.entries()].sort((a, b) => b[1].n - a[1].n)) {
+    const range = e.lo.toFixed(3) === e.hi.toFixed(3)
+      ? `${e.lo.toFixed(3)}x`
+      : `${e.lo.toFixed(3)}-${e.hi.toFixed(3)}x`;
+    console.error(`  ${e.n.toString().padStart(4)}  ${range.padEnd(14)} ${company} [${[...e.states].sort().join(',')}]`);
+  }
+  console.error('\nA household premium at or above the standard rate is not a discount.');
+  console.error('Check the source CSV against the medicare.gov page for those carriers');
+  console.error('before loading. To load anyway, re-run with --allow-hhd-anomalies.\n');
+  if (!process.argv.includes('--allow-hhd-anomalies')) process.exit(1);
+  console.error('--allow-hhd-anomalies set; loading them as-is.\n');
+}
+
 console.log(`Parsed ${records.length} rows; upserting in batches…`);
 
 const BATCH = 500;
