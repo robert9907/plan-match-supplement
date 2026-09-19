@@ -1,99 +1,113 @@
 carrier_name,gender,age,monthly_premium
-"Atlantic Capital Life Assurance Company (Preferred)",M,65,130.14
-"Atlantic Capital Life Assurance Company (Preferred)",M,70,
-"Atlantic Capital Life Assurance Company (Preferred)",M,75,
-"Atlantic Capital Life Assurance Company (Preferred)",M,80,
-"Atlantic Capital Life Assurance Company (Preferred)",M,85,
-"Atlantic Capital Life Assurance Company (Preferred)",M,90,
-"Atlantic Capital Life Assurance Company (Preferred)",M,95,
-"Atlantic Capital Life Assurance Company (Preferred)",F,65,113.42
-"Atlantic Capital Life Assurance Company (Preferred)",F,70,
-"Atlantic Capital Life Assurance Company (Preferred)",F,75,
-"Atlantic Capital Life Assurance Company (Preferred)",F,80,
-"Atlantic Capital Life Assurance Company (Preferred)",F,85,
-"Atlantic Capital Life Assurance Company (Preferred)",F,90,
-"Atlantic Capital Life Assurance Company (Preferred)",F,95,
-"LifeShield National Insurance Company",M,65,156.16
-"LifeShield National Insurance Company",M,70,
-"LifeShield National Insurance Company",M,75,
-"LifeShield National Insurance Company",M,80,
-"LifeShield National Insurance Company",M,85,
-"LifeShield National Insurance Company",M,90,
-"LifeShield National Insurance Company",M,95,
-"LifeShield National Insurance Company",F,65,135.79
-"LifeShield National Insurance Company",F,70,
-"LifeShield National Insurance Company",F,75,
-"LifeShield National Insurance Company",F,80,
-"LifeShield National Insurance Company",F,85,
-"LifeShield National Insurance Company",F,90,
-"LifeShield National Insurance Company",F,95,
-"Atlantic Capital Life Assurance Company (Standard)",M,65,164.25
-"Atlantic Capital Life Assurance Company (Standard)",M,70,
-"Atlantic Capital Life Assurance Company (Standard)",M,75,
-"Atlantic Capital Life Assurance Company (Standard)",M,80,
-"Atlantic Capital Life Assurance Company (Standard)",M,85,
-"Atlantic Capital Life Assurance Company (Standard)",M,90,
-"Atlantic Capital Life Assurance Company (Standard)",M,95,
-"Atlantic Capital Life Assurance Company (Standard)",F,65,143.10
-"Atlantic Capital Life Assurance Company (Standard)",F,70,
-"Atlantic Capital Life Assurance Company (Standard)",F,75,
-"Atlantic Capital Life Assurance Company (Standard)",F,80,
-"Atlantic Capital Life Assurance Company (Standard)",F,85,
-"Atlantic Capital Life Assurance Company (Standard)",F,90,
-"Atlantic Capital Life Assurance Company (Standard)",F,95,
-"Medico Life and Health Insurance Company (Preferred)",M,65,173.47
-"Medico Life and Health Insurance Company (Preferred)",M,70,
-"Medico Life and Health Insurance Company (Preferred)",M,75,
-"Medico Life and Health Insurance Company (Preferred)",M,80,
-"Medico Life and Health Insurance Company (Preferred)",M,85,
-"Medico Life and Health Insurance Company (Preferred)",M,90,
-"Medico Life and Health Insurance Company (Preferred)",M,95,
-"Medico Life and Health Insurance Company (Preferred)",F,65,150.84
-"Medico Life and Health Insurance Company (Preferred)",F,70,
-"Medico Life and Health Insurance Company (Preferred)",F,75,
-"Medico Life and Health Insurance Company (Preferred)",F,80,
-"Medico Life and Health Insurance Company (Preferred)",F,85,
-"Medico Life and Health Insurance Company (Preferred)",F,90,
-"Medico Life and Health Insurance Company (Preferred)",F,95,
-"Medico Life and Health Insurance Company (Standard I)",M,65,190.82
-"Medico Life and Health Insurance Company (Standard I)",M,70,
-"Medico Life and Health Insurance Company (Standard I)",M,75,
-"Medico Life and Health Insurance Company (Standard I)",M,80,
-"Medico Life and Health Insurance Company (Standard I)",M,85,
-"Medico Life and Health Insurance Company (Standard I)",M,90,
-"Medico Life and Health Insurance Company (Standard I)",M,95,
-"Medico Life and Health Insurance Company (Standard I)",F,65,165.93
-"Medico Life and Health Insurance Company (Standard I)",F,70,
-"Medico Life and Health Insurance Company (Standard I)",F,75,
-"Medico Life and Health Insurance Company (Standard I)",F,80,
-"Medico Life and Health Insurance Company (Standard I)",F,85,
-"Medico Life and Health Insurance Company (Standard I)",F,90,
-"Medico Life and Health Insurance Company (Standard I)",F,95,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,65,198.38
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,70,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,75,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,80,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,85,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,90,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,95,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,65,172.52
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,70,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,75,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,80,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,85,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,90,
-"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,95,
-"Medico Life and Health Insurance Company (Standard II)",M,65,216.84
-"Medico Life and Health Insurance Company (Standard II)",M,70,
-"Medico Life and Health Insurance Company (Standard II)",M,75,
-"Medico Life and Health Insurance Company (Standard II)",M,80,
-"Medico Life and Health Insurance Company (Standard II)",M,85,
-"Medico Life and Health Insurance Company (Standard II)",M,90,
-"Medico Life and Health Insurance Company (Standard II)",M,95,
-"Medico Life and Health Insurance Company (Standard II)",F,65,188.56
-"Medico Life and Health Insurance Company (Standard II)",F,70,
-"Medico Life and Health Insurance Company (Standard II)",F,75,
-"Medico Life and Health Insurance Company (Standard II)",F,80,
-"Medico Life and Health Insurance Company (Standard II)",F,85,
-"Medico Life and Health Insurance Company (Standard II)",F,90,
-"Medico Life and Health Insurance Company (Standard II)",F,95,
+"BlueCross BlueShield of Texas (Plan G Select)",M,65,180.87
+"BlueCross BlueShield of Texas (Plan G Select)",M,70,228.07
+"BlueCross BlueShield of Texas (Plan G Select)",M,75,275.28
+"BlueCross BlueShield of Texas (Plan G Select)",M,80,322.51
+"BlueCross BlueShield of Texas (Plan G Select)",M,85,369.72
+"BlueCross BlueShield of Texas (Plan G Select)",M,90,416.93
+"BlueCross BlueShield of Texas (Plan G Select)",M,95,464.14
+"BlueCross BlueShield of Texas (Plan G Select)",F,65,161.51
+"BlueCross BlueShield of Texas (Plan G Select)",F,70,204.13
+"BlueCross BlueShield of Texas (Plan G Select)",F,75,246.76
+"BlueCross BlueShield of Texas (Plan G Select)",F,80,289.37
+"BlueCross BlueShield of Texas (Plan G Select)",F,85,331.97
+"BlueCross BlueShield of Texas (Plan G Select)",F,90,374.59
+"BlueCross BlueShield of Texas (Plan G Select)",F,95,417.22
+"BlueCross BlueShield of Texas (Plan G)",M,65,214.57
+"BlueCross BlueShield of Texas (Plan G)",M,70,270.60
+"BlueCross BlueShield of Texas (Plan G)",M,75,326.64
+"BlueCross BlueShield of Texas (Plan G)",M,80,382.67
+"BlueCross BlueShield of Texas (Plan G)",M,85,438.69
+"BlueCross BlueShield of Texas (Plan G)",M,90,494.71
+"BlueCross BlueShield of Texas (Plan G)",M,95,550.73
+"BlueCross BlueShield of Texas (Plan G)",F,65,191.59
+"BlueCross BlueShield of Texas (Plan G)",F,70,242.16
+"BlueCross BlueShield of Texas (Plan G)",F,75,292.72
+"BlueCross BlueShield of Texas (Plan G)",F,80,343.34
+"BlueCross BlueShield of Texas (Plan G)",F,85,393.92
+"BlueCross BlueShield of Texas (Plan G)",F,90,444.49
+"BlueCross BlueShield of Texas (Plan G)",F,95,495.09
+"HealthSpring Insurance Company",M,65,198.49
+"HealthSpring Insurance Company",M,70,204.45
+"HealthSpring Insurance Company",M,75,246.36
+"HealthSpring Insurance Company",M,80,299.72
+"HealthSpring Insurance Company",M,85,364.66
+"HealthSpring Insurance Company",M,90,422.75
+"HealthSpring Insurance Company",M,95,478.29
+"HealthSpring Insurance Company",F,65,172.60
+"HealthSpring Insurance Company",F,70,177.78
+"HealthSpring Insurance Company",F,75,214.23
+"HealthSpring Insurance Company",F,80,260.63
+"HealthSpring Insurance Company",F,85,317.09
+"HealthSpring Insurance Company",F,90,367.60
+"HealthSpring Insurance Company",F,95,415.91
+"AFLAC",M,65,206.73
+"AFLAC",M,70,218.60
+"AFLAC",M,75,269.38
+"AFLAC",M,80,344.73
+"AFLAC",M,85,478.19
+"AFLAC",M,90,644.37
+"AFLAC",M,95,855.37
+"AFLAC",F,65,180.47
+"AFLAC",F,70,190.84
+"AFLAC",F,75,235.17
+"AFLAC",F,80,300.95
+"AFLAC",F,85,417.45
+"AFLAC",F,90,562.54
+"AFLAC",F,95,746.74
+"Humana (Emphesys Insurance Company)",M,65,220.92
+"Humana (Emphesys Insurance Company)",M,70,234.32
+"Humana (Emphesys Insurance Company)",M,75,284.65
+"Humana (Emphesys Insurance Company)",M,80,345.90
+"Humana (Emphesys Insurance Company)",M,85,420.40
+"Humana (Emphesys Insurance Company)",M,90,511.04
+"Humana (Emphesys Insurance Company)",M,95,586.27
+"Humana (Emphesys Insurance Company)",F,65,198.63
+"Humana (Emphesys Insurance Company)",F,70,210.66
+"Humana (Emphesys Insurance Company)",F,75,255.86
+"Humana (Emphesys Insurance Company)",F,80,310.87
+"Humana (Emphesys Insurance Company)",F,85,377.77
+"Humana (Emphesys Insurance Company)",F,90,459.21
+"Humana (Emphesys Insurance Company)",F,95,526.77
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,65,247.98
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,70,262.86
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,75,312.14
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,80,373.93
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,85,440.48
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,90,497.71
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",M,95,549.54
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,65,215.65
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,70,228.57
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,75,271.43
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,80,325.15
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,85,383.02
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,90,432.81
+"Mutual of Omaha (Mutual of Omaha Insurance Company)",F,95,477.87
+"Aetna Health Insurance Company",M,65,259.98
+"Aetna Health Insurance Company",M,70,275.64
+"Aetna Health Insurance Company",M,75,323.95
+"Aetna Health Insurance Company",M,80,381.85
+"Aetna Health Insurance Company",M,85,445.90
+"Aetna Health Insurance Company",M,90,512.21
+"Aetna Health Insurance Company",M,95,584.27
+"Aetna Health Insurance Company",F,65,225.99
+"Aetna Health Insurance Company",F,70,239.74
+"Aetna Health Insurance Company",F,75,281.89
+"Aetna Health Insurance Company",F,80,332.28
+"Aetna Health Insurance Company",F,85,387.68
+"Aetna Health Insurance Company",F,90,445.24
+"Aetna Health Insurance Company",F,95,507.96
+"GPM Health and Life Insurance Company",M,65,296.44
+"GPM Health and Life Insurance Company",M,70,322.25
+"GPM Health and Life Insurance Company",M,75,385.72
+"GPM Health and Life Insurance Company",M,80,444.92
+"GPM Health and Life Insurance Company",M,85,495.55
+"GPM Health and Life Insurance Company",M,90,529.11
+"GPM Health and Life Insurance Company",M,95,544.37
+"GPM Health and Life Insurance Company",F,65,257.77
+"GPM Health and Life Insurance Company",F,70,280.24
+"GPM Health and Life Insurance Company",F,75,335.40
+"GPM Health and Life Insurance Company",F,80,386.86
+"GPM Health and Life Insurance Company",F,85,430.93
+"GPM Health and Life Insurance Company",F,90,460.14
+"GPM Health and Life Insurance Company",F,95,473.38

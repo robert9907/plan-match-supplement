@@ -256,11 +256,22 @@ async function apply() {
     if (seen.has(key)) { errors.push(`line ${line}: duplicate cell for ${name} ${gender} ${age}`); return; }
     seen.add(key);
 
-    // The cross-check that earns this script its keep. The CMS filed range
-    // for this carrier is independent data. A hand-typed premium far outside
-    // it is a transcription error far more often than it is a real rate.
+    // The cross-check that earns this script its keep — but it only means
+    // anything at 65. pm_supp_carrier_rates holds ONE figure per
+    // company/zip/gender: rate_min and rate_max are equal on every TX row,
+    // and cms_plan_g_low/high is the spread across the state's twelve
+    // reference ZIPs. That is a GEOGRAPHIC range at age 65, not an age
+    // range, and comparing an older band to it rejects every real
+    // attained-age curve — AFLAC files $206.65 at 65 in 75201 and quotes
+    // $644.37 at 90, which is 2.8x the top of the CMS spread and entirely
+    // correct.
+    //
+    // So the filing anchors age 65, and the shape of the curve above it is
+    // checked separately (the band-ratio check further down). This is the
+    // same reasoning audit-medsup-provenance.mjs uses: 65 is the only band
+    // the scrape covers, so it is the only band it can speak to.
     const lo = c.cms_plan_g_low, hi = c.cms_plan_g_high;
-    if (Number.isFinite(lo) && Number.isFinite(hi)) {
+    if (age === 65 && Number.isFinite(lo) && Number.isFinite(hi)) {
       if (premium < lo * 0.6 || premium > hi * 1.8) {
         errors.push(
           `line ${line}: ${name} ${gender} ${age} = ${money(premium)} is far outside the CMS filed range ` +
@@ -299,6 +310,37 @@ async function apply() {
           warnings.push(`${c.carrier_name} ${g}: community-rated but the premium varies across ages (${[...distinct].map(money).join(', ')})`);
         }
       }
+      // Shape check for the bands the CMS scrape cannot anchor. A Medigap
+      // attained-age premium rises, but not without limit. Across the twelve
+      // TX Plan G products captured from HealthSherpa on 2026-09-19 the
+      // steepest single five-year step was AFLAC's 85->90 at 1.35x, and the
+      // steepest whole-curve multiple was AFLAC's 65->95 at 4.14x. A dropped
+      // or transposed digit shows up here as a step well outside that. The
+      // bounds are deliberately loose: this is a typo catcher, not an
+      // opinion about what a carrier may file.
+      const MAX_BAND_STEP = 1.6;
+      const MAX_SPAN_65_95 = 6;
+      for (let i = 1; i < curve.length; i++) {
+        const ratio = curve[i].premium / curve[i - 1].premium;
+        if (ratio > MAX_BAND_STEP) {
+          errors.push(
+            `${c.carrier_name} ${g}: ${money(curve[i - 1].premium)} at ${curve[i - 1].age} to ` +
+            `${money(curve[i].premium)} at ${curve[i].age} is ${ratio.toFixed(2)}x across one ` +
+            `five-year band (limit ${MAX_BAND_STEP}x). Check for a dropped or transposed digit.`,
+          );
+        }
+      }
+      const lowest = curve[0], highest = curve[curve.length - 1];
+      if (lowest.age === 65 && highest.age === 95) {
+        const span = highest.premium / lowest.premium;
+        if (span > MAX_SPAN_65_95) {
+          errors.push(
+            `${c.carrier_name} ${g}: ${money(highest.premium)} at 95 is ${span.toFixed(2)}x the ` +
+            `${money(lowest.premium)} at 65 (limit ${MAX_SPAN_65_95}x). Check the top of the curve.`,
+          );
+        }
+      }
+
       const missing = AGES.filter((a) => !curve.some((x) => x.age === a));
       if (missing.length) warnings.push(`${c.carrier_name} ${g}: no premium at age ${missing.join(', ')}`);
     }
