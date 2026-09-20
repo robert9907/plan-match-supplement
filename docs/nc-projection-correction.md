@@ -416,3 +416,46 @@ Medico does not fit this pattern at all: its gap is multiplicative and
 negative, 0.81634 and 0.81633 against the CMS Preferred series. Combined with
 its absence from HealthSherpa's NC carrier list, those two cells need their
 provenance traced rather than explained.
+
+### Age 70, and the rating-shape guard loses its premise
+
+Second run, identical parameters, male 70 (born 03/15/1956, Part A and B
+03/01/2021, MACRA still Yes). Eleven Plan G products; nine reproduce the
+stored age-70 male premium to the cent:
+
+  133.80  PSIC Innovative          166.16  AARP Select (Community Rated)
+  175.81  HealthSpring (HIC)       183.97  PSIC
+  187.48  Aflac                    207.36  AARP/UHC (Community Rated)
+  220.91  Aetna (AHIC)             226.48  Omaha Insurance Company
+  231.33  AARP/UHC of America (Community Rated)
+
+Two do not, and both are Humana:
+
+  Humana Medicare Supplement   stored 211.08, quoted 204.99   -6.09
+  Humana Achieve               stored 239.28, quoted 231.01   -8.27
+
+Both matched exactly at 65 (191.42 and 223.35). So Humana refiled its age
+curve since 2026-06-13 while leaving the age-65 rate alone. That is real
+staleness, scoped to two carriers at ages 70 and above, and it is the only
+staleness this exercise has actually found.
+
+The larger result is about the guard. HealthSherpa quotes all three AARP
+entities **rising with age while printing "Community Rated" on the same card**:
+
+  AARP/UHC             188.79 at 65 -> 207.36 at 70   +9.8%
+  AARP Select          151.28 at 65 -> 166.16 at 70   +9.8%
+  AARP/UHC of America  208.57 at 65 -> 231.33 at 70  +10.9%
+
+The projection is not inventing that climb. It is reproducing the source to
+the cent at both ages. So scripts/check-rating-shape.mjs, which I wrote today
+on the premise that a community-rated curve must be flat, would fail on a
+faithful capture. Its regulatory premise is still right; what is wrong is the
+assumption that a failure implicates our data.
+
+The script's header and its failure message now say so, and it stays out of
+gate.config.json. It is a reporting check until someone reads AARP's filed NC
+rate manual and establishes which is true: a flat community rate carrying an
+enrollment discount that declines with age, or a label that does not describe
+the product. I am not asserting either. CMS publishing exactly one statewide
+figure per AARP entity is consistent with that figure being the age-65 rate
+and nothing more.

@@ -14,11 +14,27 @@
 // consumer an increase the policy cannot charge them for, and the 20-year
 // total overstates that carrier against every competitor on the same screen.
 //
-// NC found this the expensive way: CMS files AARP/UnitedHealthcare in NC as
-// COMMUNITY_RATED at one statewide premium, 165.44 for a woman, identical
-// across all twelve sampled ZIPs. The projection drew her 167.44 rising to
-// 274.50 by 95 - a 64% climb on a policy whose premium does not move with
-// age. Same for two more AARP entities.
+// NC looked like the case for this check and then complicated it. CMS files
+// AARP/UnitedHealthcare in NC as COMMUNITY_RATED at one statewide premium,
+// 165.44 for a woman, identical across all twelve sampled ZIPs, and the
+// projection draws her rising to 274.50 by 95.
+//
+// But a live HealthSherpa quote on 2026-09-20 returned the same carrier,
+// labelled "Community Rated" on its own screen, at 188.79 for a 65-year-old
+// man and 207.36 for a 70-year-old - a 9.8% climb, quoted by the source
+// itself. All three AARP entities behave that way, and the stored curve
+// reproduces the quotes to the cent at both ages.
+//
+// So a failure here does NOT mean the stored data is wrong. It means the
+// label and the curve disagree, and which one to believe is a question for
+// the carrier's rate manual. UnitedHealthcare's AARP plans are widely
+// described as applying an enrollment discount that declines with age, which
+// would let a flat community rate produce rising quotes - but that is a
+// hypothesis, not a sourced fact, and inventing mechanisms is what put two
+// fictitious policy forms in carrier-aliases.json.
+//
+// Treat this as a reporting check, not a correctness check, until that is
+// settled. It is deliberately not in gate.config.json.
 //
 // Community is checked here and issue-age is not, deliberately. Community is
 // decidable from the data alone: one premium, every age. Issue age depends on
@@ -90,9 +106,10 @@ function report(found) {
     console.log(`      cells: ${v.cells.map((c) => `${c.age}:${money(c.premium)}`).join('  ')}\n`);
   }
   console.log(
-    'Fix the data, not this check. Either the curve is wrong, or rating_type is:\n' +
-    "confirm against pm_supp_carrier_rates.rate_type and the carrier's filing before\n" +
-    'changing either one.',
+    'Do not "fix" either side from this output alone. The label and the curve\n' +
+    'disagree; the quoting source may itself quote a community-rated policy\n' +
+    "rising with age. Confirm against the carrier's filed rate manual before\n" +
+    'changing the curve, the rating_type, or this check.',
   );
   return 1;
 }
