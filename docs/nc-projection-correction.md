@@ -295,3 +295,83 @@ fee identical to the cent on both genders, replicated across two independent
 state captures — but a declaration is a claim that a premium may appear under
 a carrier's name without that carrier having filed it, and those should be
 yours to make.
+
+---
+
+## 2026-09-20: the offsets are a source disagreement, not a fee
+
+A live HealthSherpa quote settled the open questions above. Anonymous agent
+session, ZIP 27713 / Durham County, effective 10/01/2026, male 65, GI No,
+non-smoker, no household discount, no EFT, 5'10" 175 lb, born 03/15/1961,
+Part A and B 03/01/2026, MACRA Yes — the same parameter set the TX capture
+used.
+
+Eleven Plan G products came back, and every one reproduces the stored age-65
+male premium **to the cent**, three months after the 2026-06-13 pull:
+
+| HealthSherpa, 2026-09-20 | premium | pm_medsup_rate age 65 M |
+|---|---|---|
+| AARP Plan G (UnitedHealthcare Insurance Company) — Community Rated | 188.79 | 188.79 |
+| AARP Plan G (UnitedHealthcare Insurance Company of America) — Community Rated | 208.57 | 208.57 |
+| AARP Select Plan G — Community Rated | 151.28 | 151.28 |
+| Blue Medicare Supplement Plan G | 205.50 | 205.50 |
+| Plan G from HealthSpring Insurance Company (HIC) | 171.92 | 171.92 |
+| Aetna Health Insurance Company (AHIC) Plan G | 208.25 | 208.25 |
+| Humana Medicare Supplement Plan G | 191.42 | 191.42 |
+| MED SUPP PLAN G 2010 (Aflac) | 179.69 | 179.69 |
+| Omaha Insurance Company NM24H | 212.34 | 212.34 |
+| PSIC Plan G | 172.72 | 172.72 |
+| PSIC Innovative Plan G | 125.70 | 125.70 |
+
+So the NC projection is **not stale**. I had said it was, on the strength of
+its 2026-06-13 seed date and 2026-07-01 effective date, and that was wrong.
+The rates simply have not moved.
+
+That disposes of the "flat fee" reading of Group B. The +$2.00 / +$4.00 /
++$5.00 gaps are not something the pipeline adds — they are HealthSherpa and
+CMS Plan Finder reporting different figures for the same product on the same
+day. CMS files AARP/UnitedHealthcare NC at 186.79 male; HealthSherpa quotes
+188.79. Both are current. Neither is a defect.
+
+The consequence for the audit is structural, not incidental: the projection is
+HealthSherpa-sourced and `pm_supp_carrier_rates` is CMS-sourced, so
+`audit-medsup-provenance.mjs` compares two systems that disagree by design.
+Every NC carrier with a nonzero offset will fail it forever. That is a question
+about what the audit should assert, and it should be settled before anyone
+writes a declaration to paper over an individual row.
+
+### Aliases, now written
+
+`carrier-aliases.json` gains five entries. Each is sourced by premium: the same
+figure, same portal, same parameter set, so the projection row and the
+HealthSherpa row are the same product.
+
+  Cigna National Health Insurance Company   -> HealthSpring Insurance Company
+  Blue Medicare Supplement (BCBSNC)         -> BlueCross BlueShield of North Carolina
+  Humana Medicare Supplement                -> Humana (Humana Benefit Plan of Illinois, Inc.)
+  Humana Achieve Medicare Supplement        -> Humana Achieve (CompBenefits Insurance Company)
+  PSIC - Innovative                         -> Physicians Select Insurance Company (Innovative)
+
+Note the limit of that evidence. The premium match sources the projection ->
+HealthSherpa half. The HealthSherpa -> CMS half is still matched on name alone,
+because those two differ by the offset above and cannot be matched on figures.
+The first entry is the one to watch: the stored name says Cigna National Health
+Insurance Company, but the row is HealthSherpa's HealthSpring Insurance Company
+listing at 171.92. Those are two different NAIC entities under one parent. The
+stored label is probably just wrong, and renaming it would beat aliasing it.
+
+### Two things this raised
+
+**Medico is not offered in NC on HealthSherpa.** Its carrier list for 27713
+returns twelve carriers and Medico is not among them, yet the projection holds
+NC Medico at 128.01 F / 147.21 M. CMS does file Medico in NC. So those two
+cells came from somewhere other than the stated source, and their ratio against
+the CMS Preferred series is 0.81634 and 0.81633 — one constant, both genders,
+which is a discount basis rather than a rate. Worth tracing before step 7.
+
+**AARP reads Community Rated in a third independent place.** CMS returns
+COMMUNITY_RATED with one statewide figure across all twelve sampled ZIPs,
+pm_medsup_carrier.rating_type says community, and HealthSherpa prints
+"Community Rated" on all three AARP entities. The projection still draws them
+rising 59% to 105% from 65 to 95. scripts/check-rating-shape.mjs fails on
+exactly those six curves and is deliberately not yet in the gate.

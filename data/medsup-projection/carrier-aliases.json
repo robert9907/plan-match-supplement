@@ -1,5 +1,21 @@
 {
   "_note": "Identity claims about projection carriers, used by scripts/audit-medsup-provenance.mjs. Two kinds. `aliases`: the key is the name in pm_medsup_carrier, the values are the names CMS files that company under \u2014 a claim that two names are one company. `forms`: keyed by state, then by the name in pm_medsup_carrier \u2014 a claim that a projection carrier is a specific policy form of a company CMS does list, quoted at a premium outside that company's filed range. Both are claims, and matching premiums are not evidence for either. Confirm against the filing; treating a coincidence as an identity is the mistake the audit exists to catch.",
-  "aliases": {},
+  "aliases": {
+    "Cigna National Health Insurance Company": [
+      "HealthSpring Insurance Company"
+    ],
+    "Blue Medicare Supplement (BCBSNC)": [
+      "BlueCross BlueShield of North Carolina"
+    ],
+    "Humana Medicare Supplement": [
+      "Humana (Humana Benefit Plan of Illinois, Inc.)"
+    ],
+    "Humana Achieve Medicare Supplement": [
+      "Humana Achieve (CompBenefits Insurance Company)"
+    ],
+    "Physicians Select Insurance Company (PSIC) - Innovative": [
+      "Physicians Select Insurance Company (Innovative)"
+    ]
+  },
   "forms": {}
 }
