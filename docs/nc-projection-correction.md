@@ -1,6 +1,6 @@
 # NC projection chart — correction table
 
-**Status: action 1 applied 2026-09-19. Actions 2–7 are still proposals.**
+**Status: actions 1 and 2 applied 2026-09-19/20. Actions 3–7 are still proposals.**
 
 > **Applied.** `active = false` on GPM Health and Life (id 6), AHIC (id 12) and
 > Aflac (id 14) in `pm_medsup_carrier`, NC. `pm_medsup_rate_public` filters
@@ -13,6 +13,21 @@
 > rates**, so the class of defect that put "Lowest 20yr total $0" under a real
 > carrier's name is now structurally absent from NC as well as guarded against
 > in code.
+
+> **Applied (action 2).** `rating_type` corrected on four carriers: the three
+> AARP rows to `community`, Medico Insurance Company to `attained_age`, both
+> matching the CMS filings.
+>
+> **With a correction to what this document originally claimed.** The entry in
+> E1 below said Medico's label "tells a 65-year-old their premium does not rise
+> with age". That was wrong, and I should have traced the render path before
+> writing it. `pm_medsup_carrier.rating_type` reaches the projection widget as
+> `ra` — and `ra` is typed in `medsupRates.ts`, carried through
+> `api/medsup-rates.ts`, and **never rendered anywhere**. The rate type a
+> consumer actually sees on /results comes from `pm_supp_carrier_rates`, which
+> was already correct. So action 2 was data hygiene against a field that is one
+> line away from being displayed, not a fix to anything a consumer was reading.
+> Worth doing; not worth the alarm this document raised about it.
 
 `audit-medsup-provenance.mjs` fails on NC: age-65 premiums that cannot be tied
 to the carrier they are shown under. This is the cross-map it asked for —
@@ -179,10 +194,21 @@ directly beneath it.
 For the AARP rows this may be genuine — they are community-rated (see E1), and
 UnitedHealthcare's age discount phasing out produces exactly this shape.
 
-**BCBSNC is attained-age and it is not genuine.** Four identical cells at the
-top of an attained-age curve is the last figure the quoting tool returned,
-copied forward. It understates late-life cost, which is the half of a 20-year
-projection the consumer cannot check.
+**On BCBSNC I originally wrote "it is not genuine". I cannot support that,
+and it has not been changed.**
+
+Attained-age rate tables frequently have a terminal band — an "80+" that
+charges one figure for every year above it. If BlueCross BlueShield of North
+Carolina files that way, $403.75 at 80, 85, 90 and 95 is correct, and nulling
+those cells would delete real data.
+
+What is suspicious is narrow: the male row has 80–95 all carrying that one
+figure while the female row is simply empty from 80 on. A real 80+ band would
+show on both genders. That asymmetry points at the capture rather than the
+filing — but it is an inference, and it is the same species of reasoning that
+produced the "Aflac and GPM are transposed" reading, which turned out to be
+half wrong. Either the filing or one re-quote settles it. Until then the
+figure stands, because a possibly-correct number beats a deleted real one.
 
 ### E3. 33 missing cells
 
@@ -208,7 +234,7 @@ Nothing below is a write. Each line needs your approval.
 | # | action | scope | reversible |
 |---|---|---|---|
 | 1 | ~~`active = false` on GPM, Aflac, AHIC~~ **done 2026-09-19** | 3 carrier rows | yes |
-| 2 | Fix `rating_type` on the 3 AARP rows and Medico | 4 carrier rows | yes |
+| 2 | ~~Fix `rating_type` on the 3 AARP rows and Medico~~ **done 2026-09-20** | 4 carrier rows | yes |
 | 3 | Add aliases: Cigna→HealthSpring, BCBSNC→BlueCross BlueShield of NC | aliases file | n/a, no DB |
 | 4 | Declare the five Group-B fees and AARP Select | aliases file | n/a, no DB |
 | 5 | Deactivate or fill `CIC` | 1 carrier row | yes |
@@ -216,7 +242,11 @@ Nothing below is a write. Each line needs your approval.
 | 7 | Re-seed the re-quoted carriers through `seed-medsup-projection.mjs` | after 6 | — |
 
 (1) was the only one I treated as urgent: it was live, wrong by 42% and 77%,
-and wrong inside a rate comparison. It is done.
+and wrong inside a rate comparison. It is done, and (2) followed.
+
+What (1) did NOT do is repair anything. GPM, Aflac and Mutual of Omaha are real
+carriers a Durham shopper should be able to compare, and North Carolina now
+shows nine where it showed twelve. Step 6 is what puts them back.
 
 Step 6 is the same 14-run procedure the TX capture used, and the age-65 range
 check in `seed-medsup-projection.mjs` would have refused both GPM and Aflac on
