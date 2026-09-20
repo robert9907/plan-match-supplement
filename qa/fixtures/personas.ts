@@ -11,11 +11,16 @@
 //                    applies, so the score, the rate class, and the
 //                    "acceptance is not guaranteed" language all render.
 //   underwritten-tx  Rate increase, tobacco → TX. Exercises the state branch.
-//                    Texas has NO rows in pm_medsup_rate_public, so the
-//                    projection chart on /rates renders "Coming to Texas
-//                    soon" — but pm_supp_carrier_rates_public DOES have TX,
-//                    so /results renders a full carrier list. Two different
-//                    rate sources; do not conflate them again.
+//                    Until 2026-09-19 Texas had no rows in
+//                    pm_medsup_rate_public and the projection chart rendered
+//                    "Coming to Texas soon". It now carries a real 65→95
+//                    curve for 8 carriers, quoted from HealthSherpa at ZIP
+//                    75201, so this persona sees a populated chart. The two
+//                    rate sources are still different tables —
+//                    pm_medsup_rate_public drives the projection, and
+//                    pm_supp_carrier_rates_public drives /results — and they
+//                    disagree about carriers and figures by design. Do not
+//                    conflate them again.
 //   unlicensed-ny    NY ZIP → the licensure gate must hold: Continue stays
 //                    disabled and the 1-800-MEDICARE referral shows.
 // ---------------------------------------------------------------------------
