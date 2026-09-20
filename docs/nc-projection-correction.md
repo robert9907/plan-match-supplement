@@ -375,3 +375,44 @@ pm_medsup_carrier.rating_type says community, and HealthSherpa prints
 "Community Rated" on all three AARP entities. The projection still draws them
 rising 59% to 105% from 65 to 95. scripts/check-rating-shape.mjs fails on
 exactly those six curves and is deliberately not yet in the gate.
+
+### Correction, same day: the offset is carrier-specific and fee-shaped
+
+Applying the five aliases resolves four of the ten age-65 NC cells outright,
+and the four that resolve are the informative ones:
+
+| stated | g | premium | CMS filed | offset |
+|---|---|---|---|---|
+| Blue Medicare Supplement (BCBSNC) | F | 179.50 | 179.50 | **0.00** |
+| Blue Medicare Supplement (BCBSNC) | M | 205.50 | 205.50 | **0.00** |
+| Cigna National -> HealthSpring | F | 149.50 | 149.50 | **0.00** |
+| Cigna National -> HealthSpring | M | 171.92 | 171.92 | **0.00** |
+| Humana Medicare Supplement | F / M | 169.63 / 191.42 | 167.63 / 189.42 | +2.00 |
+| Humana Achieve | F / M | 194.48 / 223.35 | 192.48 / 221.35 | +2.00 |
+| PSIC - Innovative | F / M | 114.22 / 125.70 | 109.22 / 120.70 | +5.00 |
+
+I wrote above that this is a source disagreement rather than a fee. That was
+too quick. HealthSherpa and CMS agree to the cent on BCBSNC, HealthSpring,
+Aetna, Aflac and Mutual of Omaha — five carriers, zero offset. General source
+noise does not land on exactly zero five times and on exactly $2.00, $4.00 and
+$5.00 the rest of the time, identically on both genders. A per-carrier charge
+that HealthSherpa includes in the quote and CMS excludes from the filed
+premium fits the shape; a reporting discrepancy does not.
+
+Per-carrier offsets observed so far, all NC, all Plan G, both genders alike:
+
+  0.00   BCBSNC, HealthSpring, Aetna, Aflac, Mutual of Omaha
+  +2.00  AARP/UnitedHealthcare, Humana, Humana Achieve
+  +4.00  AARP/UnitedHealthcare of America
+  +5.00  Physicians Select, Physicians Select Innovative
+  +6.17  GPM (male only on record, so the both-genders test cannot run)
+
+What it is has not been established, and naming it without a carrier document
+would be the same mistake as the two fictitious policy forms. What is now
+settled is that it is not noise, not staleness, and not something the pipeline
+introduces.
+
+Medico does not fit this pattern at all: its gap is multiplicative and
+negative, 0.81634 and 0.81633 against the CMS Preferred series. Combined with
+its absence from HealthSherpa's NC carrier list, those two cells need their
+provenance traced rather than explained.
