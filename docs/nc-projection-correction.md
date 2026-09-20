@@ -1,6 +1,6 @@
 # NC projection chart — correction table
 
-**Status: actions 1 and 2 applied 2026-09-19/20. Actions 3–7 are still proposals.**
+**Status: actions 1, 2 and the relabel half of 6 applied. Actions 3–5 and the re-quote half of 6 are still proposals.**
 
 > **Applied.** `active = false` on GPM Health and Life (id 6), AHIC (id 12) and
 > Aflac (id 14) in `pm_medsup_carrier`, NC. `pm_medsup_rate_public` filters
@@ -55,6 +55,37 @@ defect independent of any premium, and one of those four is inverted in the
 direction that misleads.
 
 ---
+
+> **Applied 2026-09-20 (action 6a — relabel).** The three carriers taken off
+> the chart in action 1 are back on it, under the right names.
+> `pm_medsup_rate` was never touched: the curves were always correct, each was
+> simply wearing another's name.
+>
+> | id | was | is |
+> |---|---|---|
+> | 6 | GPM Health and Life | **Aflac** |
+> | 14 | Aflac | **GPM Health and Life** |
+> | 12 | AHIC | **Mutual of Omaha (Omaha Insurance Company)** |
+>
+> Confirmed at age 65 *and* age 80, by HealthSherpa and by CMS independently:
+> Aflac 179.69 / 293.22, Omaha 212.34 / 318.41, GPM 312.66 / 476.15. Nine of
+> the other eleven NC rows match today's quote exactly under their own names,
+> which is what makes three exceptions a finding rather than a guess.
+>
+> **This retires the "half right" hedge below.** Aflac and GPM *are*
+> straightforwardly transposed. The 65-cell discrepancy that made me doubt it —
+> 318.83 against a filed 312.66 — was staleness in `pm_supp_carrier_rates`, the
+> same staleness that produced two false policy-form declarations in
+> `carrier-aliases.json`. One stale reference table, three wrong conclusions.
+>
+> NC shows twelve carriers again, up from nine.
+>
+> **What it does not fix:** all three return male-only. A man comparing NC
+> carriers now sees twelve; a woman still sees nine. Twenty-one cells, and the
+> gap is gendered. `projectionStats` renders them absent rather than as $0, so
+> nothing lies — but nothing fills them either until the refresh runs. GPM's
+> own age-65 cell also reads 318.83 against CMS's current 312.66, about 2%
+> stale; same refresh.
 
 ## Group A — exact, no correction needed
 
@@ -238,7 +269,8 @@ Nothing below is a write. Each line needs your approval.
 | 3 | Add aliases: Cigna→HealthSpring, BCBSNC→BlueCross BlueShield of NC | aliases file | n/a, no DB |
 | 4 | Declare the five Group-B fees and AARP Select | aliases file | n/a, no DB |
 | 5 | Deactivate or fill `CIC` | 1 carrier row | yes |
-| 6 | Re-quote GPM, Aflac, AHIC, Humana Achieve, BCBSNC — both genders, all seven bands | HealthSherpa, 14 runs | n/a |
+| 6a | ~~Relabel GPM / Aflac / AHIC~~ **done 2026-09-20** | 3 carrier rows | yes |
+| 6b | Quote female curves for Aflac, Mutual of Omaha, GPM — 21 cells | CMS refresh | n/a |
 | 7 | Re-seed the re-quoted carriers through `seed-medsup-projection.mjs` | after 6 | — |
 
 (1) was the only one I treated as urgent: it was live, wrong by 42% and 77%,
