@@ -1,22 +1,5 @@
 {
-  "_note": "Identity claims about projection carriers, used by scripts/audit-medsup-provenance.mjs. Two kinds. `aliases`: the key is the name in pm_medsup_carrier, the values are the names CMS files that company under — a claim that two names are one company. `forms`: keyed by state, then by the name in pm_medsup_carrier — a claim that a projection carrier is a specific policy form of a company CMS does list, quoted at a premium outside that company's filed range. Both are claims, and matching premiums are not evidence for either. Confirm against the filing; treating a coincidence as an identity is the mistake the audit exists to catch.",
+  "_note": "Identity claims about projection carriers, used by scripts/audit-medsup-provenance.mjs. Two kinds. `aliases`: the key is the name in pm_medsup_carrier, the values are the names CMS files that company under \u2014 a claim that two names are one company. `forms`: keyed by state, then by the name in pm_medsup_carrier \u2014 a claim that a projection carrier is a specific policy form of a company CMS does list, quoted at a premium outside that company's filed range. Both are claims, and matching premiums are not evidence for either. Confirm against the filing; treating a coincidence as an identity is the mistake the audit exists to catch.",
   "aliases": {},
-  "forms": {
-    "TX": {
-      "BlueCross BlueShield of Texas (Plan G)": {
-        "cms_company": "BlueCross BlueShield of Texas",
-        "max_offset_pct": 12,
-        "why": "CMS Plan Finder carries one Plan G figure for BlueCross BlueShield of Texas; HealthSherpa quotes two distinct products, 'Medicare Supplement Plan G Select' and 'Medicare Supplement Plan G'. The Select form lands inside the filed range. This one sits 9.34% (M) and 9.33% (F) above the top of it — the same figure to two decimal places on both genders, which is what a second rate series looks like and not what a mistyped digit looks like.",
-        "evidence": "HealthSherpa agent portal, ZIP 75201, quoted 2026-09-19, non-tobacco, no household discount, no EFT, GI=No. The same parameters reproduce HealthSpring, Aetna and GPM's CMS filings to the cent. NOT confirmed against the carrier's filed rate manual.",
-        "verified_on": "2026-09-19"
-      },
-      "Mutual of Omaha (Mutual of Omaha Insurance Company)": {
-        "cms_company": "Mutual of Omaha (Mutual of Omaha Insurance Company)",
-        "max_offset_pct": 3,
-        "why": "HealthSherpa quotes form MM25H at 1.24% above the top of Mutual of Omaha's filed TX range, identically on both genders. Against the 75201 figure specifically the gap is +25.0% on both, which is a different rate series rather than a different premium for the same one.",
-        "evidence": "HealthSherpa agent portal, ZIP 75201, quoted 2026-09-19, non-tobacco, no household discount, no EFT, GI=No. The same parameters reproduce HealthSpring, Aetna and GPM's CMS filings to the cent. NOT confirmed against the carrier's filed rate manual.",
-        "verified_on": "2026-09-19"
-      }
-    }
-  }
+  "forms": {}
 }
