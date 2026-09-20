@@ -1,6 +1,6 @@
 # Medigap rate scraper — spec
 
-**Status: proposal. No code beyond the discovery harness exists yet.**
+**Status: contract found 2026-09-20. Scraper not yet written.**
 
 Today the Plan G projection chart is built by hand, from HealthSherpa, one
 quote form at a time. This spec is for replacing that with a scraper against
@@ -90,26 +90,81 @@ From the sibling script and `qa/helpers/cms-plan-finder.ts`:
   typical cooldown 5–30 minutes.
 - Rate limit between calls (the MA scraper uses 3.5s).
 
-### The one unknown
+### The contract — FOUND 2026-09-20
 
-The MA scraper targets `/api/v1/data/plan-compare/...`. **The Medigap
-endpoint is not known.** Three guesses were probed on 2026-09-20 and all
-returned 404:
+Two endpoints, both under the same `plan-compare` namespace the MA scraper
+already uses. Observed live, not guessed; the three guesses recorded in the
+first draft of this spec were all near-misses.
 
-    /api/v1/data/medigap/policies
-    /api/v1/data/medigap-compare/policies
-    /medigap-supplemental-insurance-plans/api/policies
+    GET /api/v1/data/plan-compare/medigap/plans
+        ?state=NC&zipcode=27713&age=65&gender=GENDER_MALE&tobacco=false
 
-Do not guess a fourth. `cms-plan-finder.ts` records what guessing costs:
+      → { request_id, plans: [ 12 plan letters ] }
+        each: plan_type, medigap_plan_type, monthly_rate_min,
+              monthly_rate_max, monthly_rate_hhd_standard_min/max,
+              monthly_rate_hhd_roommate_min/max
+        No company names — this is the range across carriers per plan letter.
 
-> the SPA lays out the plan list across a multi-step wizard that's hard to
-> drive programmatically (see git history — 4 rounds of blind iteration
-> didn't clear the wizard past the drug entry step)
+    GET /api/v1/data/plan-compare/medigap/policies
+        ?medigap_plan_type=MEDIGAP_PLAN_TYPE_G
+        &state=NC&zipcode=27713&age=65&gender=GENDER_MALE&tobacco=false
 
-An attempt to drive the wizard from the Chrome extension on 2026-09-20 hit
-exactly that: the ZIP went in, Next did nothing, no API call fired. Find the
-contract by observation, once, with `scripts/discover-medigap-api.ts` (below),
-and write it into this document before any scraper code is written.
+      → 37 carriers for NC Plan G, each:
+        company, rate_type, monthly_rate_min, monthly_rate_max,
+        address, phone_number, website,
+        monthly_rate_hhd_standard_min/max, monthly_rate_hhd_roommate_min/max
+
+Parameters: `state` two-letter, `zipcode` five-digit, `age` integer,
+`gender` = `GENDER_MALE` | `GENDER_FEMALE`, `tobacco` boolean,
+`medigap_plan_type` = `MEDIGAP_PLAN_TYPE_<letter>`. The page also carries a
+`fips` in its own URL but the policies call does not take one.
+
+**Not verified:** the household-discount parameter name (the UI has a
+selector; the default "No household discount" call omits it), and whether
+`year` is accepted.
+
+### This is where medigap_G_N_all.csv came from
+
+The `policies` record maps onto `pm_supp_carrier_rates` field for field —
+company, rate_type, rate_min, rate_max, hhd_std_*, hhd_rm_*, phone, website,
+address. That settles the question nobody could answer: the CSV was a
+by-hand export of this endpoint, at age 65, and the reason the table has no
+age column is that whoever ran it only ever ran it once.
+
+### It agrees with HealthSherpa to the cent
+
+Same NC ZIP, same day, both sources:
+
+| | age 65 M | age 80 M |
+|---|---|---|
+| AFLAC | 179.69 | 293.22 |
+| GPM Health and Life | 312.66 | 476.15 |
+
+Those are also the figures sitting in `pm_medsup_rate` — under each other's
+names. Two independent sources confirming the transposition recorded in
+`docs/nc-projection-correction.md`.
+
+### pm_supp_carrier_rates is stale, and it is live
+
+Comparing the same query against what the table holds for NC Plan G, male 65:
+
+| carrier | in the table | CMS 2026-09-20 | |
+|---|---|---|---|
+| Atlantic Capital Life (Preferred) | 116.86 | 131.94 | +12.9% |
+| LifeShield National | 142.13 | 170.56 | +20.0% |
+| Medico Insurance Company (Preferred) | 147.21 | 180.33 | +22.5% |
+| New Era Life of the Midwest | 158.41 | 190.09 | +20.0% |
+| WoodmenLife | 175.57 | 175.57 | — |
+| AFLAC | 179.69 | 179.69 | — |
+
+Some carriers unchanged and others not rules out a query mismatch: these are
+real filings that moved. **/results is quoting several carriers up to 22.5%
+below what CMS publishes today**, and that is the main carrier list, not the
+projection chart. Refreshing it is the same scrape.
+
+Note also that CMS files Medico as three series — Preferred, Standard I,
+Standard II. `pm_medsup_carrier` carries one unqualified "Medico Insurance
+Company", which is the ambiguity flagged in the correction doc.
 
 ### Inputs
 
@@ -144,12 +199,21 @@ would be needed for few or none.
   standard-rate only and should say so.
 - Carriers that file with the state but are absent from CMS Plan Finder.
 
-## Step 1 — find the contract
+## Next step
 
-`scripts/discover-medigap-api.ts` opens the Medigap tool in real Chrome with
-the bootstrap above, drives the wizard **with a human watching** (`MG_HEADFUL=1`
-is the default), and logs every XHR to `data/medigap-api-capture.json`:
-method, path, query keys, request body shape and response shape — values
-redacted, shape only.
+The contract above is the thing that was blocking. `scripts/discover-medigap-api.ts`
+found its answer and is superseded — kept for the record, not for running.
 
-Run it once. Paste the contract into this document. Then write the scraper.
+Build `scripts/scrape-medigap-rates.ts`:
+
+1. `select distinct state, zip from pm_supp_carrier_rates` for the ZIP list.
+2. For each state x zip x age {65,70,75,80,85,90,95} x gender x plan {G,N},
+   call `medigap/policies` with the bootstrap constraints above.
+3. Emit `<state>-rates.csv` + `<state>-carriers.json`, then run them through
+   `seed-medsup-projection.mjs --apply <STATE>` so the age-65 cross-check,
+   the monotonicity check and the band-ratio bounds all still apply.
+4. Separately refresh `pm_supp_carrier_rates` from the age-65 pass, which
+   fixes the staleness above.
+
+504 queries per plan letter. At 3.5s between calls that is about half an
+hour, unattended.

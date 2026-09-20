@@ -1,6 +1,8 @@
 #!/usr/bin/env npx tsx
 // ---------------------------------------------------------------------------
-// discover-medigap-api.ts — find medicare.gov's Medigap JSON contract.
+// discover-medigap-api.ts — SUPERSEDED 2026-09-20. It did its job: the
+// contract is recorded in docs/medigap-scraper-spec.md. Kept as the record
+// of how it was found, not as something to run again.
 //
 //   npx tsx scripts/discover-medigap-api.ts            # headful, you drive
 //   MG_ZIP=75201 npx tsx scripts/discover-medigap-api.ts
