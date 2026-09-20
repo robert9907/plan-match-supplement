@@ -459,3 +459,60 @@ enrollment discount that declines with age, or a label that does not describe
 the product. I am not asserting either. CMS publishing exactly one statewide
 figure per AARP entity is consistent with that figure being the age-65 rate
 and nothing more.
+
+### The male curve, 65 to 90: two defects and two confirmations
+
+Ages 75-95 needed the MACRA answer flipped, which the UI would not let me do
+by clicking. The dropdowns are MUI selects with hidden native inputs behind
+them - `guaranteedIssue`, `tobacco`, `sex`, `spouseOrDomesticPartnerEnrolling`,
+`electronicFundsTransfer`, `disability` - and those can be driven directly.
+`disability` is the MACRA question. Runs below are male, 27713 Durham,
+effective 10/2026, GI No, non-smoker, no household discount, no EFT.
+
+Stored vs quoted, NC Plan G:
+
+  age 65   11 of 11 match to the cent
+  age 70    9 of 11
+  age 80    7 of 8
+  age 85    4 of 6
+  age 90    5 of 6
+
+**Defect 1 - Humana is stale at every age above 65.** Both entities, and the
+gap widens:
+
+  age 65   Humana MS 191.42 stored, 191.42 quoted      0.00
+  age 70   211.08 stored, 204.99 quoted               -6.09
+  age 80   309.10 stored, 297.29 quoted              -11.81
+  age 85   375.64 stored, 361.27 quoted              -14.37
+
+Humana Achieve behaves the same way (-8.27 at 70). Both are exact at 65. A
+refiled age curve with an unchanged age-65 rate is invisible to any age-65
+check, which is precisely what the provenance audit is.
+
+**Defect 2 - the AARP Select row holds the non-Select curve from age 85 up.**
+HealthSherpa quotes two distinct AARP products; the stored rows agree with it
+through 80 and diverge after:
+
+  age    HS Select   HS Standard   stored (Select)   stored (Standard)
+   65     151.28       188.79        151.28            188.79
+   70     166.16       207.36        166.16            207.36
+   80     240.56       300.21        240.56            300.21
+   85     248.00       309.50        309.50            (none)
+   90     248.00       309.50        309.50            (none)
+
+From 85 on, the row labelled Select carries the Standard figure, and the
+Standard row has no cells at all - it stops at 80. A shopper aged 85 to 95 is
+shown the Select plan at 309.50 when it quotes 248.00, overstated by 24.8%,
+and cannot see the non-Select plan at all. This is the same class of fault as
+the GPM/Aflac/AHIC transposition already recorded above, at a different age
+range, and it survived that repair.
+
+**Confirmation 1 - the BCBSNC flat top is genuine.** 403.75 stored at 80, 85,
+90 and 95; HealthSherpa quotes 403.75 at 90. I declined to guess at this
+earlier and was right to.
+
+**Confirmation 2 - the AARP curves plateau at 85.** Select 248.00 and Standard
+309.50 are identical at 85 and at 90. Consistent with a discount that finishes
+declining rather than an age rate that keeps rising, though still not sourced.
+
+Ages 75 and 95 male, and the whole female half, are not yet captured.
