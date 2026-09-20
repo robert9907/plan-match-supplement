@@ -47,6 +47,10 @@ const OUT = 'data/medigap-api-capture.json';
 const ZIP = process.env.MG_ZIP ?? '27713';
 const START = 'https://www.medicare.gov/medigap-supplemental-insurance-plans/';
 const SPA_WARMUP_MS = 12_000;
+/** Hard cap on the whole session. */
+const CAPTURE_WINDOW_MS = Number(process.env.MG_WINDOW_MS ?? 5 * 60_000);
+/** Finish once something is captured and the page goes quiet this long. */
+const QUIET_MS = Number(process.env.MG_QUIET_MS ?? 10_000);
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
@@ -69,6 +73,7 @@ function parse(text: string): unknown {
 async function main(): Promise<void> {
   const captured: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
+  let lastSeen = Date.now();
 
   const browser = await chromium.launch({
     headless: process.env.MG_HEADFUL === '0',
@@ -98,12 +103,14 @@ async function main(): Promise<void> {
       requestBodyShape: shape(parse(req.postData() ?? '')),
       responseShape: shape(body),
     });
+    lastSeen = Date.now();
     console.log(`  captured  ${key}`);
   });
 
   console.log(`\nOpening the Medigap tool. Warm-up ${SPA_WARMUP_MS / 1000}s (Akamai).`);
   await page.goto(START, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(SPA_WARMUP_MS);
+  lastSeen = Date.now();
 
   console.log(`
 ────────────────────────────────────────────────────────────────────────
@@ -116,10 +123,31 @@ async function main(): Promise<void> {
     Then change the age and step through again, so the capture contains
     two ages and the parameter is unambiguous.
 
-  Press Enter here when the plan list is on screen.
+  Nothing to press. This finishes on its own ${QUIET_MS / 1000}s after the
+  last call it sees, or at ${CAPTURE_WINDOW_MS / 60_000} minutes, whichever
+  comes first.
 ────────────────────────────────────────────────────────────────────────
 `);
-  await new Promise<void>((r) => process.stdin.once('data', () => r()));
+
+  // No stdin wait. An earlier version of this script blocked on a keypress,
+  // which meant no non-interactive shell could run it — it could only ever
+  // hang to its timeout. Finish on quiet instead: once something has been
+  // captured and the page has been silent for QUIET_MS, we have what we
+  // came for.
+  const deadline = Date.now() + CAPTURE_WINDOW_MS;
+  let announced = 0;
+  while (Date.now() < deadline) {
+    await page.waitForTimeout(1_000);
+    if (captured.length > announced) {
+      announced = captured.length;
+      continue;
+    }
+    if (captured.length > 0 && Date.now() - lastSeen > QUIET_MS) {
+      console.log(`\n  Quiet for ${QUIET_MS / 1000}s — wrapping up.`);
+      break;
+    }
+    if (page.isClosed()) break;
+  }
 
   mkdirSync(dirname(OUT), { recursive: true });
   writeFileSync(OUT, JSON.stringify({
