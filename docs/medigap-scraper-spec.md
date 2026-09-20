@@ -264,6 +264,36 @@ like the expensive long-term choice. That is backwards, it is the exact
 inverse of what the chart exists to help someone decide, and for Georgia it
 would be every single carrier on the screen.
 
+### It separates by state, which makes this much smaller
+
+The counts above are distinct company *names* across all three states, and
+that framing overstated the problem badly. Rate type is a property of the
+(company, state) pair, not the company — 23 companies file under different
+types in different states. Per state:
+
+| | companies | attained-age | exceptions |
+|---|---|---|---|
+| NC | 38 | 33 | 4 AARP entries (community-rated) + Old Surety (issue-age) |
+| TX | 32 | 29 | 2 AARP entries (community-rated) + Old Surety (issue-age) |
+| GA | 28 | **0** | all 28 issue-age |
+
+So it is not "two thirds of carriers". It is **AARP and Old Surety, plus the
+whole of Georgia.**
+
+That changes the shape of the work:
+
+- **NC and TX** — walk 65→95 as specced. It is correct for 33 of 38 and 29 of
+  32. Two named exceptions each, both already identifiable from `rate_type`
+  before a single query is made.
+- **Georgia** — do not build an age-varying projection at all. Every carrier
+  in the state is issue-age, so there is no age curve to build. Georgia gets
+  an age-65 comparison or it gets nothing; a rising chart there would be
+  wrong for every row on the screen.
+
+The Georgia case is worth stating plainly because it is not a data gap to be
+filled later. It is a fact about how Medigap is sold in that state, and a
+projection chart of the kind NC and TX have cannot honestly exist for it.
+
 ### What the scraper must do instead
 
 Branch on `rate_type`, which the `policies` response already returns:
