@@ -478,6 +478,35 @@ async function applyCms() {
   if (!cells.length) { console.error(`No ${state} rows in ${CMS_PATH}.`); process.exit(1); }
   const names = [...rateType.keys()].sort();
 
+  // Rating types CMS reports that we do not publish as given.
+//
+// This is a judgement Rob made on 2026-09-21, not a fact read off a filing,
+// and it is written down here so the next person can see that and re-open it.
+// The SERFF use agreement forbids automating the workflow, so the filings were
+// not read; if someone does read them, this map is what to correct.
+//
+// The three below are the only GA series whose normalised curve is identical
+// to the same carrier's ATTAINED_AGE curve in NC or TX - 0.01% for Bankers
+// Life against TX, 0.03% for Lumos against NC. Same curve, so it is one
+// filing, so one of the two labels is wrong; NC and TX agree with each other
+// and GA is the lone dissenter, so GA is the one corrected.
+//
+// Deliberately NOT extended to the other 24 GA series. Every one of them
+// carries ISSUE_AGE too, which is what raised the alarm in the first place,
+// but their curves genuinely differ in shape from the same carriers' NC and
+// TX curves - a real, different filing is exactly what that looks like. There
+// is no evidence those labels are wrong, and inventing one for 24 carriers to
+// make a state load cleanly is the guess this codebase keeps getting burned by.
+const RATING_TYPE_OVERRIDE = {
+  GA: {
+    'Lumos Insurance': 'attained_age',
+    'Bankers Life (Underwritten by Washington National Insurance Company)': 'attained_age',
+    'Bankers Life (Underwritten by Washington National Insurance Company) (Substandard)': 'attained_age',
+  },
+};
+const ratingTypeFor = (st, carrier, cmsType) =>
+  (RATING_TYPE_OVERRIDE[st] ?? {})[carrier] ?? RATING_TYPE[cmsType] ?? '';
+
   // Cross-state rate_type check, by CURVE not by label.
   //
   // The first version of this compared labels: if every series in a state
@@ -508,7 +537,7 @@ async function applyCms() {
       gender: (r[col.gender] ?? '').trim(),
       age: Number((r[col.age] ?? '').trim()),
       monthly_premium: prem,
-      rating_type: RATING_TYPE[(r[col.rate_type] ?? '').trim().toUpperCase()] ?? '',
+      rating_type: ratingTypeFor(st, (r[col.carrier_name] ?? '').trim(), (r[col.rate_type] ?? '').trim().toUpperCase()),
     }];
   });
   const contradictions = labelContradictions(shapeRows)
@@ -582,15 +611,25 @@ async function applyCms() {
   // seed-carrier-rates.mjs — a DEFAULT/existing value only survives if the
   // column is absent from the request body.)
   const carrierRows = names.map((n) => ({
-    carrier_name: n, state, rating_type: RATING_TYPE[rateType.get(n)], active: true,
+    carrier_name: n, state, rating_type: ratingTypeFor(state, n, rateType.get(n)), active: true,
   }));
+  const overridden = names.filter((n) => (RATING_TYPE_OVERRIDE[state] ?? {})[n]);
+  if (overridden.length) {
+    console.log(`${overridden.length} carrier(s) loaded with a corrected rating type (see RATING_TYPE_OVERRIDE):`);
+    for (const n of overridden) {
+      console.log(`  ! ${n}: CMS says ${rateType.get(n)}, loading as ${RATING_TYPE_OVERRIDE[state][n]}`);
+    }
+    console.log('');
+  }
 
   if (!WRITE) {
     console.log('DRY RUN — nothing written. Re-run with --write to commit.\n');
     console.log(`  pm_medsup_carrier: ${carrierRows.length} row(s) upserted on (state, carrier_name)`);
     console.log(`  pm_medsup_rate:    ${cells.length} row(s) upserted on (carrier_id, plan_letter, age, gender, tobacco), source='${SOURCE_CMS}'`);
     const byType = {};
-    for (const n of names) { const t = RATING_TYPE[rateType.get(n)]; byType[t] = (byType[t] ?? 0) + 1; }
+    // Count what will actually be written, overrides included - a dry run that
+    // reports CMS's label while the write uses another one is worse than none.
+    for (const n of names) { const t = ratingTypeFor(state, n, rateType.get(n)); byType[t] = (byType[t] ?? 0) + 1; }
     console.log(`  rating types:      ${Object.entries(byType).map(([k, v]) => `${k}=${v}`).join(', ')}`);
     for (const n of names) {
       const c = cells.filter((x) => x.name === n && x.gender === 'F').sort((a, b) => a.age - b.age);
