@@ -285,7 +285,8 @@ export function RateProjectionWidget({
               filings while quoting them is the kind of contradiction a
               carrier reviewer asks about. Keep this scoped to the chart. */}
           <div className="ms-fallback-body">
-            The 20-year premium projection is only built for North Carolina so far.
+            The 20-year premium projection is built for North Carolina, Texas and Georgia
+            so far.
             Your {stateLabel(state)} carrier matches and quotes are live — continue below
             to see them.
           </div>
