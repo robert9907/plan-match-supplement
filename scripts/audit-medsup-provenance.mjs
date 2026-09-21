@@ -55,7 +55,10 @@
 // Confirmed aliases live in data/medsup-projection/carrier-aliases.json so a
 // second run is quiet. Adding one is a claim that two names are the same
 // company — make it from the filing, not from the fact that the numbers
-// happen to agree.
+// happen to agree. They are keyed by state, because carrier_name is only
+// unique per (state, carrier_name): NC files HealthSpring under "Cigna
+// National Health Insurance Company" and TX carries it under its own name,
+// and a state-blind key cannot say that.
 //
 // Why "declared" exists
 // ---------------------
@@ -122,6 +125,18 @@ if (existsSync(ALIAS_PATH)) {
     const raw = JSON.parse(readFileSync(ALIAS_PATH, 'utf8'));
     aliases = raw.aliases ?? raw;
     forms = raw.forms ?? {};
+    // Aliases are keyed by state, same as forms. They were flat until
+    // 2026-09-21; carrier_name is only unique per (state, carrier_name), so a
+    // flat key silently applied in every state at once. Fail loudly rather
+    // than accepting both shapes - a half-migrated file is the ambiguity.
+    const flat = Object.entries(aliases).filter(([, v]) => Array.isArray(v));
+    if (flat.length) {
+      console.error(`${ALIAS_PATH} uses the old flat alias shape.`);
+      console.error('Aliases are now keyed by state first, like forms:');
+      console.error(`  "aliases": { "NC": { ${JSON.stringify(flat[0][0])}: ${JSON.stringify(flat[0][1])} } }`);
+      console.error('Move each entry under the state whose pm_medsup_carrier row it names.');
+      process.exit(1);
+    }
   } catch (err) {
     console.error(`${ALIAS_PATH} is not valid JSON: ${err.message}`);
     process.exit(1);
@@ -235,7 +250,10 @@ for (const state of states) {
       if (range && premium >= range.lo - EPS && premium <= range.hi + EPS) candidates.push(company);
     }
 
-    const accepted = new Set([normalize(stated), ...(aliases[stated] ?? []).map(normalize)]);
+    const accepted = new Set([
+      normalize(stated),
+      ...((aliases[state] ?? {})[stated] ?? []).map(normalize),
+    ]);
     if (candidates.some((c) => accepted.has(normalize(c)))) continue;
 
     // A declared policy form of a company that IS filed. Narrow on purpose:
@@ -309,7 +327,7 @@ for (const state of states) {
       console.log(`                but "${stated}" filed ${spread} (${off > 0 ? '+' : ''}${off}%)`);
       console.log('                two different companies. This is the defect, not an alias.');
     } else if (candidates.length === 1) {
-      suggestions.push(`  "${stated}": ["${candidates[0]}"]`);
+      suggestions.push(`${state}\u0000  "${stated}": ["${candidates[0]}"]`);
       console.log(`                "${stated}" filed nothing under that name — alias, or wrong name`);
     }
   }
@@ -325,8 +343,21 @@ if (declaredUsed.length > 0) {
 }
 if (suggestions.length > 0) {
   console.log(`If those are the same company, record it in ${ALIAS_PATH}:\n`);
+  // Grouped by state because the alias map is keyed by state. `state` itself
+  // is scoped to the per-state loop above and is long gone by here, which is
+  // why each suggestion carries its own.
+  const byState = new Map();
+  for (const entry of new Set(suggestions)) {
+    const [st, line] = entry.split('\u0000');
+    if (!byState.has(st)) byState.set(st, []);
+    byState.get(st).push('  ' + line);
+  }
   console.log('{\n  "aliases": {');
-  console.log([...new Set(suggestions)].join(',\n'));
+  console.log(
+    [...byState]
+      .map(([st, lines]) => `    "${st}": {\n${lines.join(',\n')}\n    }`)
+      .join(',\n'),
+  );
   console.log('  }\n}\n');
   console.log('Confirm each one against the filing. Matching numbers are not evidence');
   console.log('of a shared identity — that is the assumption this script exists to test.\n');

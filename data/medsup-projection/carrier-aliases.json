@@ -1,21 +1,23 @@
 {
-  "_note": "Identity claims about projection carriers, used by scripts/audit-medsup-provenance.mjs. Two kinds. `aliases`: the key is the name in pm_medsup_carrier, the values are the names CMS files that company under \u2014 a claim that two names are one company. `forms`: keyed by state, then by the name in pm_medsup_carrier \u2014 a claim that a projection carrier is a specific policy form of a company CMS does list, quoted at a premium outside that company's filed range. Both are claims, and matching premiums are not evidence for either. Confirm against the filing; treating a coincidence as an identity is the mistake the audit exists to catch.",
+  "_note": "Identity claims about projection carriers, used by scripts/audit-medsup-provenance.mjs. Two kinds, BOTH keyed by state first. `aliases`: state -> the name in pm_medsup_carrier -> the names CMS files that company under, a claim that two names are one company. `forms`: state -> the name in pm_medsup_carrier -> a claim that a projection carrier is a specific policy form of a company CMS does list, quoted at a premium outside that company's filed range. Aliases were flat until 2026-09-21, which was a latent defect rather than a live one: a key applied in every state at once, and carrier_name is only unique per (state, carrier_name). NC calls HealthSpring \"Cigna National Health Insurance Company\" while TX carries it under its own name, so a flat map had no way to say that and would have matched the wrong one the moment two states shared a key. All five NC entries below are now retired or suppressed carriers, kept because they are still accurate about who those names were. Both kinds are claims, and matching premiums are not evidence for either. Confirm against the filing; treating a coincidence as an identity is the mistake the audit exists to catch.",
   "aliases": {
-    "Cigna National Health Insurance Company": [
-      "HealthSpring Insurance Company"
-    ],
-    "Blue Medicare Supplement (BCBSNC)": [
-      "BlueCross BlueShield of North Carolina"
-    ],
-    "Humana Medicare Supplement": [
-      "Humana (Humana Benefit Plan of Illinois, Inc.)"
-    ],
-    "Humana Achieve Medicare Supplement": [
-      "Humana Achieve (CompBenefits Insurance Company)"
-    ],
-    "Physicians Select Insurance Company (PSIC) - Innovative": [
-      "Physicians Select Insurance Company (Innovative)"
-    ]
+    "NC": {
+      "Cigna National Health Insurance Company": [
+        "HealthSpring Insurance Company"
+      ],
+      "Blue Medicare Supplement (BCBSNC)": [
+        "BlueCross BlueShield of North Carolina"
+      ],
+      "Humana Medicare Supplement": [
+        "Humana (Humana Benefit Plan of Illinois, Inc.)"
+      ],
+      "Humana Achieve Medicare Supplement": [
+        "Humana Achieve (CompBenefits Insurance Company)"
+      ],
+      "Physicians Select Insurance Company (PSIC) - Innovative": [
+        "Physicians Select Insurance Company (Innovative)"
+      ]
+    }
   },
   "forms": {}
 }
