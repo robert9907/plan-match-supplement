@@ -87,6 +87,22 @@ interface RateProjectionWidgetProps {
 const fmt = (n: number | null | undefined): string =>
   n == null ? '—' : '$' + Math.round(n).toLocaleString();
 
+// pm_medsup_carrier.rating_type is a database enum — 'attained_age',
+// 'issue_age', 'community' — and it was reaching the consumer table raw,
+// underscores and all. These three labels are the exact terms the rate
+// disclosure below the table uses to explain each method, so the column
+// and its explanation read as one thing. An unrecognised value shows an
+// em dash rather than being guessed at: which method sets a premium is a
+// rate representation, and a wrong one is worse than none.
+const RATE_TYPE_LABEL: Record<string, string> = {
+  attained_age: 'Attained-age',
+  issue_age: 'Issue-age',
+  community: 'Community-rated',
+};
+
+const rateTypeLabel = (ra: string | null | undefined): string =>
+  (ra ? RATE_TYPE_LABEL[ra.trim().toLowerCase()] : undefined) ?? '—';
+
 function nearestAgeIndex(age: number): number {
   let bestI = 0;
   let bestD = Infinity;
@@ -610,7 +626,7 @@ export function RateProjectionWidget({
                     />
                     {carrierShortName(c.n)}
                   </td>
-                  <td>{c.ra ?? '\u2014'}</td>
+                  <td>{rateTypeLabel(c.ra)}</td>
                   {tableAges.map((a) => {
                     const pr = rateAt(c, gender, a);
                     // Was `c[gender][age] || 1`: a carrier with no premium at
