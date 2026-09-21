@@ -678,3 +678,75 @@ live quote on 2026-09-20/21. Against that:
 
 Medico is not in this count. It is absent from HealthSherpa's NC carrier list,
 so its 13 stored cells have no source and cannot be checked from here.
+
+## 2026-09-21: CMS is the source of truth, and it is age-aware
+
+Ruling from Rob: CMS is the source of truth, HealthSherpa is not, and the
+platform should show as much of the truth as it can.
+
+That retracts something I wrote yesterday. I said the provenance audit was
+structurally broken because it compares a HealthSherpa-sourced projection
+against CMS filings. It is not broken. The projection is.
+
+### The age parameter works, and it is a filing lookup
+
+  GET /api/v1/data/plan-compare/medigap/policies?...&age=72
+
+Verified 2026-09-21. Three things had to hold before this could be trusted:
+
+**Per-year, not per-band.** NC age 72 returns figures distinct from both 70 and
+75 — AARP 223.93 between 205.36 and 251.79, HealthSpring 185.61 between 175.81
+and 210.30.
+
+**A lookup, not a CMS curve.** At age 66 AARP holds 186.79 and HealthSpring
+holds 171.92, both unchanged from 65, while Globe Life steps 168 -> 172. Three
+carriers, one age, different behaviour. A rating formula CMS applied itself
+would have moved all three together; per-carrier filed bands do exactly this.
+
+**Second state.** TX at 65 and 75 returns the same shape, with Mutual of Omaha
+247.98 -> 312.14 and BlueCross BlueShield of Texas at 214.57, matching what is
+already stored for age 65.
+
+37 Plan G policies per query in NC, at every age.
+
+### What CMS says that the chart does not
+
+  AARP/UnitedHealthcare NC   CMS 186.79 / 251.79 / 307.50 / 307.50 at 65/75/85/95
+                             chart 188.79 / 253.79 / 309.50 / 309.50
+                             exactly +$2.00 at every age
+
+That is the offset catalogued earlier in this document as "fee-shaped". Under
+the ruling it needs no name: CMS files 186.79 and that is the number.
+
+  Medico NC   CMS Medico Preferred  180.33 / 194.25 / 433.74  (65/75/95)
+              stored curve          147.21 / 158.57 / 354.07
+              ratio                 0.81634 / 0.81634 / 0.81632
+
+The stored Medico curve is CMS's Medico Preferred scaled by a constant at every
+age. A different filed product would carry its own age curve; a constant
+multiple of another product's curve is a derived number, not a filing. It has
+been sitting at the top of the cheapest-Plan-G comparison for a 65-year-old
+woman in Durham at roughly 18% under what Medico actually filed.
+
+  Coverage    CMS lists 37 Plan G policies in NC. HealthSherpa offers 12
+              carriers there. The chart shows 14.
+
+### One thing the ruling does not fix
+
+CMS's own data has AARP NC labelled COMMUNITY_RATED and rising with age:
+186.79, 205.36 at 70, 223.93 at 72, 251.79 at 75, flat from 85. So the
+label-versus-curve contradiction that scripts/check-rating-shape.mjs detects is
+present in the source of truth itself. That check stays out of the gate, and
+the CMS scrape will reproduce the contradiction faithfully rather than
+smoothing it. Smoothing it would be inventing data.
+
+### The scraper
+
+scripts/scrape-medsup-projection-cms.ts. 42 queries — 3 states x 7 ages x 2
+genders, one reference ZIP per state (NC 27713, TX 75201, GA 30301), Plan G.
+Akamai handling carried unchanged from refresh-supp-carrier-rates.ts:
+channel chrome, real UA, 12s warm-up, in-page fetch, rotate and back off on
+403. Checkpoints every query. Writes a CSV; touches no table.
+
+It reports incomplete curves at the end, because a curve with a gap cannot be
+totalled and the chart drops that carrier silently.
