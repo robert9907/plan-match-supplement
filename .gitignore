@@ -18,4 +18,4 @@ qa/test-results
 Claude outputs/
 
 # scraper resume checkpoint (regenerated each run)
-data/*.partial.json
+data/**/*.partial.json

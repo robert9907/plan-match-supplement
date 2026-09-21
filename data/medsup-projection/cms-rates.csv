@@ -1,0 +1,1369 @@
+state,zip,plan_letter,carrier_name,rate_type,gender,age,monthly_premium
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,65,131.94
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,M,65,147.79
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,M,65,151.2
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,M,65,162.85
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,65,164.56
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,M,65,165.54
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,M,65,166.75
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,M,65,168
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,M,65,170.56
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,M,65,171.92
+NC,27713,G,WoodmenLife,ATTAINED_AGE,M,65,175.57
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,M,65,177.95
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,65,178.74
+NC,27713,G,AFLAC,ATTAINED_AGE,M,65,179.69
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,M,65,180.33
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,65,181.22
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,65,181.49
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,M,65,184.28
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,65,186.79
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,M,65,189.42
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,M,65,190.09
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,M,65,198.37
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,M,65,204.57
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,M,65,205.5
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,M,65,208.25
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,M,65,212.34
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,M,65,217.98
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,M,65,221.35
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,65,224.06
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,M,65,225.41
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,M,65,231.45
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,65,257.89
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,65,312.66
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,65,318.95
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,65,353.03
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,M,65,357
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,M,65,569.58
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,65,114.97
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,F,65,131.54
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,F,65,133.71
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,F,65,141.61
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,65,143.35
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,F,65,147.67
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,F,65,148.31
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,F,65,149.5
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,F,65,150.5
+NC,27713,G,WoodmenLife,ATTAINED_AGE,F,65,152.66
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,F,65,154.71
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,65,155.43
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,F,65,156
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,F,65,156.81
+NC,27713,G,AFLAC,ATTAINED_AGE,F,65,156.87
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,65,163.34
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,65,165.44
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,F,65,167.63
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,F,65,172.49
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,F,65,172.8
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,65,177.14
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,F,65,179.5
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,F,65,180.95
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,F,65,181.01
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,F,65,184.28
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,F,65,184.64
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,F,65,189.55
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,F,65,192.48
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,F,65,196.01
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,65,201.65
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,F,65,209.4
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,65,224.25
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,65,271.87
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,65,282.65
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,F,65,310
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,65,315.2
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,F,65,504.63
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,70,138.61
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,M,70,158.99
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,M,70,166.23
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,M,70,168.25
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,M,70,169.67
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,M,70,170.68
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,70,172.88
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,M,70,175.81
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,M,70,176.62
+NC,27713,G,WoodmenLife,ATTAINED_AGE,M,70,178.11
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,M,70,182.14
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,70,183.83
+NC,27713,G,AFLAC,ATTAINED_AGE,M,70,187.48
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,M,70,188
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,M,70,198.73
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,M,70,199.2
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,M,70,199.88
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,M,70,200.35
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,M,70,202.99
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,70,205.36
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,M,70,217.98
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,M,70,220.91
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,M,70,226.48
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,M,70,227.33
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,M,70,227.67
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,M,70,229.01
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,70,234.68
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,70,239.62
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,M,70,243
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,70,263.72
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,M,70,265.72
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,70,289.73
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,70,344.88
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,70,350.52
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,70,388.53
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,M,70,451
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,M,70,632.15
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,70,120.79
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,F,70,138.32
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,F,70,144.55
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,F,70,148.92
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,70,150.61
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,F,70,152.88
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,F,70,153.51
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,F,70,153.59
+NC,27713,G,WoodmenLife,ATTAINED_AGE,F,70,154.88
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,F,70,155.09
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,F,70,158.38
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,70,159.85
+NC,27713,G,AFLAC,ATTAINED_AGE,F,70,163.67
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,F,70,173.81
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,F,70,174.22
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,F,70,175
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,F,70,179.63
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,F,70,181.1
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,70,181.91
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,F,70,189.55
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,F,70,192.01
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,F,70,196.93
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,F,70,197.98
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,F,70,198.73
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,F,70,199.13
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,F,70,201.13
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,70,211.21
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,F,70,212.5
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,70,217.26
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,70,229.32
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,F,70,240.41
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,70,260.75
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,70,299.87
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,70,310.65
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,70,346.9
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,F,70,392
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,F,70,560.12
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,75,164.69
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,M,75,193.82
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,M,75,194.25
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,M,75,194.78
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,M,75,195.67
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,M,75,197.84
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,M,75,200
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,75,205.42
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,M,75,210.3
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,M,75,213.67
+NC,27713,G,WoodmenLife,ATTAINED_AGE,M,75,213.8
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,M,75,217.28
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,75,223.91
+NC,27713,G,AFLAC,ATTAINED_AGE,M,75,225.14
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,M,75,227
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,M,75,234.74
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,M,75,239.64
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,M,75,240.04
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,M,75,242.71
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,M,75,242.81
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,75,251.79
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,M,75,259.73
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,M,75,263.21
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,M,75,265.03
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,M,75,265.25
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,M,75,274.33
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,75,289
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,75,300.75
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,M,75,305.05
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,75,315.44
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,M,75,323.5
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,75,371.29
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,75,412.75
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,75,429.44
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,75,461.82
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,M,75,500
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,M,75,736.44
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,75,143.52
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,F,75,168.63
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,F,75,168.91
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,F,75,170.15
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,F,75,176.23
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,F,75,176.92
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,75,178.95
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,F,75,179.79
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,F,75,182.87
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,F,75,185.8
+NC,27713,G,WoodmenLife,ATTAINED_AGE,F,75,185.92
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,F,75,188.94
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,75,194.7
+NC,27713,G,AFLAC,ATTAINED_AGE,F,75,196.55
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,F,75,204.12
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,F,75,211
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,F,75,211.14
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,F,75,214.79
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,F,75,217.86
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,75,223.09
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,F,75,225.83
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,F,75,228.9
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,F,75,230.46
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,F,75,234.76
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,F,75,238.55
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,F,75,240.04
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,75,255.51
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,75,270.67
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,75,274.3
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,F,75,276
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,F,75,282.75
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,75,334.16
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,75,358.97
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,75,380.65
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,75,412.34
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,F,75,435
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,F,75,652.6
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,80,195.28
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,M,80,223.63
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,M,80,229.27
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,M,80,229.56
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,M,80,230.23
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,M,80,242.69
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,M,80,243.5
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,80,243.56
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,M,80,252.52
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,M,80,260
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,M,80,264.58
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,M,80,267.03
+NC,27713,G,WoodmenLife,ATTAINED_AGE,M,80,268.36
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,80,272.5
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,M,80,272.53
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,M,80,277.02
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,M,80,286.95
+NC,27713,G,AFLAC,ATTAINED_AGE,M,80,293.22
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,M,80,295.29
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,80,298.21
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,M,80,299.37
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,M,80,305.88
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,M,80,306.96
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,M,80,316.39
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,M,80,318.41
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,M,80,332.01
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,80,333.63
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,M,80,350.23
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,80,376.45
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,80,396.88
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,M,80,403.75
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,80,464.75
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,80,476.15
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,80,508.36
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,M,80,525
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,80,577.71
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,M,80,851.16
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,80,170.17
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,F,80,199.62
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,F,80,200.3
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,F,80,202.34
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,F,80,208.45
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,F,80,211.03
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,80,212.18
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,F,80,215.42
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,F,80,219.58
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,F,80,230.07
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,F,80,232.2
+NC,27713,G,WoodmenLife,ATTAINED_AGE,F,80,233.35
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,80,236.96
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,F,80,236.96
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,F,80,242
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,F,80,249.52
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,F,80,251.83
+NC,27713,G,AFLAC,ATTAINED_AGE,F,80,255.98
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,F,80,261.32
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,80,264.26
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,F,80,265.98
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,F,80,271.75
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,F,80,275.12
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,F,80,276.88
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,F,80,288.71
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,80,290.62
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,F,80,299.37
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,F,80,316.87
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,80,338.82
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,80,345.11
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,F,80,353
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,80,414.04
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,80,418.29
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,80,450.65
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,F,80,456
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,80,515.82
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,F,80,754.32
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,85,225.86
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,M,85,256.22
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,M,85,265.84
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,M,85,279.3
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,85,281.71
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,M,85,289.57
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,M,85,298.8
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,M,85,299
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,M,85,303.33
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,M,85,307.23
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,85,307.5
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,M,85,316.9
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,M,85,328.14
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,M,85,331.64
+NC,27713,G,WoodmenLife,ATTAINED_AGE,M,85,339.73
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,M,85,349.12
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,85,353.54
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,M,85,354.77
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,M,85,357.19
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,M,85,359.27
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,M,85,363.85
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,M,85,373.65
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,85,373.92
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,M,85,379.1
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,M,85,388.13
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,M,85,401.26
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,M,85,403.75
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,M,85,407.45
+NC,27713,G,AFLAC,ATTAINED_AGE,M,85,408.67
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,85,458.89
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,85,492.21
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,85,524.15
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,M,85,525
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,85,530.36
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,85,566.55
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,85,650.33
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,M,85,1007.59
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,85,196.82
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,F,85,231.81
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,F,85,241.62
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,F,85,242.87
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,85,245.41
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,F,85,251.8
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,F,85,259.96
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,F,85,267.15
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,F,85,268.33
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,85,272.5
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,F,85,275.57
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,F,85,278
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,F,85,285.34
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,F,85,288.39
+NC,27713,G,WoodmenLife,ATTAINED_AGE,F,85,295.42
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,F,85,303.58
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,85,307.43
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,F,85,310.71
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,F,85,317.94
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,F,85,322.2
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,85,322.24
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,F,85,322.54
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,F,85,324.92
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,F,85,337.52
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,F,85,353
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,F,85,354.3
+NC,27713,G,AFLAC,ATTAINED_AGE,F,85,356.77
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,F,85,363.04
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,F,85,379.1
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,85,413.01
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,85,428.01
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,F,85,456
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,85,461.2
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,85,464.65
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,85,509.87
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,85,580.66
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,F,85,893.04
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,90,258.3
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,M,90,289.18
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,90,307.5
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,M,90,308.04
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,90,322.16
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,M,90,335.11
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,M,90,344
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,M,90,348.05
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,M,90,364.59
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,M,90,375.23
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,M,90,377.95
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,M,90,378
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,M,90,379.1
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,M,90,382.86
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,M,90,395.4
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,M,90,400.07
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,M,90,403.75
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,90,409.19
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,M,90,410.25
+NC,27713,G,WoodmenLife,ATTAINED_AGE,M,90,417.82
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,M,90,428.74
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,M,90,430.25
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,M,90,435.07
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,M,90,436.85
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,M,90,443.79
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,90,445.53
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,M,90,452.89
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,M,90,481.95
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,90,524.15
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,M,90,525
+NC,27713,G,AFLAC,ATTAINED_AGE,M,90,553.33
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,90,559.39
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,90,566.27
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,90,593.09
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,90,664.1
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,90,690.62
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,M,90,1038.88
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,90,225.09
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,F,90,261.64
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,90,272.5
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,F,90,280.01
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,90,280.65
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,F,90,291.4
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,F,90,302.65
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,F,90,317
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,F,90,320
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,F,90,328.82
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,F,90,332.29
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,F,90,332.92
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,F,90,334.58
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,F,90,343.82
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,F,90,347.89
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,90,350.12
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,F,90,353
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,F,90,356.77
+NC,27713,G,WoodmenLife,ATTAINED_AGE,F,90,363.32
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,F,90,374.13
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,F,90,378.32
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,F,90,379.1
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,F,90,379.42
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,F,90,385.9
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,90,387.42
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,F,90,397.12
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,F,90,409.75
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,F,90,419.1
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,F,90,456
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,90,464.65
+NC,27713,G,AFLAC,ATTAINED_AGE,F,90,483.06
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,90,492.41
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,90,503.45
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,90,515.73
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,90,592.95
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,90,621.54
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,F,90,920.79
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,95,284.15
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,95,307.5
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,M,95,320.85
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,M,95,335.11
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,M,95,348.49
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,95,354.4
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,M,95,375.23
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,M,95,379
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,M,95,379.1
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,M,95,402.59
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,M,95,403.75
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,M,95,410.25
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,M,95,433.74
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,M,95,436.85
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,95,440.22
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,M,95,458.37
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,M,95,467.25
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,M,95,470.83
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,M,95,475.4
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,M,95,477.11
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,M,95,482.69
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,M,95,489.99
+NC,27713,G,WoodmenLife,ATTAINED_AGE,M,95,491.58
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,M,95,492.72
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,M,95,502.48
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,95,524.15
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,M,95,525
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,M,95,537.43
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,95,539.82
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,M,95,542.17
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,95,582.6
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,95,618.23
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,95,664.1
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,95,687.56
+NC,27713,G,AFLAC,ATTAINED_AGE,M,95,738.03
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,95,763.24
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,M,95,1038.88
+NC,27713,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,95,247.61
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,95,272.5
+NC,27713,G,"Physicians Mutual Insurance Company, Inc. (Innovative)",ATTAINED_AGE,F,95,290.29
+NC,27713,G,Old Surety Life Insurance Company,ISSUE_AGE,F,95,291.4
+NC,27713,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,95,308.74
+NC,27713,G,Lumos Insurance,ATTAINED_AGE,F,95,316.82
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Standard),COMMUNITY_RATED,F,95,332.29
+NC,27713,G,Erie Family Life Insurance Company,ATTAINED_AGE,F,95,350.04
+NC,27713,G,BlueCross BlueShield of North Carolina,ATTAINED_AGE,F,95,353
+NC,27713,G,Globe Life and Accident Insurance Company,ATTAINED_AGE,F,95,353
+NC,27713,G,Aetna Health Insurance Company,ATTAINED_AGE,F,95,356.77
+NC,27713,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,95,375.11
+NC,27713,G,Medico Insurance Company (Preferred),ATTAINED_AGE,F,95,377.16
+NC,27713,G,USAA Life Insurance Company,ATTAINED_AGE,F,95,379.1
+NC,27713,G,New Era Life Insurance Company of the Midwest,ATTAINED_AGE,F,95,397.12
+NC,27713,G,HealthSpring Insurance Company,ATTAINED_AGE,F,95,398.59
+NC,27713,G,Nassau Life Insurance Company,ATTAINED_AGE,F,95,406.5
+NC,27713,G,LifeShield National Insurance Company,ATTAINED_AGE,F,95,413.39
+NC,27713,G,Medico Insurance Company (Standard I),ATTAINED_AGE,F,95,414.88
+NC,27713,G,Insurance Company of North America,ATTAINED_AGE,F,95,416.75
+NC,27713,G,Mutual of Omaha (Omaha Insurance Company),ATTAINED_AGE,F,95,426.07
+NC,27713,G,"Humana (Humana Benefit Plan of Illinois, Inc.)",ATTAINED_AGE,F,95,427.16
+NC,27713,G,WoodmenLife,ATTAINED_AGE,F,95,427.46
+NC,27713,G,Heartland National Life Insurance Company,ATTAINED_AGE,F,95,428.45
+NC,27713,G,"Physicians Mutual Insurance Company, Inc.",ATTAINED_AGE,F,95,454.62
+NC,27713,G,United American Insurance Company,ATTAINED_AGE,F,95,456
+NC,27713,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,95,464.65
+NC,27713,G,Humana Achieve (CompBenefits Insurance Company),ATTAINED_AGE,F,95,467.33
+NC,27713,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,95,469.4
+NC,27713,G,Medico Insurance Company (Standard II),ATTAINED_AGE,F,95,471.45
+NC,27713,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,95,506.62
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,95,556.4
+NC,27713,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,95,592.95
+NC,27713,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,95,597.88
+NC,27713,G,AFLAC,ATTAINED_AGE,F,95,644.3
+NC,27713,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,95,686.92
+NC,27713,G,AARP - UnitedHealthcare Insurance Company of America (Level 2),COMMUNITY_RATED,F,95,920.79
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,65,143.03
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,M,65,157
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,M,65,164.23
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,M,65,168.24
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,M,65,170.4
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,M,65,173.47
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,65,180.51
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,M,65,183.18
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,M,65,183.98
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,65,186.3
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,M,65,187.33
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,M,65,190.82
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,65,192.95
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,M,65,198.49
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,M,65,198.73
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,M,65,202.69
+TX,75201,G,WoodmenLife,ATTAINED_AGE,M,65,206.36
+TX,75201,G,AFLAC,ATTAINED_AGE,M,65,206.65
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,M,65,207.25
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,M,65,213.01
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,65,214.43
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,M,65,214.57
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,M,65,216.84
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,M,65,218
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,M,65,218.92
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,65,229.75
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,65,239.56
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,M,65,247.98
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,M,65,259.98
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,65,284.94
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,65,296.44
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,65,297.73
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,65,734.56
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,65,124.65
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,F,65,140.58
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,F,65,148.25
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,F,65,148.59
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,F,65,150.84
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,F,65,152.95
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,65,157.26
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,F,65,159.29
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,F,65,165.75
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,F,65,165.93
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,F,65,167.28
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,65,167.77
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,F,65,172.6
+TX,75201,G,WoodmenLife,ATTAINED_AGE,F,65,179.44
+TX,75201,G,AFLAC,ATTAINED_AGE,F,65,180.41
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,F,65,183.38
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,65,186.47
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,F,65,188.41
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,F,65,188.56
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,65,188.87
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,F,65,189
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,F,65,191.59
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,F,65,193.64
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,F,65,196.63
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,F,65,198.73
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,65,206.88
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,65,212.11
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,F,65,215.65
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,F,65,225.99
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,65,254.41
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,65,257.77
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,65,258.9
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,65,650.86
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,70,150.26
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,M,70,172.87
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,M,70,174.65
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,M,70,175.21
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,M,70,175.23
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,M,70,179.19
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,M,70,189.6
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,70,189.64
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,M,70,189.7
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,M,70,190.08
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,M,70,192.73
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,M,70,204.45
+TX,75201,G,WoodmenLife,ATTAINED_AGE,M,70,209.35
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,M,70,215.96
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,M,70,216.28
+TX,75201,G,AFLAC,ATTAINED_AGE,M,70,218.52
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,M,70,219.01
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,70,220.54
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,M,70,232.32
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,M,70,234.09
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,70,240.59
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,M,70,255.19
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,70,255.43
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,M,70,262.86
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,70,263.32
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,M,70,270.6
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,M,70,275.64
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,M,70,277
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,70,296.8
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,70,302.92
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,70,306.68
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,70,322.25
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,70,734.56
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,70,130.96
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,F,70,152.36
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,F,70,154.94
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,F,70,155.89
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,F,70,158.57
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,F,70,158.77
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,F,70,164.95
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,70,165.22
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,F,70,167.59
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,F,70,168.25
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,F,70,172.27
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,F,70,177.78
+TX,75201,G,WoodmenLife,ATTAINED_AGE,F,70,182.05
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,F,70,190.45
+TX,75201,G,AFLAC,ATTAINED_AGE,F,70,190.77
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,70,191.78
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,F,70,195.69
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,F,70,196.33
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,F,70,208.66
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,70,216.64
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,F,70,228.57
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,70,231.63
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,F,70,231.99
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,70,233.17
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,F,70,234.09
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,F,70,239.74
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,F,70,241
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,F,70,242.16
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,70,266.68
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,70,267.23
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,70,270.46
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,70,280.24
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,70,650.86
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,75,178.54
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,M,75,186.85
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,M,75,200.4
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,M,75,201.92
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,M,75,205.54
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,M,75,218.45
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,M,75,219.23
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,M,75,219.77
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,75,225.33
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,M,75,225.58
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,M,75,233.36
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,M,75,233.57
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,M,75,246.36
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,M,75,247.34
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,M,75,247.56
+TX,75201,G,WoodmenLife,ATTAINED_AGE,M,75,251.31
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,75,268.62
+TX,75201,G,AFLAC,ATTAINED_AGE,M,75,269.29
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,M,75,279.14
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,M,75,282.65
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,M,75,300.08
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,75,308.04
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,75,308.07
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,M,75,312.14
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,M,75,321
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,75,322.72
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,M,75,323.95
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,M,75,326.64
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,75,360.07
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,75,369.54
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,75,380.09
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,75,385.72
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,M,75,433.6
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,75,734.56
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,75,155.6
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,F,75,162.48
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,F,75,178.73
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,F,75,181.3
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,F,75,183.58
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,F,75,190.05
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,75,196.31
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,F,75,196.88
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,F,75,199.58
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,F,75,199.82
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,F,75,202.92
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,F,75,203.1
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,F,75,214.23
+TX,75201,G,WoodmenLife,ATTAINED_AGE,F,75,218.53
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,F,75,223.78
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,F,75,225.06
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,75,233.58
+TX,75201,G,AFLAC,ATTAINED_AGE,F,75,235.09
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,F,75,253.86
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,F,75,271.43
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,75,272.43
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,F,75,272.8
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,75,277.35
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,F,75,279.14
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,F,75,280
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,F,75,281.89
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,75,285.82
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,F,75,292.72
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,75,321.34
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,75,321.49
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,75,335.4
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,75,342.18
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,F,75,384.1
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,75,650.86
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,80,211.7
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,M,80,220.83
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,M,80,228.93
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,M,80,242.91
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,M,80,249.71
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,M,80,254.76
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,M,80,259.48
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,80,267.18
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,M,80,274.42
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,M,80,276.03
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,M,80,277
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,M,80,282.56
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,M,80,283.32
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,M,80,286.79
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,M,80,299.72
+TX,75201,G,WoodmenLife,ATTAINED_AGE,M,80,315.43
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,80,326.92
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,M,80,329.8
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,M,80,343.35
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,M,80,343.9
+TX,75201,G,AFLAC,ATTAINED_AGE,M,80,344.61
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,80,355.64
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,M,80,360
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,M,80,373.93
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,M,80,381.85
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,80,382.12
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,M,80,382.67
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,80,385.35
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,M,80,433.6
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,80,444.92
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,80,449.59
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,80,450.43
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,80,475.52
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,80,734.56
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,80,184.49
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,F,80,192.02
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,F,80,207.13
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,F,80,211.23
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,F,80,225.75
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,F,80,227
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,F,80,231.56
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,80,232.77
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,F,80,240.03
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,F,80,242.75
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,F,80,249.15
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,F,80,249.38
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,F,80,255.65
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,F,80,257.57
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,F,80,260.63
+TX,75201,G,WoodmenLife,ATTAINED_AGE,F,80,274.28
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,80,284.28
+TX,75201,G,AFLAC,ATTAINED_AGE,F,80,300.84
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,F,80,308.87
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,80,309.83
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,F,80,312.15
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,F,80,313
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,F,80,325.15
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,F,80,329.8
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,F,80,332.28
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,80,338.47
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,F,80,343.34
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,80,346.93
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,F,80,384.1
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,80,386.86
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,80,390.94
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,80,402.17
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,80,428.06
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,80,650.86
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,85,244.85
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,M,85,260.06
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,M,85,268.67
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,M,85,295.37
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,M,85,295.54
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,85,309.02
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,M,85,317.94
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,M,85,320.97
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,M,85,322.24
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,M,85,335.84
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,M,85,336.76
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,M,85,342
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,M,85,348.99
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,M,85,356.19
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,M,85,360
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,M,85,364.66
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,85,394
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,85,398.48
+TX,75201,G,WoodmenLife,ATTAINED_AGE,M,85,399.32
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,M,85,405.71
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,M,85,414.46
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,M,85,418.4
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,85,424.15
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,M,85,433.6
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,M,85,438.69
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,M,85,440.48
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,M,85,445.9
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,85,469.52
+TX,75201,G,AFLAC,ATTAINED_AGE,M,85,478.01
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,85,495.55
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,85,507.05
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,85,546.98
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,85,579.43
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,85,734.56
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,85,213.39
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,F,85,233.63
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,F,85,235.26
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,F,85,256.99
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,F,85,268.45
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,85,269.22
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,F,85,289.03
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,F,85,290.38
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,F,85,292.03
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,F,85,292.94
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,F,85,292.98
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,F,85,302.58
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,F,85,309.73
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,F,85,313
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,F,85,314.28
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,F,85,317.09
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,85,343.57
+TX,75201,G,WoodmenLife,ATTAINED_AGE,F,85,347.24
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,85,349
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,85,368.82
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,F,85,368.86
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,F,85,375.77
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,F,85,383.02
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,F,85,384.1
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,F,85,387.68
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,F,85,393.92
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,F,85,414.46
+TX,75201,G,AFLAC,ATTAINED_AGE,F,85,417.3
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,85,422.68
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,85,430.93
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,85,452.72
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,85,475.64
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,85,521.58
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,85,650.86
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,90,280.01
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,M,90,289.63
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,M,90,334.81
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,M,90,342.32
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,90,353.39
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,M,90,357.48
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,M,90,360
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,M,90,362.21
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,M,90,368.29
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,90,394
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,M,90,405.71
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,M,90,406.65
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,M,90,414.46
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,M,90,418.52
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,M,90,422.75
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,M,90,425.97
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,M,90,426.17
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,M,90,429.68
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,M,90,433.6
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,90,436.31
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,M,90,438.7
+TX,75201,G,WoodmenLife,ATTAINED_AGE,M,90,491.11
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,M,90,494.71
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,M,90,497.71
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,M,90,509.04
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,M,90,512.21
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,90,517.79
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,90,529.11
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,90,534.5
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,90,572.14
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,90,634.12
+TX,75201,G,AFLAC,ATTAINED_AGE,M,90,644.14
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,90,706.1
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,90,734.56
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,90,244.03
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,F,90,262.06
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,F,90,291.14
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,90,307.88
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,F,90,311.12
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,F,90,313
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,F,90,320.26
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,F,90,323.45
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,F,90,329.28
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,90,349
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,F,90,363.93
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,F,90,367.6
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,F,90,368.86
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,F,90,369.69
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,F,90,370.59
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,90,373.58
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,F,90,373.64
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,F,90,377.17
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,F,90,384.1
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,F,90,395.45
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,F,90,414.46
+TX,75201,G,WoodmenLife,ATTAINED_AGE,F,90,427.05
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,F,90,432.81
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,F,90,444.49
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,F,90,445.24
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,F,90,457.21
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,90,460.14
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,90,462.31
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,90,464.78
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,90,515.02
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,90,551.41
+TX,75201,G,AFLAC,ATTAINED_AGE,F,90,562.33
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,90,635.58
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,90,650.86
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,M,95,308.04
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,M,95,319.81
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,M,95,360
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,M,95,362.21
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,M,95,387.2
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,M,95,388.76
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,M,95,394
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,M,95,394.69
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,M,95,405.71
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,M,95,406.65
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,M,95,414.46
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,M,95,417.24
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,M,95,433.6
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,M,95,458.96
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,M,95,459.14
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,M,95,469.12
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,M,95,478.29
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,M,95,510.59
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,M,95,512.21
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,M,95,517.79
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,M,95,521.55
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,M,95,526.6
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,M,95,530.83
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,M,95,544.37
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,M,95,549.54
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,M,95,550.73
+TX,75201,G,WoodmenLife,ATTAINED_AGE,M,95,577.82
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,M,95,584.27
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,M,95,632.2
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,M,95,647.62
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,M,95,717.44
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,M,95,734.56
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,M,95,780.25
+TX,75201,G,AFLAC,ATTAINED_AGE,M,95,855.06
+TX,75201,G,Atlantic Capital Life Assurance Company (Preferred),ATTAINED_AGE,F,95,268.46
+TX,75201,G,Physicians Select Insurance Company (Innovative),ATTAINED_AGE,F,95,289.35
+TX,75201,G,United American Insurance Company,ATTAINED_AGE,F,95,313
+TX,75201,G,Old Surety Life Insurance Company,ISSUE_AGE,F,95,329.28
+TX,75201,G,Atlantic Capital Life Assurance Company (Standard),ATTAINED_AGE,F,95,338.69
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Standard),COMMUNITY_RATED,F,95,349
+TX,75201,G,Lumos Insurance,ATTAINED_AGE,F,95,352.05
+TX,75201,G,Physicians Select Insurance Company,ATTAINED_AGE,F,95,357.1
+TX,75201,G,Medico Life and Health Insurance Company (Preferred),ATTAINED_AGE,F,95,362.81
+TX,75201,G,Wisconsin Physicians Service Insurance Corporation,ATTAINED_AGE,F,95,368.86
+TX,75201,G,New Era Life Insurance Company,ATTAINED_AGE,F,95,369.69
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 1),COMMUNITY_RATED,F,95,384.1
+TX,75201,G,Medico Life and Health Insurance Company (Standard I),ATTAINED_AGE,F,95,399.1
+TX,75201,G,State Farm Mutual Automobile Insurance Company,ATTAINED_AGE,F,95,400.1
+TX,75201,G,Texas Farm Bureau Health Plans,ATTAINED_AGE,F,95,413.94
+TX,75201,G,USAA Life Insurance Company,ATTAINED_AGE,F,95,414.46
+TX,75201,G,HealthSpring Insurance Company,ATTAINED_AGE,F,95,415.91
+TX,75201,G,LifeShield National Insurance Company,ATTAINED_AGE,F,95,443.99
+TX,75201,G,Aetna Health Insurance Company,ATTAINED_AGE,F,95,445.24
+TX,75201,G,Medico Life and Health Insurance Company (Standard II),ATTAINED_AGE,F,95,453.52
+TX,75201,G,Nassau Life Insurance Company,ATTAINED_AGE,F,95,458.14
+TX,75201,G,Guarantee Trust Life Insurance Company,ATTAINED_AGE,F,95,462.31
+TX,75201,G,Insurance Company of North America,ATTAINED_AGE,F,95,469.83
+TX,75201,G,GPM Health and Life Insurance Company,ATTAINED_AGE,F,95,473.38
+TX,75201,G,Mutual of Omaha (Mutual of Omaha Insurance Company),ATTAINED_AGE,F,95,477.87
+TX,75201,G,BlueCross BlueShield of Texas,ATTAINED_AGE,F,95,495.09
+TX,75201,G,WoodmenLife,ATTAINED_AGE,F,95,502.45
+TX,75201,G,Humana (Emphesys Insurance Company),ATTAINED_AGE,F,95,524.77
+TX,75201,G,American Benefit Life Insurance Company,ATTAINED_AGE,F,95,563.14
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company),ATTAINED_AGE,F,95,569.08
+TX,75201,G,HealthSpring Insurance Company (Standard II),ATTAINED_AGE,F,95,623.86
+TX,75201,G,AARP - UnitedHealthcare Insurance Company (Level 2),COMMUNITY_RATED,F,95,650.86
+TX,75201,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ATTAINED_AGE,F,95,702.34
+TX,75201,G,AFLAC,ATTAINED_AGE,F,95,746.47
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,M,65,165.91
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,M,65,182.75
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,M,65,194.41
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,M,65,196.86
+GA,30301,G,Lumos Insurance,ISSUE_AGE,M,65,198.63
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,M,65,201.03
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,M,65,206.87
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,M,65,207
+GA,30301,G,WoodmenLife,ISSUE_AGE,M,65,211.83
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,M,65,216.64
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,M,65,219.18
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,M,65,221
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,M,65,223
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,M,65,225.81
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,M,65,227.84
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,M,65,228.44
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,M,65,228.48
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,M,65,228.99
+GA,30301,G,AFLAC,ISSUE_AGE,M,65,230.95
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,M,65,239.75
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,M,65,249.79
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,M,65,294.07
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,M,65,309.56
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,M,65,341.76
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,M,65,345.12
+GA,30301,G,United American Insurance Company,ISSUE_AGE,M,65,382
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,M,65,529
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,F,65,144.62
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,F,65,158.92
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,F,65,174.81
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,F,65,175.07
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,F,65,180.25
+GA,30301,G,Lumos Insurance,ISSUE_AGE,F,65,180.58
+GA,30301,G,WoodmenLife,ISSUE_AGE,F,65,184.2
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,F,65,190.59
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,F,65,191
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,F,65,191.71
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,F,65,195.5
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,F,65,196.36
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,F,65,196.86
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,F,65,197.5
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,F,65,198.12
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,F,65,198.65
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,F,65,199.09
+GA,30301,G,AFLAC,ISSUE_AGE,F,65,201.62
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,F,65,206.81
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,F,65,215.89
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,F,65,226.02
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,F,65,255.71
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,F,65,269.17
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,F,65,297.19
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,F,65,308.15
+GA,30301,G,United American Insurance Company,ISSUE_AGE,F,65,332
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,F,65,468.82
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,M,70,171.86
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,M,70,182.75
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,M,70,201.03
+GA,30301,G,Lumos Insurance,ISSUE_AGE,M,70,204.72
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,M,70,214.3
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,M,70,223.56
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,M,70,223.72
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,M,70,225.58
+GA,30301,G,WoodmenLife,ISSUE_AGE,M,70,228.1
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,M,70,228.44
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,M,70,231.75
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,M,70,233.72
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,M,70,238
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,M,70,239.95
+GA,30301,G,AFLAC,ISSUE_AGE,M,70,244.89
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,M,70,245.24
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,M,70,251.09
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,M,70,263.25
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,M,70,264.05
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,M,70,265.8
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,M,70,309.74
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,M,70,314.23
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,M,70,324.06
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,M,70,359.93
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,M,70,362.71
+GA,30301,G,United American Insurance Company,ISSUE_AGE,M,70,417
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,M,70,623.99
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,F,70,149.8
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,F,70,158.92
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,F,70,174.81
+GA,30301,G,Lumos Insurance,ISSUE_AGE,F,70,186.04
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,F,70,186.69
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,F,70,194.4
+GA,30301,G,WoodmenLife,ISSUE_AGE,F,70,198.34
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,F,70,198.65
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,F,70,199.67
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,F,70,203.23
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,F,70,205.09
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,F,70,208.65
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,F,70,213.16
+GA,30301,G,AFLAC,ISSUE_AGE,F,70,213.79
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,F,70,216
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,F,70,223.72
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,F,70,226.07
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,F,70,233.25
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,F,70,235.37
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,F,70,238.9
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,F,70,273.25
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,F,70,278.87
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,F,70,281.78
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,F,70,312.98
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,F,70,323.85
+GA,30301,G,United American Insurance Company,ISSUE_AGE,F,70,362
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,F,70,553.19
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,M,75,191.1
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,M,75,195.45
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,M,75,210.21
+GA,30301,G,Lumos Insurance,ISSUE_AGE,M,75,237.34
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,M,75,238.88
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,M,75,243.75
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,M,75,250.39
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,M,75,255.5
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,M,75,259.32
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,M,75,260.61
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,M,75,264.1
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,M,75,277.64
+GA,30301,G,AFLAC,ISSUE_AGE,M,75,277.75
+GA,30301,G,WoodmenLife,ISSUE_AGE,M,75,278.12
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,M,75,281.56
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,M,75,289
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,M,75,299.2
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,M,75,299.74
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,M,75,313.25
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,M,75,321.48
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,M,75,338.55
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,M,75,386.22
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,M,75,396.66
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,M,75,400.46
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,M,75,422.35
+GA,30301,G,United American Insurance Company,ISSUE_AGE,M,75,439
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,M,75,741.99
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,F,75,166.17
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,F,75,170.39
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,F,75,182.79
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,F,75,207.72
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,F,75,212.34
+GA,30301,G,Lumos Insurance,ISSUE_AGE,F,75,215.73
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,F,75,217.73
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,F,75,226.08
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,F,75,229.48
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,F,75,229.65
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,F,75,241.4
+GA,30301,G,WoodmenLife,ISSUE_AGE,F,75,241.84
+GA,30301,G,AFLAC,ISSUE_AGE,F,75,242.47
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,F,75,244.84
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,F,75,260.61
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,F,75,261.04
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,F,75,265
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,F,75,271.19
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,F,75,277.5
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,F,75,289.43
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,F,75,294.34
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,F,75,335.84
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,F,75,357.09
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,F,75,357.55
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,F,75,367.26
+GA,30301,G,United American Insurance Company,ISSUE_AGE,F,75,382
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,F,75,657.62
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,M,80,211.8
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,M,80,231.68
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,M,80,232.98
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,M,80,264.75
+GA,30301,G,Lumos Insurance,ISSUE_AGE,M,80,275.1
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,M,80,287.95
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,M,80,288.86
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,M,80,290.17
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,M,80,295.83
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,M,80,306.36
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,M,80,308.04
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,M,80,316
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,M,80,316.29
+GA,30301,G,AFLAC,ISSUE_AGE,M,80,318.76
+GA,30301,G,WoodmenLife,ISSUE_AGE,M,80,324.23
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,M,80,329.29
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,M,80,331.19
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,M,80,335.44
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,M,80,345.25
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,M,80,402.08
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,M,80,402.17
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,M,80,440.49
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,M,80,447.46
+GA,30301,G,United American Insurance Company,ISSUE_AGE,M,80,458
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,M,80,496.28
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,M,80,496.78
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,M,80,817.51
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,F,80,184.18
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,F,80,201.9
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,F,80,202.6
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,F,80,230.22
+GA,30301,G,Lumos Insurance,ISSUE_AGE,F,80,250.09
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,F,80,250.39
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,F,80,251.68
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,F,80,256.79
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,F,80,261.83
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,F,80,266.4
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,F,80,274.97
+GA,30301,G,AFLAC,ISSUE_AGE,F,80,278.28
+GA,30301,G,WoodmenLife,ISSUE_AGE,F,80,281.94
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,F,80,283.9
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,F,80,287.99
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,F,80,290
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,F,80,303.47
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,F,80,305.75
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,F,80,308.04
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,F,80,349.6
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,F,80,362.05
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,F,80,383.04
+GA,30301,G,United American Insurance Company,ISSUE_AGE,F,80,398
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,F,80,399.52
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,F,80,431.99
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,F,80,446.74
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,F,80,724.29
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,M,85,249.11
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,M,85,268.02
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,M,85,274.03
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,M,85,311.39
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,M,85,316
+GA,30301,G,Lumos Insurance,ISSUE_AGE,M,85,318.96
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,M,85,324.7
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,M,85,331.14
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,M,85,334.2
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,M,85,348.25
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,M,85,352.31
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,M,85,356.75
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,M,85,356.82
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,M,85,363.77
+GA,30301,G,AFLAC,ISSUE_AGE,M,85,365.4
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,M,85,377.25
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,M,85,381.31
+GA,30301,G,WoodmenLife,ISSUE_AGE,M,85,386.16
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,M,85,393.35
+GA,30301,G,United American Insurance Company,ISSUE_AGE,M,85,458
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,M,85,475.71
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,M,85,477.51
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,M,85,490.01
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,M,85,507.04
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,M,85,590.02
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,M,85,604.72
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,M,85,893.03
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,F,85,216.62
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,F,85,233.6
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,F,85,238.28
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,F,85,270.78
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,F,85,287.34
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,F,85,287.95
+GA,30301,G,Lumos Insurance,ISSUE_AGE,F,85,289.91
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,F,85,290
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,F,85,291.18
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,F,85,304.56
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,F,85,306.36
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,F,85,308.25
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,F,85,316.29
+GA,30301,G,AFLAC,ISSUE_AGE,F,85,318.99
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,F,85,322.83
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,F,85,334.25
+GA,30301,G,WoodmenLife,ISSUE_AGE,F,85,335.78
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,F,85,342.04
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,F,85,381.31
+GA,30301,G,United American Insurance Company,ISSUE_AGE,F,85,398
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,F,85,415.23
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,F,85,424.74
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,F,85,440.9
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,F,85,441.12
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,F,85,513.06
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,F,85,544.35
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,F,85,791.55
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,M,90,306.49
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,M,90,310.44
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,M,90,316
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,M,90,341.49
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,M,90,356.82
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,M,90,363.33
+GA,30301,G,Lumos Insurance,ISSUE_AGE,M,90,369.71
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,M,90,377.25
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,M,90,379.87
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,M,90,380.81
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,M,90,381.31
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,M,90,382.19
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,M,90,388.05
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,M,90,405.16
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,M,90,413.75
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,M,90,416.75
+GA,30301,G,AFLAC,ISSUE_AGE,M,90,417.33
+GA,30301,G,United American Insurance Company,ISSUE_AGE,M,90,458
+GA,30301,G,WoodmenLife,ISSUE_AGE,M,90,458.02
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,M,90,467.18
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,M,90,499.5
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,M,90,527.22
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,M,90,581.57
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,M,90,597.11
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,M,90,700.76
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,M,90,736.94
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,M,90,893.03
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,F,90,267.14
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,F,90,269.95
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,F,90,290
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,F,90,296.95
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,F,90,321.54
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,F,90,322.83
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,F,90,322.92
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,F,90,331.14
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,F,90,332.96
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,F,90,334.25
+GA,30301,G,Lumos Insurance,ISSUE_AGE,F,90,336.06
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,F,90,337.44
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,F,90,352.31
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,F,90,362.52
+GA,30301,G,AFLAC,ISSUE_AGE,F,90,364.33
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,F,90,366.17
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,F,90,381.31
+GA,30301,G,United American Insurance Company,ISSUE_AGE,F,90,398
+GA,30301,G,WoodmenLife,ISSUE_AGE,F,90,398.29
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,F,90,406.24
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,F,90,445.98
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,F,90,458.44
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,F,90,505.71
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,F,90,537.48
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,F,90,609.36
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,F,90,663.33
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,F,90,791.55
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,M,95,316
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,M,95,337.14
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,M,95,356.82
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,M,95,377.25
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,M,95,381.31
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,M,95,386.87
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,M,95,398.48
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,M,95,406.56
+GA,30301,G,Lumos Insurance,ISSUE_AGE,M,95,418.24
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,M,95,420.39
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,M,95,425.55
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,M,95,437.94
+GA,30301,G,United American Insurance Company,ISSUE_AGE,M,95,458
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,M,95,465.93
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,M,95,467.18
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,M,95,474.98
+GA,30301,G,AFLAC,ISSUE_AGE,M,95,476.3
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,M,95,483.59
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,M,95,491.08
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,M,95,499.5
+GA,30301,G,WoodmenLife,ISSUE_AGE,M,95,542.63
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,M,95,582.07
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,M,95,659.79
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,M,95,667.14
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,M,95,700.76
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,M,95,814.33
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,M,95,893.03
+GA,30301,G,Anthem Blue Cross and Blue Shield - Georgia,ISSUE_AGE,F,95,290
+GA,30301,G,Atlantic Capital Life Assurance Company (Preferred),ISSUE_AGE,F,95,293.85
+GA,30301,G,Physicians Life Insurance Company,ISSUE_AGE,F,95,322.83
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Standard),ISSUE_AGE,F,95,334.25
+GA,30301,G,Medico Insurance Company (Preferred),ISSUE_AGE,F,95,336.41
+GA,30301,G,State Farm Mutual Automobile Insurance Company,ISSUE_AGE,F,95,338.3
+GA,30301,G,Humana (Emphesys Insurance Company),ISSUE_AGE,F,95,359.79
+GA,30301,G,Atlantic Capital Life Assurance Company (Standard),ISSUE_AGE,F,95,366.26
+GA,30301,G,Medico Insurance Company (Standard I),ISSUE_AGE,F,95,370.05
+GA,30301,G,Lumos Insurance,ISSUE_AGE,F,95,380.16
+GA,30301,G,LifeShield National Insurance Company,ISSUE_AGE,F,95,380.81
+GA,30301,G,USAA Life Insurance Company,ISSUE_AGE,F,95,381.31
+GA,30301,G,United American Insurance Company,ISSUE_AGE,F,95,398
+GA,30301,G,American Benefit Life Insurance Company,ISSUE_AGE,F,95,405.16
+GA,30301,G,HealthSpring National Health Insurance Company,ISSUE_AGE,F,95,406.24
+GA,30301,G,"Continental Life Insurance Company of Brentwood, Tennessee (Aetna)",ISSUE_AGE,F,95,413
+GA,30301,G,AFLAC,ISSUE_AGE,F,95,415.81
+GA,30301,G,Medico Insurance Company (Standard II),ISSUE_AGE,F,95,420.51
+GA,30301,G,Insurance Company of North America,ISSUE_AGE,F,95,434.58
+GA,30301,G,Guarantee Trust Life Insurance Company,ISSUE_AGE,F,95,445.98
+GA,30301,G,WoodmenLife,ISSUE_AGE,F,95,471.85
+GA,30301,G,GPM Health and Life Insurance Company,ISSUE_AGE,F,95,506.15
+GA,30301,G,Mutual of Omaha (Omaha Supplemental Insurance Company),ISSUE_AGE,F,95,580.13
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company),ISSUE_AGE,F,95,593.92
+GA,30301,G,HealthSpring National Health Insurance Company (Standard II),ISSUE_AGE,F,95,609.36
+GA,30301,G,Bankers Life (Underwritten by Washington National Insurance Company) (Substandard),ISSUE_AGE,F,95,733.01
+GA,30301,G,AARP - UnitedHealthcare Insurance Company (Level 2),ISSUE_AGE,F,95,791.55
