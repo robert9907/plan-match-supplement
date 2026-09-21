@@ -796,3 +796,40 @@ And NC Cigna National Health is not "genuinely absent from the CMS scrape". It
 is HealthSpring Insurance Company, at 171.92 - matching the stored figure to the
 cent - and the alias is already in carrier-aliases.json. It belongs in the
 name-bridge bucket with BCBSNC and the two Humana entities.
+
+## 2026-09-21: applied — the transposition and two carriers off the chart
+
+Eight cells updated, source flipped to `cms`, annual_premium recomputed. Each
+guarded on its expected prior value, so a row that had moved since it was read
+would have been skipped; all eight matched.
+
+  Aflac M    85/90/95  ->  408.67 / 553.33 / 738.03
+  Omaha M    85/90/95  ->  388.13 / 443.79 / 489.99
+  GPM M      95        ->  582.60
+  GPM M      65        ->  312.66   (wrong, not transposed)
+
+All eight verified against CMS after the write.
+
+Two carriers deactivated rather than deleted, so the evidence survives while
+`pm_medsup_rate_public` stops serving them:
+
+  Medico Insurance Company (id 3)   13 cells that are CMS's Medico Preferred
+                                    scaled by 0.8163 - a derived curve, not a
+                                    filing
+  CIC (id 15)                       zero rate rows since 2026-06-13
+
+NC active carriers 15 -> 13. The cheapest NC Plan G for a woman at 65 is now
+AARP Select at 134.20, a filed figure, where it was Medico at 128.01.
+
+### Still wrong, and now the cheapest carrier on the board
+
+AARP Select is untouched by this batch and its top of curve is wrong on both
+genders: the male row holds 309.50 at 85, 90 and 95 where HealthSherpa quotes
+248.00, and the female row has no cells above 80 at all. So the carrier a
+Durham shopper now sees first still overstates a man's cost from 85 and drops
+out of a woman's 20-year comparison entirely.
+
+It is deliberately not fixed here. 248.00 is a HealthSherpa figure and CMS is
+the source of truth; CMS's NC AARP listing is the Standard product at 307.50
+from 85, and whether it files the Select product separately is not established.
+That waits for the CMS load.
