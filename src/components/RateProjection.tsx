@@ -47,8 +47,8 @@ export function RateProjection() {
           Here's what Plan G <em>costs you</em> over time.
         </h1>
         <div className="sub-text">
-          Toggle gender, slide your age, and click carriers in the legend to compare. The lowest
-          20-year total is not always the lowest-premium carrier today.
+          Toggle gender, slide your age, and pick carriers from the ranked list to compare. The
+          lowest 20-year total is not always the lowest-premium carrier today.
         </div>
 
         <RateProjectionWidget
