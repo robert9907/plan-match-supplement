@@ -570,3 +570,53 @@ male result page, and whether that is pagination or a real gap is not settled.
 Set the MACRA answer (`disability`) to yes at 65 and 70, no from 75 up, and
 `sex` accordingly - both are hidden native inputs on the MUI selects and can be
 driven directly.
+
+## 2026-09-21: the female curve, captured whole
+
+14 HealthSherpa runs, 27713 Durham County, effective 10/2026, GI No,
+non-smoker, no household discount, no EFT, builds 5'10" 175 / 5'5" 145, birth
+03/15 of (2026 - age), Part A and B 03/01 of the year they turned 65, MACRA
+(`disability`) yes at 65 and 70 and no from 75. Captured in
+`data/medsup-projection/nc-rates-female.csv`: 13 carriers x 7 ages, 91 rows,
+no gaps.
+
+A correction to what I said yesterday: the male grid is NOT complete. Those
+runs happened before I applied the Plan G policy-type filter, and the results
+page shows only the 50 cheapest plans across every plan type, so GPM, Humana
+Achieve, BCBSNC and others fell off the page at several ages. The female runs
+were all filtered and returned all 13 carriers every time. Male needs seven
+re-runs with the filter on.
+
+### Female: six carriers reproduce exactly, on all seven ages
+
+AARP/UnitedHealthcare, AARP/UHC of America, Aetna, Cigna National (HealthSpring),
+Physicians Select and PSIC-Innovative match the stored curve at 65, 70, 75, 80,
+85, 90 and 95 - to the cent, every cell. Whatever produced the June capture was
+accurate.
+
+### 28 cells that were missing are now sourced
+
+  AARP/UHC (Select)   85, 90, 95        220.00 flat
+  Blue Medicare       80, 85, 90, 95    353.00 flat
+  Aflac               all seven         156.87 -> 644.30
+  GPM                 all seven         271.87 -> 506.62
+  Mutual of Omaha     all seven         184.64 -> 426.07
+
+Two things follow. The female AARP Select row is simply truncated, not
+transposed - its 85-95 cells are absent rather than holding the Standard
+figure, so the transposition found yesterday is male-only. And BCBSNC's flat
+top is confirmed on both genders: 353.00 from 80 up for a woman, 403.75 from 80
+up for a man.
+
+### Humana is stale on the female side too
+
+  Humana Medicare Supplement   65 exact, then -5.39 -8.59 -10.45 -12.71 -11.38 -4.27
+  Humana Achieve               65 exact, 95 exact, -7.19 -11.66 -11.71 -10.73 -12.25 between
+
+Both carriers, both genders, every age above 65, stored higher than quoted.
+Humana Achieve matching at 95 as well as 65 is odd and unexplained; I am not
+guessing at it.
+
+Medico remains unverifiable - still absent from HealthSherpa's NC carrier list,
+so its seven female cells and its male 85 cell have no source in the system the
+rest of this table came from.
