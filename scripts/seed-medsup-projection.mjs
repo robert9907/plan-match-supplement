@@ -647,7 +647,6 @@ const SUPERSEDED = {
   },
   TX: {
     'BlueCross BlueShield of Texas (Plan G)': 'BlueCross BlueShield of Texas',
-    'BlueCross BlueShield of Texas (Plan G Select)': null, // CMS files no Select network in TX
   },
 };
 
@@ -660,9 +659,19 @@ const SUPERSEDED = {
 const RETIRED_UNVERIFIABLE = {
   NC: {
     'AARP/UnitedHealthcare Insurance Company (Select)':
-      'male holds 309.50 flat at 85/90/95 against a 248.00 quote; female has no cells above 80',
+      'CMS files no Select network in NC, and the stored curve was already known wrong — male held 309.50 flat at 85/90/95 against a 248.00 quote, female had no cells above 80',
+  },
+  TX: {
+    'BlueCross BlueShield of Texas (Plan G Select)':
+      'CMS files no Select network in TX, so nothing can check this curve against the source of truth',
   },
 };
+
+// Both states are 100% CMS-sourced as of 2026-09-21. The disclosure's opening
+// sentence — "Rates as listed by the CMS Medigap Plan Finder on <date> for ZIP
+// <zip>" — asserts that of every figure on the chart, so re-adding a non-CMS
+// series makes that sentence false. Change the copy in the same commit, or
+// don't add the series.
 
 function supersede() {
   const map = SUPERSEDED[state];
