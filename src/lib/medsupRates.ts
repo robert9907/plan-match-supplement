@@ -56,16 +56,43 @@ const SHORT_NAME_MAP: Record<string, string> = {
   'Medico Insurance Company': 'Medico',
 };
 
+// CMS puts the underwriting TIER in a parenthetical — "(Preferred)",
+// "(Standard II)", "(Level 2)", "(Substandard)" — and it also puts the
+// underwriting ENTITY in one: "(Underwritten by Washington National Insurance
+// Company)", "(Omaha Insurance Company)", "(CompBenefits Insurance Company)".
+// They are not the same thing and cannot be stripped alike.
+//
+// This used to drop every parenthetical. After the CMS tier load that put two
+// rows reading "Atlantic Capital Life Assurance Company" on the board at
+// $37,831 and $47,185 with nothing to tell them apart, collapsed three Medico
+// tiers into one name, and left the rate disclosure telling people to look for
+// "Preferred, Standard, Level 1, Level 2 or Substandard" when not one of those
+// words appeared anywhere on screen. The tier is the entire point of
+// publishing every filed series, so it survives; the entity does not.
+//
+// Bankers Life carries both at once — "(Underwritten by Washington National
+// Insurance Company) (Substandard)" — so this matches each parenthetical
+// separately rather than assuming there is only one.
+const TIER_PAREN =
+  /^(preferred|standard(\s+(i{1,3}|\d+))?|level\s+\d+|substandard|innovative|select)$/i;
+
 export function carrierShortName(name: string): string {
   if (name in SHORT_NAME_MAP) return SHORT_NAME_MAP[name];
-  return name
+  const tiers: string[] = [];
+  const base = name.replace(/\s*\(([^()]*)\)/g, (_match, inner: string) => {
+    const t = inner.trim();
+    if (TIER_PAREN.test(t)) tiers.push(t);
+    return ' ';
+  });
+  const short = base
+    .replace(/\s+Life Assurance Company\b/gi, '')
     .replace(/\s+Life Insurance Company\b/gi, '')
     .replace(/\s+Insurance Company\b/gi, '')
     .replace(/\s+Insurance Co\.?\b/gi, '')
     .replace(/\s+Medicare Supplement\b/gi, '')
-    .replace(/\s+\(.*?\)/g, ' ')
     .replace(/\s{2,}/g, ' ')
     .trim();
+  return tiers.length ? `${short} (${tiers.join(', ')})` : short;
 }
 
 interface RatesResponse {
