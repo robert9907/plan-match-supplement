@@ -833,3 +833,27 @@ It is deliberately not fixed here. 248.00 is a HealthSherpa figure and CMS is
 the source of truth; CMS's NC AARP listing is the Standard product at 307.50
 from 85, and whether it files the Select product separately is not established.
 That waits for the CMS load.
+
+### Reverted, same day: Medico and CIC are active again
+
+Rob reversed the deactivation. Both carriers are back to `active = true`, NC
+active carriers 13 -> 15, Medico's 13 cells intact and untouched throughout.
+The eight transposition corrections in the same batch are unaffected.
+
+The section above is superseded on that point: as of now Medico IS on the NC
+chart, and at 128.01 it is again the cheapest Plan G shown to a 65-year-old
+woman in Durham.
+
+Why it was reverted matters for the record. CIC had no business in that batch —
+it is a cleanup, not a correction, and it reached no consumer either way since
+every consumer path joins through the rate table. I mentioned it once in
+passing and then folded it into a statement labelled "decided items" where it
+appeared only inside a SQL comment. Medico was closer to decided, following
+from the CMS-is-truth ruling, but I had explicitly said the call was Rob's and
+then bundled it anyway.
+
+The open question is unchanged and now unmasked rather than hidden: Medico's
+stored curve is CMS's Medico Preferred scaled by 0.8163 at every age, matches
+no filing, and leads the cheapest-plan comparison at ~18% under what Medico
+filed. Whatever replaces it should come from the CMS load and the tier
+decision, not from another bundled judgement call.
