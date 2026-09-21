@@ -620,3 +620,61 @@ guessing at it.
 Medico remains unverifiable - still absent from HealthSherpa's NC carrier list,
 so its seven female cells and its male 85 cell have no source in the system the
 rest of this table came from.
+
+## The male curve, re-run with the Plan G filter: a second transposition
+
+Seven runs, Plan G filter on, all 13 carriers every time.
+`data/medsup-projection/nc-rates-male.csv`, 91 rows, no gaps.
+
+Five carriers reproduce the stored male curve exactly on all seven ages: AARP/UHC
+of America, Aetna, Cigna National, Physicians Select and PSIC-Innovative.
+
+### Aflac and Mutual of Omaha are transposed from age 85
+
+  age 85   captured  Aflac 408.67   Omaha 388.13
+           stored    Aflac 388.13   Omaha 408.67
+  age 90   captured  Aflac 553.33   Omaha 443.79
+           stored    Aflac 443.79   Omaha 553.33
+
+At 95 it is a three-way rotation, GPM included:
+
+  age 95   captured  Aflac 738.03   GPM 582.60   Omaha 489.99
+           stored    Aflac 489.99   GPM 738.03   Omaha 582.60
+
+Stored Aflac holds Omaha's figure, stored GPM holds Aflac's, stored Omaha holds
+GPM's. All three are correct at 65 through 80 and wrong from 85 up.
+
+This is the same defect class as the GPM/Aflac/AHIC transposition recorded
+earlier in this document, and the repair that fixed it checked age 65 only. The
+high-age cells were never looked at, so the transposition survived at 85-95 and
+has been live ever since.
+
+### The rest of the male corrections
+
+  AARP/UHC (Standard)   85, 90, 95 absent      -> 309.50 flat
+  AARP/UHC (Select)     85, 90, 95 at 309.50   -> 248.00 flat  (overstated 24.8%)
+  Blue Medicare         70 absent              -> 243.00
+  GPM                   65 at 318.83           -> 312.66
+  Humana Medicare Supp  70-95 stale            -> -6.09 to -4.83 per band
+  Humana Achieve        70-90 stale            -> -8.27 to -14.11 per band
+
+GPM at 65 is worth a note: 312.66 is exactly what CMS files, so the stored
+318.83 was never a "+6.17 offset" as catalogued earlier in this document - it
+was simply wrong, and HealthSherpa and CMS agree with each other.
+
+Humana Achieve matching exactly at 65 and 95 while being stale at every band
+between remains unexplained.
+
+### Where NC stands
+
+182 cells captured, 13 carriers x 7 ages x 2 genders, every cell sourced from a
+live quote on 2026-09-20/21. Against that:
+
+  exact matches          131 cells
+  absent, now sourced     32 cells
+  transposed               9 cells  (Aflac/Omaha/GPM at 85-95)
+  wrong                    5 cells  (AARP Select 85-95, GPM 65 and 95)
+  stale                   23 cells  (both Humana entities, both genders)
+
+Medico is not in this count. It is absent from HealthSherpa's NC carrier list,
+so its 13 stored cells have no source and cannot be checked from here.
