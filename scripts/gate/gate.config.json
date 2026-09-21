@@ -30,12 +30,19 @@
       "passPattern": "^PASS:"
     },
     {
+      "name": "Rating shape rules",
+      "command": "node scripts/check-rating-shape.mjs --self-test",
+      "timeoutSec": 60,
+      "passPattern": "^PASS:"
+    },
+    {
       "name": "Projection carrier provenance",
       "command": "node scripts/_smoke-provenance-forms.mjs",
       "timeoutSec": 120,
       "passPattern": "^PASS:"
     }
   ],
+  "$comment_pushChecks_rating_shape": "Added 2026-09-21. The SELF-TEST runs here, not the live data run: the live run needs SUPABASE_SERVICE_ROLE_KEY and the gate has no credentials. What it protects is the rule, which is now load-bearing in two places - check-rating-shape.mjs against the live table, and seed-medsup-projection.mjs which refuses a CMS load when one curve carries two rating types. Bankers Life is ATTAINED_AGE in NC and TX and ISSUE_AGE in GA with curves agreeing to 0.01%, and rating_type is what the rate disclosure uses to tell a consumer whether a premium climbs with age. Test 13 pins the real Bankers Life numbers so a change that stops catching it fails here.",
   "$comment_pushChecks_projection": "Added 2026-09-19. The four stat cards on the rate projection chart are rate representations under NAIC Medigap Model Act §13, and their arithmetic used to live inside RateProjectionWidget.tsx where nothing could test it. pm_medsup_rate is ragged — NC held 163 of 196 cells and three carriers had zero female rows — and the old 20-year total summed only the bands that had a premium, so a carrier with no female rates totalled $0 and won every comparison. A woman in NC was shown 'Lowest 20yr total $0' under a named carrier. The same pass found the total was weighting each five-year band as one year, reporting about a third of the real cost, always measured from 65. Both are locked down by scripts/_smoke-projection-stats.ts, which keeps the original implementation in the file and asserts it produced the bug.",
   "$comment_pushChecks": "scripts/check-medsup-view.sh already existed in this repo and nothing ran it. Migration 005 revoked anon SELECT on pm_medsup_rate / pm_medsup_carrier / pm_supp_carrier_rates and created the _public views that filter pm_medsup_carrier_exclusions (Physicians Select, MedMutual Protect, Physicians Life). A read against a base table means a suppressed carrier can reach a consumer screen, or a 401 on an anon path. The gate now runs that check on every push.",
   "$comment_typecheck": "`npm run typecheck` runs typecheck:app (root tsconfig, include=[src]), typecheck:api (api/tsconfig.json, module=NodeNext) and typecheck:qa (the compliance harness). All three matter. Before api/tsconfig.json existed, everything under api/ shipped with no typecheck at all; qa/ is in the list because a compliance suite that no longer compiles is a compliance suite that is not running.",

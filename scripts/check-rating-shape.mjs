@@ -36,11 +36,30 @@
 // Treat this as a reporting check, not a correctness check, until that is
 // settled. It is deliberately not in gate.config.json.
 //
-// Community is checked here and issue-age is not, deliberately. Community is
-// decidable from the data alone: one premium, every age. Issue age depends on
-// the age at purchase, which the stored cell does not record, so a flat-vs-
-// rising test on it would be a guess. Guessing is what produced the two false
-// policy-form declarations this table already carried.
+// Community is checked from the data alone: one premium, every age. Issue age
+// is NOT checked that way, and that has not changed - issue age depends on the
+// age at purchase, which the stored cell does not record, so a flat-vs-rising
+// test on it would be a guess. Guessing is what produced the two false policy
+// form declarations this table already carried.
+//
+// What is new (2026-09-21) is a second rule that needs no such guess.
+// labelContradictions() compares the same carrier and tier filed in two
+// states. It never asks what an issue-age curve ought to look like. It asks
+// only whether two curves CMS has labelled differently are the same curve, and
+// a normalised curve is a fact in the data.
+//
+// In the 2026-09-21 Plan G scrape of NC, TX and GA, twelve carrier/gender
+// pairs across three filings come back identical to within 0.41%: Bankers
+// Life and its Substandard tier, and Lumos, each carrying ISSUE_AGE in GA and
+// ATTAINED_AGE in NC and TX. Bankers Life GA against TX differs by 0.01% -
+// the same curve, scaled, under two different labels. Every other
+// differently-labelled pair in that scrape differs by at least 5.65%, so the
+// 2% threshold below sits in a thirteenfold gap rather than on a judgement
+// call.
+//
+// This does not say which label is wrong. It says both cannot be right, and
+// rating_type drives the consumer disclosure that explains whether a premium
+// climbs with age - so a contradiction has to stop a load, not decorate it.
 //
 // Run:  node scripts/check-rating-shape.mjs
 //       node scripts/check-rating-shape.mjs --self-test
@@ -84,6 +103,95 @@ export function violations(carriers, rates) {
     });
   }
   return out.sort((a, b) => b.spreadPct - a.spreadPct);
+}
+
+// ─── The second rule: one curve cannot carry two labels ───────────
+//
+// Pure, same as violations(). `rows` is flat: one row per cell, carrying the
+// state, carrier, plan, gender, age, premium and the rating type CMS gave it.
+
+const SHAPE_TOLERANCE = 0.02; // 2% - see the header note on the 13x gap
+
+export function labelContradictions(rows) {
+  const curves = new Map();
+  for (const r of rows) {
+    const key = `${r.carrier_name}\u0000${r.plan_letter}\u0000${r.gender}\u0000${r.state}`;
+    if (!curves.has(key)) {
+      curves.set(key, { ...r, cells: new Map() });
+    }
+    curves.get(key).cells.set(Number(r.age), Number(r.monthly_premium));
+  }
+
+  // A shape is only comparable when both curves cover the same ages, so the
+  // comparison is made on the intersection and skipped below three points.
+  const byCarrier = new Map();
+  for (const c of curves.values()) {
+    const k = `${c.carrier_name}\u0000${c.plan_letter}\u0000${c.gender}`;
+    if (!byCarrier.has(k)) byCarrier.set(k, []);
+    byCarrier.get(k).push(c);
+  }
+
+  const out = [];
+  for (const [k, variants] of byCarrier) {
+    for (let i = 0; i < variants.length; i++) {
+      for (let j = i + 1; j < variants.length; j++) {
+        const a = variants[i], b = variants[j];
+        if (a.state === b.state) continue;
+        const ta = String(a.rating_type ?? '').toLowerCase();
+        const tb = String(b.rating_type ?? '').toLowerCase();
+        if (!ta || !tb || ta === tb) continue; // same label, nothing to contradict
+
+        const ages = [...a.cells.keys()]
+          .filter((age) => b.cells.has(age))
+          .sort((x, y) => x - y);
+        if (ages.length < 3) continue;
+        const baseA = a.cells.get(ages[0]), baseB = b.cells.get(ages[0]);
+        if (!(baseA > 0) || !(baseB > 0)) continue;
+
+        let worst = 0;
+        for (const age of ages) {
+          const na = a.cells.get(age) / baseA;
+          const nb = b.cells.get(age) / baseB;
+          worst = Math.max(worst, Math.abs(na - nb) / nb);
+        }
+        if (worst > SHAPE_TOLERANCE) continue;
+
+        const [carrier, plan, gender] = k.split('\u0000');
+        out.push({
+          carrier, plan, gender, ages,
+          a: { state: a.state, ratingType: ta },
+          b: { state: b.state, ratingType: tb },
+          worstPct: worst * 100,
+        });
+      }
+    }
+  }
+  return out.sort((x, y) => x.worstPct - y.worstPct);
+}
+
+function reportContradictions(found) {
+  if (found.length === 0) {
+    console.log('PASS: no carrier carries two different rating types on one curve shape.');
+    return 0;
+  }
+  console.log(
+    `FAIL: ${found.length} curve(s) are labelled with two different rating types.\n` +
+    `Each pair below is the same normalised curve filed in two states under two\n` +
+    `labels. Both cannot be right, and rating_type is what the rate disclosure\n` +
+    `uses to tell a consumer whether the premium climbs with age.\n`,
+  );
+  for (const v of found) {
+    console.log(`  ${v.carrier}  plan ${v.plan}  ${v.gender}`);
+    console.log(
+      `      ${v.a.state}: ${v.a.ratingType}   vs   ${v.b.state}: ${v.b.ratingType}` +
+      `   curves agree to ${v.worstPct.toFixed(2)}% across ages ${v.ages[0]}-${v.ages[v.ages.length - 1]}`,
+    );
+  }
+  console.log(
+    '\nDo not resolve this by picking the label that suits the chart. Confirm the\n' +
+    "rating type against the carrier's filed rate manual, or leave the state out.",
+  );
+  return 1;
 }
 
 function report(found) {
@@ -168,15 +276,91 @@ if (process.argv.includes('--self-test')) {
   found = violations(carriers, [cell(2, 65, 167.44)]);
   check('one cell is not a shape', found.length === 0);
 
+  // ── labelContradictions ──
+  const row = (state, carrier, age, premium, ratingType, gender = 'M') => ({
+    state, carrier_name: carrier, plan_letter: 'G', gender, age,
+    monthly_premium: premium, rating_type: ratingType,
+  });
+  // One curve, scaled by 1.5 between states: identical shape, different money.
+  const shapeA = [181.49, 234.68, 300.75, 376.45, 458.89, 559.39, 618.23];
+  const AGES7 = [65, 70, 75, 80, 85, 90, 95];
+  const curve = (state, carrier, type, scale = 1) =>
+    AGES7.map((age, i) => row(state, carrier, age, +(shapeA[i] * scale).toFixed(2), type));
+
+  console.log('\n7. The same shape under two labels is a contradiction');
+  let c = labelContradictions([
+    ...curve('NC', 'Twin', 'attained_age'),
+    ...curve('GA', 'Twin', 'issue_age', 1.5),
+  ]);
+  check('reported once', c.length === 1);
+  check('names both labels', c.length === 1 && c[0].a.ratingType !== c[0].b.ratingType);
+
+  console.log('\n8. The same shape under the SAME label is not a contradiction');
+  c = labelContradictions([
+    ...curve('NC', 'Same', 'attained_age'),
+    ...curve('TX', 'Same', 'attained_age', 1.2),
+  ]);
+  check('same label is silent', c.length === 0);
+
+  console.log('\n9. Different shapes under different labels are left alone');
+  c = labelContradictions([
+    ...curve('NC', 'Diff', 'attained_age'),
+    ...AGES7.map((age, i) => row('GA', 'Diff', age, 200 + i * 5, 'issue_age')),
+  ]);
+  check('a genuinely different curve is not flagged', c.length === 0);
+
+  console.log('\n10. One state cannot contradict itself');
+  c = labelContradictions([
+    ...curve('NC', 'Solo', 'attained_age'),
+    ...curve('NC', 'Solo', 'issue_age'),
+  ]);
+  check('same-state pairs are skipped', c.length === 0);
+
+  console.log('\n11. Genders are judged separately');
+  c = labelContradictions([
+    ...curve('NC', 'Gendered', 'attained_age'),
+    ...curve('GA', 'Gendered', 'issue_age', 1.1),
+    ...AGES7.map((age, i) => row('NC', 'Gendered', age, shapeA[i], 'attained_age', 'F')),
+  ]);
+  check('only the complete male pair is reported', c.length === 1 && c[0].gender === 'M');
+
+  console.log('\n12. Two points are not a shape');
+  c = labelContradictions([
+    row('NC', 'Short', 65, 100, 'attained_age'), row('NC', 'Short', 70, 110, 'attained_age'),
+    row('GA', 'Short', 65, 200, 'issue_age'), row('GA', 'Short', 70, 220, 'issue_age'),
+  ]);
+  check('under three shared ages is skipped', c.length === 0);
+
+  console.log('\n13. Regression: the real Bankers Life NC/GA curves');
+  // From the 2026-09-21 CMS Plan G scrape. CMS calls NC attained-age and GA
+  // issue-age; the normalised curves agree to well under a percent.
+  const bankersNC = [181.49, 234.68, 300.75, 376.45, 458.89, 559.39, 618.23];
+  const bankersGA = [194.41, 251.36, 322.13, 403.20, 491.53, 599.10, 659.79];
+  c = labelContradictions([
+    ...AGES7.map((age, i) => row('NC', 'Bankers Life', age, bankersNC[i], 'attained_age')),
+    ...AGES7.map((age, i) => row('GA', 'Bankers Life', age, bankersGA[i], 'issue_age')),
+  ]);
+  check('the live contradiction is caught', c.length === 1);
+  check('and reported under 1%', c.length === 1 && c[0].worstPct < 1);
+
   console.log(
     failures === 0
-      ? '\nPASS: the rating-shape rule holds community flat and leaves the others alone'
+      ? '\nPASS: the rating-shape rules hold community flat, catch one curve under two labels, and leave the rest alone'
       : `\nFAIL: ${failures} assertion(s) failed`,
   );
   process.exit(failures === 0 ? 0 : 1);
 }
 
 // ─── Live run ─────────────────────────────────────────────────────
+//
+// Guarded so the rules above can be imported. seed-medsup-projection.mjs
+// reuses labelContradictions() to refuse a load, and an unguarded live run
+// here would make that import hit the network and demand credentials.
+
+const invokedDirectly = (process.argv[1] ?? '').endsWith('check-rating-shape.mjs');
+if (!invokedDirectly) {
+  // imported as a library - export the rules and do nothing else
+} else {
 
 if (existsSync('.env.local')) {
   for (const line of readFileSync('.env.local', 'utf8').split('\n')) {
@@ -204,4 +388,16 @@ async function rest(path) {
 
 const carriers = await rest('pm_medsup_carrier?select=id,state,carrier_name,rating_type&active=eq.true');
 const rates = await rest('pm_medsup_rate?select=carrier_id,plan_letter,age,gender,monthly_premium&tobacco=eq.false');
-process.exit(report(violations(carriers, rates)));
+
+const byId = new Map(carriers.map((c) => [c.id, c]));
+const flat = rates.flatMap((r) => {
+  const c = byId.get(r.carrier_id);
+  return c ? [{ ...r, state: c.state, carrier_name: c.carrier_name, rating_type: c.rating_type }] : [];
+});
+
+const a = report(violations(carriers, rates));
+console.log('');
+const b = reportContradictions(labelContradictions(flat));
+process.exit(a || b);
+
+}

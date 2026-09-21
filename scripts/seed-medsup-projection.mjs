@@ -42,6 +42,7 @@
 // ---------------------------------------------------------------------------
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { labelContradictions } from './check-rating-shape.mjs';
 import { dirname, resolve } from 'node:path';
 
 // ─── env ────────────────────────────────────────────────────────────────────
@@ -477,43 +478,63 @@ async function applyCms() {
   if (!cells.length) { console.error(`No ${state} rows in ${CMS_PATH}.`); process.exit(1); }
   const names = [...rateType.keys()].sort();
 
-  // Cross-state rate_type check. rating_type is not a label — it drives the
-  // disclosure ("attained-age premiums climb as you get older; issue-age ones
-  // do not climb for that reason alone"), so a wrong one is a false rate
-  // representation under NAIC Medigap Model Act §13, not a cosmetic slip.
+  // Cross-state rate_type check, by CURVE not by label.
   //
-  // A carrier files per state and may legitimately differ. But when the SAME
-  // company carries one type in one state and another elsewhere, and the
-  // whole state agrees on a single value, that is the signature of a scrape
-  // that lost the field — which is exactly how the first GA run came back
-  // 100% ISSUE_AGE while AARP is community-rated in NC and TX. Refuse the
-  // load and make someone re-check CMS.
-  const elsewhere = new Map();
-  for (const r of rows) {
+  // The first version of this compared labels: if every series in a state
+  // carried one rating type and contradicted the same company elsewhere, it
+  // refused. That caught Georgia - all 27 series came back ISSUE_AGE while
+  // AARP is community-rated in NC and TX - but it named the wrong cause. A
+  // second scrape of GA reproduced the same labels exactly, so nothing was
+  // dropped; CMS returns them that way. Georgia's Medigap regulation does not
+  // mandate issue-age rating either.
+  //
+  // What is actually wrong is narrower and provable: the label does not
+  // describe the curve. Bankers Life carries ATTAINED_AGE in NC and TX and
+  // ISSUE_AGE in GA, and the normalised GA curve matches TX to 0.01%. Same
+  // curve, two labels. So the check now asks that question directly, using
+  // the same rule scripts/check-rating-shape.mjs runs against the live table
+  // - one rule, two callers, one place to correct it.
+  //
+  // rating_type drives the disclosure sentence about whether a premium climbs
+  // with age, so a contradiction refuses the load rather than warning past it.
+  const shapeRows = rows.flatMap((r) => {
     const st = (r[col.state] ?? '').trim().toUpperCase();
-    if (!st || st === state) continue;
-    const n = (r[col.carrier_name] ?? '').trim();
-    if (!elsewhere.has(n)) elsewhere.set(n, new Map());
-    elsewhere.get(n).set(st, (r[col.rate_type] ?? '').trim().toUpperCase());
-  }
-  const conflicts = [];
-  for (const n of names) {
-    const other = elsewhere.get(n);
-    if (!other) continue;
-    for (const [st, rt] of other) if (rt !== rateType.get(n)) conflicts.push(`${n}: ${state}=${rateType.get(n)} but ${st}=${rt}`);
-  }
-  const single = new Set(names.map((n) => rateType.get(n)));
-  if (conflicts.length && single.size === 1) {
-    console.log(`\n${state} CMS projection load — REFUSED\n`);
-    console.log(`Every one of the ${names.length} ${state} series carries rate_type ${[...single][0]}, and ${conflicts.length} of them`);
-    console.log('contradict the same company in another state. A whole state agreeing on one value is what a');
-    console.log('dropped field looks like, and rating_type drives the disclosure — loading it would put a false');
-    console.log('rate representation on a consumer screen. Re-scrape ' + state + ' and confirm rate_type against CMS.\n');
-    for (const c of conflicts.slice(0, 12)) console.log(`  x ${c}`);
-    if (conflicts.length > 12) console.log(`  ... and ${conflicts.length - 12} more`);
+    const prem = Number((r[col.monthly_premium] ?? '').trim());
+    if (!st || !Number.isFinite(prem)) return [];
+    return [{
+      state: st,
+      carrier_name: (r[col.carrier_name] ?? '').trim(),
+      plan_letter: (r[col.plan_letter] ?? '').trim(),
+      gender: (r[col.gender] ?? '').trim(),
+      age: Number((r[col.age] ?? '').trim()),
+      monthly_premium: prem,
+      rating_type: RATING_TYPE[(r[col.rate_type] ?? '').trim().toUpperCase()] ?? '',
+    }];
+  });
+  const contradictions = labelContradictions(shapeRows)
+    .filter((c) => c.a.state === state || c.b.state === state);
+  if (contradictions.length) {
+    console.log(`\n${state} CMS projection load - REFUSED\n`);
+    // One carrier shows up once per gender and once per state pair. Report the
+    // carrier, because that is the unit someone has to go and check.
+    const byCarrier = new Map();
+    for (const c of contradictions) {
+      if (!byCarrier.has(c.carrier)) byCarrier.set(c.carrier, c);
+    }
+    console.log(`${byCarrier.size} carrier(s) in this file carry two different rating types on`);
+    console.log('one curve. Each is the same normalised curve filed in two states under two');
+    console.log('labels. Both cannot be right, and rating_type is what the rate disclosure uses');
+    console.log('to tell a consumer whether the premium climbs with age.\n');
+    for (const c of byCarrier.values()) {
+      console.log(`  x ${c.carrier}`);
+      console.log(`      ${c.a.state}=${c.a.ratingType}  vs  ${c.b.state}=${c.b.ratingType}   curves agree to ${c.worstPct.toFixed(2)}%`);
+    }
+    console.log(`\nThis refuses ${state} because ${state} is one of the states involved - the`);
+    console.log('label is in question on both sides, not just the new one. Resolve it per');
+    console.log("carrier against the filed rate manual, or drop the state you cannot confirm");
+    console.log('from the scrape and re-run. Do not pick the label that suits the chart.');
     process.exit(1);
   }
-  for (const c of conflicts) warnings.push(`rate_type differs across states — ${c}`);
 
   // Same curve checks as --apply. The CMS range cross-check is deliberately
   // NOT run: it compares against pm_supp_carrier_rates, which is the same
