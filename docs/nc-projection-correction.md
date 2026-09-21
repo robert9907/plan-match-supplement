@@ -750,3 +750,49 @@ channel chrome, real UA, 12s warm-up, in-page fetch, rotate and back off on
 
 It reports incomplete curves at the end, because a curve with a gap cannot be
 totalled and the chart drops that carrier silently.
+
+### CMS confirms the Aflac/Omaha/GPM transposition independently
+
+The other session's diff filed NC Mutual of Omaha (+16-20% at 90/95) and NC GPM
+(+21% at 95) as "top-of-curve drift". They are not drift. They are the
+transposition already recorded in this document, and CMS now confirms it from
+the other side. NC Plan G male:
+
+  age   CMS Omaha   CMS Aflac   CMS GPM     stored Aflac / Omaha / GPM
+   85     388.13      408.67     530.36      388.13 / 408.67 / 530.36
+   90     443.79      553.33     566.27      443.79 / 553.33 / 566.27
+   95     489.99      738.03     582.60      489.99 / 582.60 / 738.03
+
+At 85 and 90 the stored Aflac row holds CMS's Omaha figure and the stored Omaha
+row holds CMS's Aflac figure; GPM is correct. At 95 it rotates three ways:
+Aflac holds Omaha's, Omaha holds GPM's, GPM holds Aflac's.
+
+Two independent sources - HealthSherpa on 2026-09-21 and CMS on the same day -
+agree on every one of those nine values. So this is a transposition in our
+table, not drift, not staleness and not a tier mismatch. The fix is
+reassignment, not a refresh, and it does not depend on the tier decision.
+
+Aetna's top-of-curve gap is a separate matter and is not part of the rotation.
+
+### Correcting a direction in that diff
+
+The diff says the stored Medico curve is "0.816x Preferred" and also that it
+"sits ~22% above the real Preferred rate everywhere". Those contradict each
+other, and the first one is right.
+
+  CMS Medico Preferred, NC male 65   180.33
+  stored                            147.21   =  0.8163 x CMS
+
+The stored figure is ~18.4% BELOW the filing. CMS is 22.5% above stored, which
+is where the 22% came from. The direction matters more than the number: below
+is why it currently wins the cheapest-Plan-G comparison for a 65-year-old woman
+in Durham at a price nobody can buy. Above would have been merely wrong.
+
+The same sign question applies to the AARP line in that diff, recorded there as
+"~-1%". Stored is ABOVE CMS, by exactly $2.00 at 65, 75, 85 and 95 alike. The
+flat two dollars is the diagnostic fact; a percentage hides it.
+
+And NC Cigna National Health is not "genuinely absent from the CMS scrape". It
+is HealthSpring Insurance Company, at 171.92 - matching the stored figure to the
+cent - and the alias is already in carrier-aliases.json. It belongs in the
+name-bridge bucket with BCBSNC and the two Humana entities.
