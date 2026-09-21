@@ -516,3 +516,57 @@ earlier and was right to.
 declining rather than an age rate that keeps rising, though still not sourced.
 
 Ages 75 and 95 male, and the whole female half, are not yet captured.
+
+### The coverage map, and a carrier nobody has ever seen
+
+Every prior count of missing cells came from a query that joined through
+pm_medsup_rate, so a carrier with no rates at all was invisible to it. Counting
+from the carrier table outward instead:
+
+TX: 8 active carriers, 14 rate rows each. Complete.
+
+NC: 15 active carriers, 47 missing cells.
+
+  CIC                                    0 of 14   <- no rates at all, ever
+  Aflac                    female        7 of 14
+  GPM                      female        7 of 14
+  Mutual of Omaha          female        7 of 14
+  Blue Medicare (BCBSNC)   F 80-95, M 70  9 of 14
+  AARP/UHC                 M 85,90,95    11 of 14
+  AARP/UHC (Select)        F 85,90,95    11 of 14
+  Medico                   M 85          13 of 14
+
+`CIC` (id 15, NC, attained_age, active) was created 2026-06-13 with the rest of
+the NC seed and has never had a rate row or an update. The name matches no
+carrier CMS files in NC and none HealthSherpa offers there. It is a phantom: it
+cannot reach a consumer because every consumer path joins through the rate
+table, but it inflates the carrier count and nothing has ever flagged it.
+
+Note the AARP pattern is gender-crossed. The male Standard row is missing
+85-95 while the male Select row holds Standard's figures there; the female
+Select row is missing 85-95 while the female Standard row has them. That is the
+signature of a write that put one product's high-age cells into the other's
+row on one gender and dropped them on the other.
+
+This is not a correctness bug in the chart. `hasCompleteCurveBetween` already
+refuses to total a curve with a gap, and _smoke-projection-stats.ts locks that
+down. The consequence is that a ragged carrier silently disappears from the
+65-95 comparison instead of being ranked wrongly - which is the right failure,
+but it is still a carrier a Durham shopper cannot see.
+
+### What the next capture needs
+
+Nine HealthSherpa runs finish NC, at 27713 Durham, effective 10/2026, GI No,
+non-smoker, no household discount, no EFT, 5'10" 175 / 5'5" 145:
+
+  male   75, 95
+  female 65, 70, 75, 80, 85, 90, 95
+
+Those fill every gap except two. Medico M 85 cannot come from HealthSherpa at
+all - Medico is not in its NC carrier list, which is the same problem already
+recorded above. BCBSNC M 70 needs its own look: it was absent from the age-70
+male result page, and whether that is pagination or a real gap is not settled.
+
+Set the MACRA answer (`disability`) to yes at 65 and 70, no from 75 up, and
+`sex` accordingly - both are hidden native inputs on the MUI selects and can be
+driven directly.
