@@ -2,7 +2,15 @@
 //
 // Renders an interactive Plan G premium projection chart: gender pills,
 // age slider (65→95 in 5-year bands), four summary cards, a Chart.js line
-// chart with toggleable carrier legend, and an age-band comparison table.
+// chart, a ranked carrier list and an age-band comparison table.
+//
+// The chart is an EMPHASIS chart, not a multi-series categorical one. Every
+// carrier is drawn; up to five pinned ones take a series hue and the rest stay
+// as context lines. A line chart stops being readable somewhere around eight
+// coloured series, and the board is already past that — so the ranked list,
+// not the palette, is what carries identity. Do not "fix" this by generating
+// more hues: a generated hue is indistinguishable from an existing one under
+// colour-vision deficiency. Fold, facet or rank instead.
 // Data comes from /api/medsup-rates?state=NC (server-side fetch keeps the
 // service-role key out of the browser).
 //
@@ -37,6 +45,7 @@ import {
   lowestTotalBetween,
   pctChangeFromBase,
   rateAt,
+  totalBetween,
   type AgeBand,
   type Gender,
 } from '../lib/projectionStats';
@@ -55,6 +64,18 @@ ChartJS.register(
 // The bands, the arithmetic and the x-axis all read from one constant so the
 // chart can never plot a band the stats do not know about.
 const AGES = PROJECTION_AGES;
+
+// Emphasis palette. Slot 1 is the brand seafoam (--seafoam #83f0f9) stepped
+// down its own OKLCH hue (202.5) to L 0.60 — the brand value itself measures
+// 1.29:1 on a white card and cannot carry a line. Validated as an ordered set
+// against the white card surface: worst adjacent CVD deltaE 13.6 (protan,
+// target 8.0), worst normal-vision deltaE 28.3 (floor 15). Slot 4 is the one
+// below 3:1, so it sits behind the three default pins and its relief is the
+// always-visible ranked list plus the table. Re-run the palette validator
+// before touching these or their order.
+const SERIES = ['#00929b', '#eb6834', '#4a3aa7', '#eda100', '#008300'];
+const CONTEXT = '#cfcec7';
+const MAX_PINS = 5;
 
 interface RateProjectionWidgetProps {
   state: string;
@@ -124,7 +145,9 @@ export function RateProjectionWidget({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [gender, setGender] = useState<Gender>(initialGender);
   const [ageIdx, setAgeIdx] = useState<number>(nearestAgeIndex(initialAge));
-  const [active, setActive] = useState<Set<string>>(new Set());
+  // Pinned carriers are drawn in a series hue; everything else stays on the
+  // chart as a context line. This is emphasis, not filtering — see `visible`.
+  const [pinned, setPinned] = useState<string[]>([]);
 
   useEffect(() => {
     setCarriers(null);
@@ -133,7 +156,7 @@ export function RateProjectionWidget({
     fetchMedsupCarriers(state, controller.signal)
       .then((data) => {
         setCarriers(data);
-        setActive(new Set(data.map((c) => c.n)));
+        setPinned([]);
       })
       .catch((err) => {
         if (err instanceof Error && err.name === 'AbortError') return;
@@ -143,10 +166,11 @@ export function RateProjectionWidget({
   }, [state]);
 
   const age = AGES[ageIdx] as AgeBand;
-  const visible = useMemo(
-    () => (carriers ?? []).filter((c) => active.has(c.n)),
-    [carriers, active],
-  );
+  // Every figure below reads the whole filed field, not the selection. When
+  // this filtered on the legend, un-toggling a carrier moved the headline
+  // "lowest available premium" — the page reported a different cheapest rate
+  // depending on which chips happened to be on.
+  const visible = useMemo(() => carriers ?? [], [carriers]);
 
   // ── Derived stats ──
   // Every figure below comes from lib/projectionStats, which never turns an
@@ -183,6 +207,35 @@ export function RateProjectionWidget({
     () => coverage(carriers ?? [], gender),
     [carriers, gender],
   );
+
+  // Cheapest-first over the same window the cards describe. `totalBetween`
+  // returns null for a carrier missing any band in that window, so a ragged
+  // carrier sorts to the end rather than winning on a partial sum.
+  const ranked = useMemo(
+    () =>
+      visible
+        .map((c) => ({ c, t: totalBetween(c, gender, age, targetAge) }))
+        .sort((a, b) => (a.t ?? Infinity) - (b.t ?? Infinity)),
+    [visible, gender, age, targetAge],
+  );
+
+  // Seed the pins with cheapest / middle / dearest of the carriers that have a
+  // complete curve. Pinning the three cheapest stacks three near-identical
+  // lines on top of each other and shows nothing; spanning the field is what
+  // makes the spread legible. Seeds once per state — it must not yank the
+  // user's picks when they move the slider or flip gender.
+  const seeded = useRef(false);
+  useEffect(() => {
+    seeded.current = false;
+  }, [state]);
+  useEffect(() => {
+    if (seeded.current) return;
+    const full = ranked.filter((r) => r.t !== null);
+    if (full.length === 0) return;
+    seeded.current = true;
+    const idx = [0, Math.floor((full.length - 1) / 2), full.length - 1];
+    setPinned([...new Set(idx.map((i) => full[i].c.n))]);
+  }, [ranked]);
 
   const animatedAmount = useAnimatedNumber(Math.round(cheapest?.p ?? 0));
 
@@ -245,31 +298,39 @@ export function RateProjectionWidget({
   const chartData = {
     labels: AGES.map(String),
     datasets: carriers.map((c) => {
-      const isActive = active.has(c.n);
+      // Unpinned carriers stay on the chart in the context gray instead of
+      // being hidden. The field is the point: a pinned line only means
+      // something against the spread it sits in. `order` keeps the pinned
+      // lines drawn above the context band.
+      const pi = pinned.indexOf(c.n);
+      const on = pi >= 0;
+      const col = on ? SERIES[pi % SERIES.length] : CONTEXT;
       return {
         label: c.n,
         data: AGES.map((a) => rateAt(c, gender, a)),
-        borderColor: c.c,
-        backgroundColor: c.c + '15',
-        borderWidth: isActive ? 2.5 : 0,
+        borderColor: col,
+        backgroundColor: col + '15',
+        borderWidth: on ? 2.5 : 1.25,
+        order: on ? 0 : 1,
         pointRadius: AGES.map((a) =>
-          isActive && a === age && rateAt(c, gender, a)
+          on && a === age && rateAt(c, gender, a)
             ? 6
-            : isActive && rateAt(c, gender, a)
+            : on && rateAt(c, gender, a)
               ? 3
               : 0,
         ),
         pointBackgroundColor: '#fff',
-        pointBorderColor: c.c,
+        pointBorderColor: col,
         pointBorderWidth: 2,
-        hidden: !isActive,
         tension: 0.4,
         // Must stay false. With spanGaps on, a carrier missing the 75/80/85
         // bands got a straight line drawn across them — the chart asserting a
         // premium trajectory the carrier never filed. A gap in the data has to
         // look like a gap.
         spanGaps: false,
-        fill: isActive && cheapest !== null && c.n === cheapest.n,
+        // No area fill. It read as a highlight when one carrier was cheapest;
+        // under a band of context lines it just obscures them.
+        fill: false,
       };
     }),
   };
@@ -278,7 +339,10 @@ export function RateProjectionWidget({
     responsive: true,
     maintainAspectRatio: false,
     animation: { duration: 600, easing: 'easeOutQuart' },
-    interaction: { mode: 'index', intersect: false },
+    // 'index' listed every carrier in one tooltip. With the whole field on
+    // the chart that is unreadable, so the tooltip names the nearest line —
+    // which is also how someone identifies a context line they hovered.
+    interaction: { mode: 'nearest', intersect: false },
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -312,12 +376,12 @@ export function RateProjectionWidget({
   const pct = (ageIdx / (AGES.length - 1)) * 100;
   const tableAges = AGES.filter((a) => a >= age);
 
-  const toggleCarrier = (name: string) => {
-    setActive((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
-      return next;
+  const togglePin = (name: string) => {
+    setPinned((prev) => {
+      if (prev.includes(name)) return prev.filter((n) => n !== name);
+      // At the cap the oldest pin falls off, so a click always does something
+      // visible rather than silently no-op'ing.
+      return [...prev.slice(prev.length >= MAX_PINS ? 1 : 0), name];
     });
   };
 
@@ -452,10 +516,14 @@ export function RateProjectionWidget({
         </div>
       </div>
 
-      <div className="ms-legend">
-        {carriers.map((c) => {
-          const on = active.has(c.n);
-          const p = rateAt(c, gender, age);
+      <div className="ms-rank">
+        <div className="ms-rank-head">
+          All {carriers.length} carriers, cheapest first from {age} to {targetAge}. Pick up to{' '}
+          {MAX_PINS} to chart; the rest stay on as context.
+        </div>
+        {ranked.map(({ c, t }) => {
+          const pi = pinned.indexOf(c.n);
+          const on = pi >= 0;
           // A carrier with nothing filed for this gender is labelled as such
           // rather than rendered bare. Bare reads as cheap, or as a figure
           // that merely happens to be missing from this one age band.
@@ -465,13 +533,23 @@ export function RateProjectionWidget({
             <button
               key={c.n}
               type="button"
-              className={`ms-leg${on ? ' ms-on' : ''}${none ? ' ms-leg-norate' : ''}`}
-              onClick={() => toggleCarrier(c.n)}
+              aria-pressed={on}
+              className={`ms-rank-row${on ? ' ms-on' : ''}${none ? ' ms-leg-norate' : ''}`}
+              onClick={() => togglePin(c.n)}
               title={none ? `${c.n} — no ${genderWord} rate on file` : c.n}
             >
-              <span className="ms-d" style={{ background: c.c }} />
-              {carrierShortName(c.n)}
-              {none ? ' — no rate on file' : p !== null ? ` ${fmt(p)}` : ''}
+              <span
+                className="ms-d"
+                style={{ background: on ? SERIES[pi % SERIES.length] : CONTEXT }}
+              />
+              <span className="ms-rank-name">{carrierShortName(c.n)}</span>
+              <span className="ms-rank-amt">
+                {none
+                  ? `no ${genderWord} rate on file`
+                  : t === null
+                    ? 'partial curve'
+                    : fmt(t)}
+              </span>
             </button>
           );
         })}
@@ -499,54 +577,76 @@ export function RateProjectionWidget({
       </div>
 
       <div className="ms-tbl-wrap">
-        <table className="ms-tbl">
+        {/* Carriers as rows, not columns. Transposed, this table grew a
+            column per carrier and stopped being readable well before the
+            board reached its current size. */}
+        <table className="ms-tbl ms-tbl-rows">
           <thead>
             <tr>
-              <th>Age</th>
-              {visible.map((c) => (
-                <th key={c.n} title={c.n}>
-                  <span className="ms-th-name">{carrierShortName(c.n)}</span>
+              <th>Carrier</th>
+              <th>Rate type</th>
+              {tableAges.map((a) => (
+                <th key={a} className={a === age ? 'ms-current' : ''}>
+                  {a}
                 </th>
               ))}
-              {/* "Lowest", not "Best". The column reports the smallest filed
-                  premium at that age band, which is a fact about the figures
-                  above it. "Best" is a judgement about which policy someone
-                  should buy, and this table knows nothing about that. */}
-              <th className="ms-th-best">Lowest</th>
+              <th>
+                Total {age}&rarr;{targetAge}
+              </th>
             </tr>
           </thead>
           <tbody>
-            {tableAges.map((a) => {
-              let best: { n: string; p: number } = { n: '—', p: Infinity };
-              const cells = visible.map((c) => {
-                const p = rateAt(c, gender, a);
-                // Was `c[gender][age] || 1`: a carrier with no premium at the
-                // applicant's current age had its increase measured against
-                // one dollar, rendering figures like "+20,500%".
-                const pctChange = pctChangeFromBase(c, gender, age, a);
-                if (p !== null && p < best.p) best = { n: c.n, p };
-                return (
-                  <td key={c.n}>
-                    {fmt(p)}
-                    {pctChange !== null && (
-                      <>
-                        {' '}
-                        <span className="ms-inc">+{pctChange}%</span>
-                      </>
-                    )}
-                  </td>
-                );
-              });
+            {ranked.map(({ c, t }) => {
+              const pi = pinned.indexOf(c.n);
               return (
-                <tr key={a} className={a === age ? 'ms-current' : ''}>
-                  <td style={{ fontWeight: 600 }}>{a}</td>
-                  {cells}
-                  <td className="ms-cheapest" title={best.n}>
-                    {carrierShortName(best.n)}
+                <tr key={c.n}>
+                  <td className="ms-tbl-name" title={c.n}>
+                    <span
+                      className="ms-d"
+                      style={{
+                        background: pi >= 0 ? SERIES[pi % SERIES.length] : CONTEXT,
+                      }}
+                    />
+                    {carrierShortName(c.n)}
                   </td>
+                  <td>{c.ra ?? '\u2014'}</td>
+                  {tableAges.map((a) => {
+                    const pr = rateAt(c, gender, a);
+                    // Was `c[gender][age] || 1`: a carrier with no premium at
+                    // the applicant's current age had its increase measured
+                    // against one dollar, rendering figures like "+20,500%".
+                    const pctChange = pctChangeFromBase(c, gender, age, a);
+                    return (
+                      <td key={a} className={a === age ? 'ms-current' : ''}>
+                        {fmt(pr)}
+                        {pctChange !== null && (
+                          <>
+                            {' '}
+                            <span className="ms-inc">+{pctChange}%</span>
+                          </>
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td>{fmt(t)}</td>
                 </tr>
               );
             })}
+            {/* "Lowest", not "Best". This row reports the smallest filed
+                premium at each age band, which is a fact about the figures
+                above it. "Best" is a judgement about which policy someone
+                should buy, and this table knows nothing about that. */}
+            <tr className="ms-lowest-row">
+              <td>Lowest</td>
+              <td />
+              {tableAges.map((a) => {
+                const lo = cheapestAt(visible, gender, a);
+                return <td key={a}>{lo ? carrierShortName(lo.n) : '\u2014'}</td>;
+              })}
+              <td title={lowestTotal?.n ?? ''}>
+                {lowestTotal ? carrierShortName(lowestTotal.n) : '\u2014'}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

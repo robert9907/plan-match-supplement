@@ -4558,3 +4558,100 @@ textarea {
   line-height: 1.4;
 }
 
+
+/* ── Plan G projection: ranked carrier list + row-wise table ───────────────
+ * Replaces the chip legend. At the size this board reached, a wrap of chips
+ * gave no ordering and the transposed table grew a column per carrier. The
+ * list is the chart's legend AND its selector: colour sits beside the name
+ * permanently, which is what lets the series palette carry a slot below 3:1
+ * contrast (the relief rule — see SERIES in RateProjectionWidget.tsx).
+ */
+.gh-ms .ms-rank {
+  padding: 12px 16px 4px;
+  max-height: 420px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+@media (min-width: 768px) {
+  .gh-ms .ms-rank {
+    padding: 16px 28px 4px;
+  }
+}
+.gh-ms .ms-rank-head {
+  font-size: 12px;
+  color: var(--ms-muted);
+  padding: 0 8px 8px;
+}
+.gh-ms .ms-rank-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ms-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.gh-ms .ms-rank-row:hover {
+  background: var(--ms-surface);
+}
+.gh-ms .ms-rank-row.ms-on {
+  background: var(--ms-surface);
+  border-color: rgba(0, 0, 0, 0.06);
+  font-weight: 600;
+}
+.gh-ms .ms-rank-row:focus-visible {
+  outline: 2px solid var(--ms-teal);
+  outline-offset: -2px;
+}
+.gh-ms .ms-rank-row .ms-d {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.gh-ms .ms-rank-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gh-ms .ms-rank-amt {
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-muted);
+}
+.gh-ms .ms-rank-row.ms-on .ms-rank-amt {
+  color: var(--ms-text);
+}
+
+/* Carriers are rows now, so the selected age band is a COLUMN. The old
+   `tr.ms-current` rule highlighted a row and no longer matches anything. */
+.gh-ms .ms-tbl-rows th.ms-current,
+.gh-ms .ms-tbl-rows td.ms-current {
+  background: rgba(0, 212, 170, 0.1);
+  font-weight: 600;
+}
+.gh-ms .ms-tbl-rows .ms-tbl-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.gh-ms .ms-tbl-rows .ms-tbl-name .ms-d {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.gh-ms .ms-tbl-rows tbody tr.ms-lowest-row td {
+  background: var(--ms-surface);
+  border-top: 2px solid rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  white-space: nowrap;
+}
