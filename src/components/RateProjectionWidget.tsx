@@ -657,7 +657,9 @@ export function RateProjectionWidget({
           dropped it — leaving dollar figures on the page with no disclosure for
           any state without rate rows. Do not re-add it here. */}
 
-      <MedSupRateDisclosure gender={gender === 'F' ? 'female' : 'male'} />
+      {/* `state` decides the reference ZIP the disclosure names. Without it the
+          Texas chart would tell a Dallas reader its rates came from Durham. */}
+      <MedSupRateDisclosure gender={gender === 'F' ? 'female' : 'male'} state={state} />
     </div>
   );
 }

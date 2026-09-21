@@ -1,12 +1,24 @@
 import { useState } from 'react';
 
-const RATES_EFFECTIVE = 'August 2026';
+// The date the CMS Medigap Plan Finder was read, not a carrier filing date —
+// CMS does not return one. Update this whenever the projection is reloaded.
+const RATES_READ_ON = '21 September 2026';
+
+// Medigap premiums vary by rating area inside a state, and this chart is drawn
+// from ONE ZIP per state. Saying so is the difference between a rate quote and
+// a rate representation: a Charlotte reader looking at a Durham curve is
+// reading someone else's premium.
+const REFERENCE_ZIP: Record<string, { zip: string; label: string }> = {
+  NC: { zip: '27713', label: 'Durham County' },
+  TX: { zip: '75201', label: 'Dallas County' },
+};
 
 interface MedSupRateDisclosureProps {
   effectiveDate?: string;
   gender?: string;
   tobacco?: string;
   planLetter?: string;
+  state?: string;
 }
 
 export function MedSupRateDisclosure({
@@ -14,9 +26,11 @@ export function MedSupRateDisclosure({
   gender = 'male',
   tobacco = 'non-tobacco',
   planLetter = 'Plan G',
+  state = 'NC',
 }: MedSupRateDisclosureProps) {
   const [open, setOpen] = useState(false);
-  const effective = effectiveDate || RATES_EFFECTIVE;
+  const effective = effectiveDate || RATES_READ_ON;
+  const ref = REFERENCE_ZIP[state.toUpperCase()];
   const isFemale = gender.toLowerCase() === 'female';
   const possessive = isFemale ? 'her' : 'his';
   const subject = isFemale ? 'she' : 'he';
@@ -67,7 +81,9 @@ export function MedSupRateDisclosure({
           Enrollment Period — the six months beginning the month {subject}{' '}
           turns 65 and is enrolled in both Medicare Part A and Part B. During
           that window no medical underwriting applies; no applicant can be
-          declined or charged more for health conditions.
+          declined or charged more for health conditions. Some carriers on this
+          chart file more than one version of {planLetter} at different prices;
+          those tiers are explained below.
         </p>
 
         <p style={{ margin: '0 0 10px' }}>
@@ -94,9 +110,12 @@ export function MedSupRateDisclosure({
             borderTop: '1px solid rgba(13,47,94,0.1)',
           }}
         >
-          Rates effective {effective}, subject to change with NCDOI approval.
-          Not every Medicare Supplement carrier available in North Carolina is
-          shown. Robert Simm, NPN #10447418. Not connected with or endorsed by
+          {ref
+            ? `Rates as listed by the CMS Medigap Plan Finder on ${effective} for ZIP ${ref.zip} (${ref.label}), the reference ZIP for this state. Premiums vary by ZIP within a state — yours may differ.`
+            : `Rates as listed by the CMS Medigap Plan Finder on ${effective}. Premiums vary by ZIP within a state — yours may differ.`}{' '}
+          Subject to change with regulatory approval. Every {planLetter} carrier
+          CMS lists for that ZIP is shown, except those this agency is not
+          appointed with. Robert Simm, NPN #10447418. Not connected with or endorsed by
           the U.S. Government or the federal Medicare program. This is a
           solicitation of insurance.
         </div>
@@ -156,6 +175,36 @@ export function MedSupRateDisclosure({
                 same premium regardless of age.
               </p>
 
+              <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 8px' }}>
+                Why one carrier appears more than once
+              </h4>
+
+              <p style={{ margin: '0 0 10px' }}>
+                Several carriers file more than one {planLetter}, at different
+                prices &mdash; you will see them on the chart as Preferred,
+                Standard, Level&nbsp;1, Level&nbsp;2 or Substandard. These are
+                separate filings with their own rates, not discounts or options
+                you choose between.
+              </p>
+
+              <p style={{ margin: '0 0 10px' }}>
+                Which one a carrier offers you is decided by its own underwriting
+                when you apply &mdash; your health history, your prescriptions,
+                sometimes your height and weight. It is not decided by anything on
+                this page, and it is not decided when you shop.
+              </p>
+
+              <p style={{ margin: '0 0 16px' }}>
+                <strong>
+                  During your Medigap Open Enrollment Period, or in a
+                  guaranteed-issue situation, a carrier cannot decline you or
+                  charge you more because of your health.
+                </strong>{' '}
+                Outside those windows it can, and the tier you are offered may not
+                be the one you were looking at. Ask which tier a carrier will
+                actually issue before you compare its price to anyone else's.
+              </p>
+
               <h4
                 style={{
                   fontSize: 15,
@@ -202,9 +251,8 @@ export function MedSupRateDisclosure({
                 Medigap Open Enrollment Period or a guaranteed-issue situation
                 you will answer health questions and can be declined. People
                 who develop health conditions in their seventies often cannot
-                move, and they ride whatever curve they chose at 65. Not
-                every Medicare Supplement carrier available in North Carolina
-                is shown on this chart.
+                move, and they ride whatever curve they chose at 65 &mdash; and
+                whatever tier they were issued at.
               </p>
             </div>
           )}
