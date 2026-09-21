@@ -126,12 +126,24 @@ function shape(rows: RawRow[]): MedsupCarrier[] {
   }));
 }
 
-// Add a state here only once pm_medsup_rate holds a real age curve for it —
-// TX was seeded from a HealthSherpa capture of ZIP 75201 on 2026-09-19,
-// 8 carriers x 2 genders x 7 bands. Flipping this ahead of the data is safe
-// but pointless: the carriers.length === 0 guard below returns the same
-// "not yet loaded" payload, just with a shorter cache.
-const ALLOWED_STATES = new Set(['NC', 'TX']);
+// Add a state here only once pm_medsup_rate holds a real age curve for it.
+// Flipping this ahead of the data is safe but pointless: the
+// carriers.length === 0 guard below returns the same "not yet loaded"
+// payload, just with a shorter cache.
+//
+// All three are now CMS Plan Finder loads, one reference ZIP per state,
+// 2026-09-21 — NC 27713 (35 series), TX 75201 (32), GA 30301 (26 after the
+// migration-005 suppression of Physicians Life). TX was HealthSherpa-seeded
+// on 2026-09-19 and was replaced by the CMS load; nothing on any of the
+// three boards is quoted from HealthSherpa any more.
+//
+// GA carries one caveat the other two do not. CMS reports every GA series as
+// ISSUE_AGE. Three of them - Lumos and both Bankers Life tiers - were loaded
+// as attained_age instead, because their curves are identical to the same
+// carriers' attained-age curves in NC and TX; see RATING_TYPE_OVERRIDE in
+// scripts/seed-medsup-projection.mjs. The other 23 carry CMS's label on CMS's
+// word, uncorroborated.
+const ALLOWED_STATES = new Set(['NC', 'TX', 'GA']);
 
 function unavailableMessage(state: string): string {
   return `Supplement rates not yet loaded for ${state}. Contact your agent for a quote.`;
