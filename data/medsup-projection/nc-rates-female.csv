@@ -1,0 +1,92 @@
+carrier_name,gender,age,monthly_premium
+"Physicians Select Insurance Company (PSIC) - Innovative",F,65,114.22
+"Physicians Select Insurance Company (PSIC) - Innovative",F,70,121.55
+"Physicians Select Insurance Company (PSIC) - Innovative",F,75,138.28
+"Physicians Select Insurance Company (PSIC) - Innovative",F,80,157.28
+"Physicians Select Insurance Company (PSIC) - Innovative",F,85,177.97
+"Physicians Select Insurance Company (PSIC) - Innovative",F,90,197.67
+"Physicians Select Insurance Company (PSIC) - Innovative",F,95,217.72
+"AARP/UnitedHealthcare Insurance Company (Select)",F,65,134.20
+"AARP/UnitedHealthcare Insurance Company (Select)",F,70,147.40
+"AARP/UnitedHealthcare Insurance Company (Select)",F,75,180.40
+"AARP/UnitedHealthcare Insurance Company (Select)",F,80,213.40
+"AARP/UnitedHealthcare Insurance Company (Select)",F,85,220.00
+"AARP/UnitedHealthcare Insurance Company (Select)",F,90,220.00
+"AARP/UnitedHealthcare Insurance Company (Select)",F,95,220.00
+"Cigna National Health Insurance Company",F,65,149.50
+"Cigna National Health Insurance Company",F,70,152.88
+"Cigna National Health Insurance Company",F,75,182.87
+"Cigna National Health Insurance Company",F,80,230.07
+"Cigna National Health Insurance Company",F,85,285.34
+"Cigna National Health Insurance Company",F,90,343.82
+"Cigna National Health Insurance Company",F,95,398.59
+"Physicians Select Insurance Company (PSIC)",F,65,156.75
+"Physicians Select Insurance Company (PSIC)",F,70,166.94
+"Physicians Select Insurance Company (PSIC)",F,75,190.19
+"Physicians Select Insurance Company (PSIC)",F,80,216.56
+"Physicians Select Insurance Company (PSIC)",F,85,245.29
+"Physicians Select Insurance Company (PSIC)",F,90,272.64
+"Physicians Select Insurance Company (PSIC)",F,95,300.49
+"Aflac",F,65,156.87
+"Aflac",F,70,163.67
+"Aflac",F,75,196.55
+"Aflac",F,80,255.98
+"Aflac",F,85,356.77
+"Aflac",F,90,483.06
+"Aflac",F,95,644.30
+"AARP/UnitedHealthcare Insurance Company",F,65,167.44
+"AARP/UnitedHealthcare Insurance Company",F,70,183.91
+"AARP/UnitedHealthcare Insurance Company",F,75,225.09
+"AARP/UnitedHealthcare Insurance Company",F,80,266.26
+"AARP/UnitedHealthcare Insurance Company",F,85,274.50
+"AARP/UnitedHealthcare Insurance Company",F,90,274.50
+"AARP/UnitedHealthcare Insurance Company",F,95,274.50
+"Humana Medicare Supplement",F,65,169.63
+"Humana Medicare Supplement",F,70,181.63
+"Humana Medicare Supplement",F,75,216.79
+"Humana Medicare Supplement",F,80,263.32
+"Humana Medicare Supplement",F,85,319.94
+"Humana Medicare Supplement",F,90,381.42
+"Humana Medicare Supplement",F,95,429.16
+"Blue Medicare Supplement (BCBSNC)",F,65,179.50
+"Blue Medicare Supplement (BCBSNC)",F,70,212.50
+"Blue Medicare Supplement (BCBSNC)",F,75,282.75
+"Blue Medicare Supplement (BCBSNC)",F,80,353.00
+"Blue Medicare Supplement (BCBSNC)",F,85,353.00
+"Blue Medicare Supplement (BCBSNC)",F,90,353.00
+"Blue Medicare Supplement (BCBSNC)",F,95,353.00
+"Aetna Health Insurance Company",F,65,181.01
+"Aetna Health Insurance Company",F,70,192.01
+"Aetna Health Insurance Company",F,75,225.83
+"Aetna Health Insurance Company",F,80,265.98
+"Aetna Health Insurance Company",F,85,310.71
+"Aetna Health Insurance Company",F,90,356.77
+"Aetna Health Insurance Company",F,95,406.84
+"Mutual of Omaha (Omaha Insurance Company)",F,65,184.64
+"Mutual of Omaha (Omaha Insurance Company)",F,70,196.93
+"Mutual of Omaha (Omaha Insurance Company)",F,75,228.90
+"Mutual of Omaha (Omaha Insurance Company)",F,80,276.88
+"Mutual of Omaha (Omaha Insurance Company)",F,85,337.52
+"Mutual of Omaha (Omaha Insurance Company)",F,90,385.90
+"Mutual of Omaha (Omaha Insurance Company)",F,95,426.07
+"AARP/UnitedHealthcare Insurance Company of America",F,65,184.95
+"AARP/UnitedHealthcare Insurance Company of America",F,70,205.13
+"AARP/UnitedHealthcare Insurance Company of America",F,75,238.76
+"AARP/UnitedHealthcare Insurance Company of America",F,80,275.75
+"AARP/UnitedHealthcare Insurance Company of America",F,85,326.20
+"AARP/UnitedHealthcare Insurance Company of America",F,90,336.29
+"AARP/UnitedHealthcare Insurance Company of America",F,95,336.29
+"Humana Achieve Medicare Supplement",F,65,194.48
+"Humana Achieve Medicare Supplement",F,70,201.13
+"Humana Achieve Medicare Supplement",F,75,240.55
+"Humana Achieve Medicare Supplement",F,80,290.71
+"Humana Achieve Medicare Supplement",F,85,356.30
+"Humana Achieve Medicare Supplement",F,90,421.10
+"Humana Achieve Medicare Supplement",F,95,469.33
+"GPM Health and Life Insurance Company",F,65,271.87
+"GPM Health and Life Insurance Company",F,70,299.87
+"GPM Health and Life Insurance Company",F,75,358.97
+"GPM Health and Life Insurance Company",F,80,414.04
+"GPM Health and Life Insurance Company",F,85,461.20
+"GPM Health and Life Insurance Company",F,90,492.41
+"GPM Health and Life Insurance Company",F,95,506.62

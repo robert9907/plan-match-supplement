@@ -131,6 +131,10 @@ for (let r = 1; r < rows.length; r++) {
     phone: row[idx.phone] || null,
     website: row[idx.website] || null,
     address: row[idx.address] || null,
+    // Must be set explicitly: PostgREST merge-duplicates writes only the
+    // columns supplied, so the column DEFAULT fires on INSERT and never on
+    // UPDATE. Omitting this left 3,928 refreshed rows stamped 2026-06-12.
+    scraped_at: new Date().toISOString(),
   });
 }
 
@@ -214,3 +218,75 @@ for (let i = 0; i < records.length; i += BATCH) {
 }
 process.stdout.write('\n');
 console.log(`Done. ${upserted} rows upserted into pm_supp_carrier_rates.`);
+
+// ─── Retirement check ─────────────────────────────────────────────
+//
+// This upsert is merge-only: it updates and inserts, never deletes. A
+// carrier that stops filing in a state, or files under a new name, leaves
+// its old rows behind serving the last price we ever saw. That is how 264
+// rows survived from 2026-06-12 to 2026-09-20 — two of them duplicating a
+// live carrier under a dead name, at a stale price, on the results page.
+//
+// So after every load, name what the scrape did not cover. Detection only:
+// removing consumer rows stays a deliberate, reviewed step.
+
+async function getAll(path) {
+  const out = [];
+  for (let from = 0; ; from += 1000) {
+    const resp = await fetch(`${base}/rest/v1/${path}`, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        Range: `${from}-${from + 999}`,
+      },
+    });
+    if (!resp.ok) {
+      console.error(`Retirement check failed ${resp.status}: ${(await resp.text()).slice(0, 300)}`);
+      return null;
+    }
+    const page = await resp.json();
+    out.push(...page);
+    if (page.length < 1000) return out;
+  }
+}
+
+const statesLoaded = [...new Set(records.map((r) => r.state))].sort();
+const inCsv = new Set(records.map((r) => `${r.state}\u0000${r.company}`));
+const live = await getAll(
+  `pm_supp_carrier_rates?select=state,company&state=in.(${statesLoaded.join(',')})`,
+);
+
+if (live) {
+  const orphans = new Map();
+  for (const row of live) {
+    const key = `${row.state}\u0000${row.company}`;
+    if (inCsv.has(key)) continue;
+    orphans.set(key, (orphans.get(key) ?? 0) + 1);
+  }
+
+  if (orphans.size === 0) {
+    console.log(`Retirement check: every (state, company) in ${statesLoaded.join('/')} was covered by this scrape.`);
+  } else {
+    const total = [...orphans.values()].reduce((a, b) => a + b, 0);
+    console.log(
+      `\nRetirement check: ${total} row(s) across ${orphans.size} (state, company) pair(s) are in the\n` +
+      `table but NOT in this scrape. They still carry whatever price they last had:\n`,
+    );
+    const pairs = [...orphans.entries()]
+      .map(([k, n]) => { const [st, co] = k.split('\u0000'); return { st, co, n }; })
+      .sort((a, b) => a.st.localeCompare(b.st) || a.co.localeCompare(b.co));
+    for (const { st, co, n } of pairs) console.log(`  ${st}  ${String(n).padStart(4)}  ${co}`);
+    console.log(
+      '\nCheck each one before acting: a pair can be absent because the carrier left the\n' +
+      'state, because it now files under a different name (the old and new names then both\n' +
+      'appear on the results page at different prices), or because the scrape itself is\n' +
+      'incomplete. Confirm against the raw capture, not against this list.\n' +
+      '\nTo retire the ones you have confirmed, archive then delete:\n' +
+      '\n  insert into pm_supp_carrier_rates_retired' +
+      '\n  select r.*, current_date, \'<why>\' from pm_supp_carrier_rates r' +
+      `\n  where (r.state, r.company) in (${pairs.map(({ st, co }) => `('${st}','${co.replace(/'/g, "''")}')`).join(', ')});` +
+      '\n\n  delete from pm_supp_carrier_rates' +
+      `\n  where (state, company) in (${pairs.map(({ st, co }) => `('${st}','${co.replace(/'/g, "''")}')`).join(', ')});\n`,
+    );
+  }
+}

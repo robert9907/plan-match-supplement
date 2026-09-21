@@ -217,3 +217,121 @@ Build `scripts/scrape-medigap-rates.ts`:
 
 504 queries per plan letter. At 3.5s between calls that is about half an
 hour, unattended.
+
+---
+
+## The age-banded scrape is only valid for attained-age carriers
+
+Found 2026-09-20, after the spec above was written. It invalidates part of it.
+
+### The tell
+
+Across all 4,408 rows in `pm_supp_carrier_rates`, `rate_min` differs from
+`rate_max` exactly twelve times — and all twelve are `ISSUE_AGE`. Never once
+on an attained-age or community-rated row:
+
+| rate_type | rows | companies | rows with a range |
+|---|---|---|---|
+| ATTAINED_AGE | 2,800 | 43 | 0 |
+| ISSUE_AGE | 1,320 | 29 | 12 |
+| COMMUNITY_RATED | 288 | 4 | 0 |
+
+**Georgia is entirely issue-age.** It has no attained-age or community-rated
+rows at all.
+
+### Why it matters
+
+The projection chart answers: *what will I pay at 70, 75, 80 as I get older?*
+
+For an **attained-age** carrier, asking CMS for the premium at age 80 answers
+that question. The premium is a function of your current age, so a 65-year-old
+buyer will be paying the age-80 figure when they turn 80. Walking 65→95 is
+exactly right, and it is what the TX seed did.
+
+For an **issue-age** carrier it answers a different question entirely. The
+premium is fixed by the age you bought at and does not climb as you age. Asking
+CMS for the age-80 figure returns *what a new 80-year-old buyer pays* — not
+what a 65-year-old buyer pays at 80, which is much closer to their original
+65 rate.
+
+Community-rated is the same trap: everyone pays the same regardless of age, so
+an age-varying series is meaningless for them.
+
+So a naive 65→95 walk would plot **29 issue-age and 4 community-rated
+companies as though their premiums climb steeply with age, when they do not.**
+It would make the carriers whose whole selling point is a stable premium look
+like the expensive long-term choice. That is backwards, it is the exact
+inverse of what the chart exists to help someone decide, and for Georgia it
+would be every single carrier on the screen.
+
+### It separates by state, which makes this much smaller
+
+The counts above are distinct company *names* across all three states, and
+that framing overstated the problem badly. Rate type is a property of the
+(company, state) pair, not the company — 23 companies file under different
+types in different states. Per state:
+
+| | companies | attained-age | exceptions |
+|---|---|---|---|
+| NC | 38 | 33 | 4 AARP entries (community-rated) + Old Surety (issue-age) |
+| TX | 32 | 29 | 2 AARP entries (community-rated) + Old Surety (issue-age) |
+| GA | 28 | **0** | all 28 issue-age |
+
+So it is not "two thirds of carriers". It is **AARP and Old Surety, plus the
+whole of Georgia.**
+
+That changes the shape of the work:
+
+- **NC and TX** — walk 65→95 as specced. It is correct for 33 of 38 and 29 of
+  32. Two named exceptions each, both already identifiable from `rate_type`
+  before a single query is made.
+- **Georgia** — do not build an age-varying projection at all. Every carrier
+  in the state is issue-age, so there is no age curve to build. Georgia gets
+  an age-65 comparison or it gets nothing; a rising chart there would be
+  wrong for every row on the screen.
+
+The Georgia case is worth stating plainly because it is not a data gap to be
+filled later. It is a fact about how Medigap is sold in that state, and a
+projection chart of the kind NC and TX have cannot honestly exist for it.
+
+### What the scraper must do instead
+
+Branch on `rate_type`, which the `policies` response already returns:
+
+- **ATTAINED_AGE** — walk 65→95 as specced. Correct as written.
+- **ISSUE_AGE** — one query at 65. The curve is that figure held flat, or the
+  carrier is shown at 65 only. It must not be plotted as rising.
+- **COMMUNITY_RATED** — one query. Flat by definition.
+
+Flat is not perfectly true either: issue-age and community-rated premiums do
+rise over time with filed rate increases, they just do not rise *because you
+aged*. A flat line understates the real 20-year cost; a rising attained-age
+line overstates it badly. Flat is much closer, and the difference belongs in a
+disclosure rather than in invented numbers.
+
+**This needs a decision before the age-banded scrape runs**, because it
+changes what gets stored, not just what gets drawn:
+
+1. Flat curve at the issue-age-65 rate, with a disclosure that the figure
+   holds only until the carrier files an increase.
+2. Age-65 cell only, every other band left empty. `projectionStats` already
+   renders absent bands as gaps and excludes such carriers from the 20-year
+   total, so this is honest and needs no new code — but it drops most
+   carriers out of the comparison, and all of Georgia.
+3. Store the real filed trend if it can be sourced, which nothing available
+   here provides today.
+
+### What already half-anticipates this
+
+`seed-medsup-projection.mjs` warns when a `COMMUNITY_RATED` carrier's premium
+varies across ages. Nothing handles `ISSUE_AGE`, and the monotonicity check
+only errors on a curve that *dips* — a wrongly-rising issue-age curve passes
+every check in the file.
+
+### What this does not affect
+
+The TX projection already seeded. All eight of those carriers are
+attained-age, so walking the ages was the right thing for every one of them.
+NC's twelve are attained-age or community-rated; the three community-rated
+AARP rows already carry a rise, which is its own question, recorded in
+`docs/nc-projection-correction.md`.

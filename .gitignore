@@ -16,3 +16,6 @@ qa/test-results
 
 # Cowork session scratch — never part of the repo
 Claude outputs/
+
+# scraper resume checkpoint (regenerated each run)
+data/*.partial.json
