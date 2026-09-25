@@ -1,5 +1,31 @@
 import { useState } from 'react';
 
+// ---------------------------------------------------------------------------
+// APPOINTMENT CLAIM: do not re-add one here. See RateSourceDisclosure.tsx for
+// the full history and Rob's 2026-09-19 ruling.
+//
+// This box used to end "...except those this agency is not appointed with."
+// That was false and it contradicted the sibling disclosure rendered on the
+// SAME screen — RateProjection.tsx renders <RateSourceDisclosure /> and the
+// widget below it renders this component, so a consumer read both:
+//
+//   here:  "every carrier ... is shown, except those this agency is not
+//           appointed with"
+//   there: "Generation Health is not appointed with every carrier listed —
+//           if you choose one Rob cannot write, he'll point you to them"
+//
+// One said non-appointed carriers are filtered out; the other said they are
+// listed and Rob refers you. Nothing in the rate path filters on appointment:
+// api/medsup-rates.ts queries pm_medsup_rate_public on plan_letter, tobacco
+// and carrier_state only.
+//
+// Carriers ARE withheld, but not for that reason. pm_medsup_carrier_exclusions
+// (migration 005) holds four, each flagged not_appointing_brokers or
+// closed_block — carriers nobody can be appointed with, which is a different
+// statement from a curated list of Rob's own appointments. The wording below
+// says that instead.
+// ---------------------------------------------------------------------------
+
 // The date the CMS Medigap Plan Finder was read, not a carrier filing date —
 // CMS does not return one. Update this whenever the projection is reloaded.
 const RATES_READ_ON = '21 September 2026';
@@ -114,8 +140,9 @@ export function MedSupRateDisclosure({
             ? `Rates as listed by the CMS Medigap Plan Finder on ${effective} for ZIP ${ref.zip} (${ref.label}), the reference ZIP for this state. Premiums vary by ZIP within a state — yours may differ.`
             : `Rates as listed by the CMS Medigap Plan Finder on ${effective}. Premiums vary by ZIP within a state — yours may differ.`}{' '}
           Subject to change with regulatory approval. Every {planLetter} carrier
-          CMS lists for that ZIP is shown, except those this agency is not
-          appointed with. Robert Simm, NPN #10447418. Not connected with or endorsed by
+          CMS lists for that ZIP is shown, except a small number that do not
+          appoint independent agents or have closed the block.
+          Robert Simm, NPN #10447418. Not connected with or endorsed by
           the U.S. Government or the federal Medicare program. This is a
           solicitation of insurance.
         </div>
