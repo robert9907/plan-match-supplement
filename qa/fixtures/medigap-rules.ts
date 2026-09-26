@@ -110,16 +110,30 @@ export const PART_D_CARVEOUT_PATTERNS = [
  *
  * Until 2026-09-19 both /rates and /results said the rates shown were "from
  * carriers Generation Health is appointed with". They are not — they are the
- * CMS Plan Finder filings for the state, filtered only by the three-carrier
- * suppression list: 34 of 38 filed companies in NC against 15 actual
- * appointments. A consumer could pick a carrier believing Rob was their agent
- * for it and find he could not submit the application.
+ * CMS Plan Finder filings for the state, filtered only by the suppression list
+ * in pm_medsup_carrier_exclusions (four carriers as of 2026-09-20, each
+ * not_appointing_brokers or closed_block): 34 of 38 filed companies in NC
+ * against 15 actual appointments. A consumer could pick a carrier believing
+ * Rob was their agent for it and find he could not submit the application.
+ *
+ * WIDENED 2026-09-25. The first version matched only the positive claim with
+ * "Generation Health" or "we" as the subject, and MedSupRateDisclosure.tsx
+ * carried the same claim in a shape that slipped past it on three counts —
+ * singular "carrier", the subject "this agency", and the NEGATIVE form:
+ *
+ *   "Every Plan G carrier CMS lists for that ZIP is shown, except those this
+ *    agency is not appointed with."
+ *
+ * Which direction the sentence is phrased in does not change what it tells the
+ * consumer: that the list was filtered to Rob's appointments. Both forms are
+ * matched now, and the subject is any of Generation Health / we / this agency
+ * / this site.
  *
  * If the product ever does filter to appointments, delete this rule — but
  * change the data first and the copy second, never the other way round.
  */
 export const UNQUALIFIED_APPOINTMENT_CLAIM =
-  /(rates|carriers|plans)[^.]{0,60}(Generation Health|we)\s+(is|are|am)\s+appointed with/i;
+  /(rates?|carriers?|plans?)[^.]{0,80}(Generation Health|we|this agency|this site)\s+(is|are|am)\s+(not\s+)?appointed with/i;
 
 /** Rates are estimates, never a quote. */
 export const RATES_ARE_ESTIMATES =
