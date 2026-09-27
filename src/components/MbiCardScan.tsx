@@ -189,23 +189,23 @@ export function MbiCardScan({ onConfirm, className }: Props) {
     <>
       <button
         type="button"
-        className={['mbi-scan-btn', className].filter(Boolean).join(' ')}
+        className={['scan-card-btn', className].filter(Boolean).join(' ')}
         onClick={() => setOpen(true)}
       >
-        <span className="mbi-scan-btn-icon" aria-hidden="true">
+        <span className="scan-card-icon" aria-hidden="true">
           <IconCamera />
         </span>
-        <span className="mbi-scan-btn-label">
-          <span className="mbi-scan-btn-title">Scan your Medicare card</span>
-          <span className="mbi-scan-btn-sub">Capture it, then confirm MBI and start dates</span>
+        <span className="scan-card-label">
+          <span className="scan-card-title">Scan your Medicare card</span>
+          <span className="scan-card-sub">Capture it, then confirm MBI and start dates</span>
         </span>
       </button>
 
       {open && (
-        <div className="mbi-scan-overlay" role="dialog" aria-label="Medicare card scanner">
+        <div className="scan-overlay" role="dialog" aria-label="Medicare card scanner">
           <button
             type="button"
-            className="mbi-scan-close"
+            className="scan-close"
             onClick={close}
             aria-label="Cancel scan"
           >
@@ -214,17 +214,17 @@ export function MbiCardScan({ onConfirm, className }: Props) {
 
           {!photo && (
             <>
-              <div className="mbi-scan-frame">
+              <div className="scan-frame card">
                 <video
                   ref={videoRef}
-                  className="mbi-scan-video"
+                  className="scan-video"
                   playsInline
                   muted
                   autoPlay
                 />
-                {status === 'ready' && <div className="mbi-scan-sweep" />}
+                {status === 'ready' && <div className="scan-sweep" />}
               </div>
-              <div className="mbi-scan-status">
+              <div className="scan-status">
                 {status === 'requesting' && 'Opening camera…'}
                 {status === 'ready' && 'Frame the card, then tap capture'}
                 {status === 'denied' && 'Camera access needed — closing scanner'}
@@ -233,10 +233,10 @@ export function MbiCardScan({ onConfirm, className }: Props) {
               </div>
 
               {status === 'ready' && (
-                <div className="shutter-row" style={{ marginTop: 20 }}>
+                <div className="scan-shutter-row">
                   <button
                     type="button"
-                    className="shutter-btn"
+                    className="scan-shutter"
                     onClick={shoot}
                     aria-label="Capture"
                   />
@@ -246,9 +246,9 @@ export function MbiCardScan({ onConfirm, className }: Props) {
           )}
 
           {photo && (
-            <div className="mbi-scan-sheet" role="dialog" aria-label="Confirm card details">
-              <div className="mbi-scan-sheet-handle" />
-              <div className="mbi-scan-sheet-title">
+            <div className="scan-sheet" role="dialog" aria-label="Confirm card details">
+              <div className="scan-sheet-handle" />
+              <div className="scan-sheet-title">
                 {scanLoading
                   ? 'Reading your card…'
                   : scanFallback
@@ -261,9 +261,9 @@ export function MbiCardScan({ onConfirm, className }: Props) {
               </div>
 
               <div style={{ marginTop: 12 }}>
-                <span className="mbi-scan-sheet-field-label">Medicare Number (MBI)</span>
+                <span className="scan-sheet-field-label">Medicare Number (MBI)</span>
                 <input
-                  className="mbi-scan-sheet-input mono"
+                  className="scan-sheet-input mono"
                   inputMode="text"
                   autoCapitalize="characters"
                   placeholder="1ABC-DE2-FG34"
@@ -280,12 +280,12 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                 />
               </div>
 
-              <div className="mbi-scan-sheet-row">
-                <div className="mbi-scan-sheet-field">
-                  <span className="mbi-scan-sheet-field-label">Part A start</span>
-                  <div className="mbi-scan-sheet-mmyyyy">
+              <div className="scan-sheet-row">
+                <div className="scan-sheet-field">
+                  <span className="scan-sheet-field-label">Part A start</span>
+                  <div className="scan-sheet-mmyyyy">
                     <input
-                      className="mbi-scan-sheet-input mono"
+                      className="scan-sheet-input mono"
                       placeholder="MM"
                       inputMode="numeric"
                       maxLength={2}
@@ -299,7 +299,7 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                       aria-label="Part A month"
                     />
                     <input
-                      className="mbi-scan-sheet-input mono"
+                      className="scan-sheet-input mono"
                       placeholder="YYYY"
                       inputMode="numeric"
                       maxLength={4}
@@ -314,11 +314,11 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                     />
                   </div>
                 </div>
-                <div className="mbi-scan-sheet-field">
-                  <span className="mbi-scan-sheet-field-label">Part B start</span>
-                  <div className="mbi-scan-sheet-mmyyyy">
+                <div className="scan-sheet-field">
+                  <span className="scan-sheet-field-label">Part B start</span>
+                  <div className="scan-sheet-mmyyyy">
                     <input
-                      className="mbi-scan-sheet-input mono"
+                      className="scan-sheet-input mono"
                       placeholder="MM"
                       inputMode="numeric"
                       maxLength={2}
@@ -332,7 +332,7 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                       aria-label="Part B month"
                     />
                     <input
-                      className="mbi-scan-sheet-input mono"
+                      className="scan-sheet-input mono"
                       placeholder="YYYY"
                       inputMode="numeric"
                       maxLength={4}
@@ -345,7 +345,7 @@ export function MbiCardScan({ onConfirm, className }: Props) {
                 </div>
               </div>
 
-              <div className="mbi-scan-sheet-hint">
+              <div className="scan-sheet-hint">
                 {scanLoading
                   ? 'Hang tight — extracting the MBI and start dates.'
                   : scanFallback
@@ -354,13 +354,13 @@ export function MbiCardScan({ onConfirm, className }: Props) {
               </div>
               <button
                 type="button"
-                className="mbi-scan-sheet-confirm"
+                className="btn"
                 onClick={confirm}
                 disabled={!canConfirm}
               >
                 Confirm &amp; fill application
               </button>
-              <button type="button" className="mbi-scan-sheet-retry" onClick={rescan}>
+              <button type="button" className="scan-sheet-retry" onClick={rescan}>
                 Rescan
               </button>
             </div>

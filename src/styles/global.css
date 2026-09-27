@@ -1439,6 +1439,38 @@ textarea {
   text-decoration: underline;
 }
 
+/* Medicare card confirm sheet — photo preview and the Part A / Part B
+   start-date pairs under the MBI field. */
+.scan-capture-preview {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: #000;
+}
+.scan-capture-preview img {
+  max-width: 100%;
+  max-height: inherit;
+  object-fit: contain;
+}
+.scan-sheet-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+.scan-sheet-field {
+  flex: 1;
+  min-width: 0;
+}
+.scan-sheet-field .scan-sheet-field-label {
+  display: block;
+}
+.scan-sheet-mmyyyy {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 6px;
+}
+
 /* ─── Multi-bottle queue (thumbnail strip + done) ───────────────── */
 
 .scan-capture-flash {
