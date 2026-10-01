@@ -548,39 +548,109 @@ textarea {
 
 /* ─── Health questions ──────────────────────────────────────────── */
 
-.hq {
+.hq-group {
   background: var(--white);
-  border-radius: var(--radius-md);
   border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.hq-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 4px;
+}
+.hq-group-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.hq-group-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.hq-group-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 0 14px 10px;
+}
+.hq-none {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border);
+  background: var(--off-white);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.hq-none:hover {
+  border-color: var(--navy);
+}
+.hq-none.on {
+  background: var(--green-bg);
+  border-color: var(--green);
+  color: var(--green-text);
+}
+
+.hq {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
   padding: 12px 14px;
-  margin-bottom: 7px;
+  border-top: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.hq.is-yes {
+  background: var(--red-bg);
 }
 .hq-text {
-  font-size: 13px;
+  flex: 1 1 200px;
+  font-size: 13.5px;
   color: var(--text-primary);
-  line-height: 1.5;
-  margin-bottom: 8px;
+  line-height: 1.45;
 }
 .hq-text strong {
   font-weight: 600;
 }
+.hq-hint {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
 .hq-btns {
   display: flex;
   gap: 6px;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 .hq-btn {
-  padding: 7px 18px;
+  width: 58px;
+  padding: 7px 0;
   border-radius: var(--radius-pill);
   border: 1.5px solid var(--border);
   background: var(--white);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  flex: 1;
   text-align: center;
   transition: all 0.15s;
   color: var(--text-primary);
   font-family: inherit;
+}
+.hq-btn:hover {
+  border-color: var(--navy);
 }
 .hq-btn.yes {
   background: var(--red-bg);
@@ -591,6 +661,16 @@ textarea {
   background: var(--green-bg);
   border-color: var(--green);
   color: var(--green-text);
+}
+.hq .slider-wrap {
+  flex: 1 0 100%;
+  margin-top: 2px;
+}
+.hq-remaining {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 8px;
 }
 
 .slider-wrap {

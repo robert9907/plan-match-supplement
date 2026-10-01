@@ -44,9 +44,48 @@ export interface HealthAnswers {
   q10_neuro: YesNo;
   q11_mental: YesNo;
   q12_pending: YesNo;
-  // Conditional sliders
+  q13_adl: YesNo;
+  q14_therapy: YesNo;
+  q15_stroke: YesNo;
+  q16_afib: YesNo;
+  q17_circulation: YesNo;
+  q18_defib: YesNo;
+  q19_chf: YesNo;
+  q20_mobility: YesNo;
+  q21_bowel: YesNo;
+  q22_substance: YesNo;
+  // Conditional follow-ups
   diabetesMgmt: 'diet' | 'oral' | 'u50' | 'o50' | null;
+  /** Asked only when diabetes is managed with medication or insulin. */
+  diabetesComplications: YesNo;
   heartRecency: 'o2' | 'u2' | 'now' | null;
+}
+
+/** The yes/no questions (follow-ups excluded). */
+export type HealthQuestionKey = Exclude<
+  keyof HealthAnswers,
+  'diabetesMgmt' | 'diabetesComplications' | 'heartRecency'
+>;
+
+/** A "yes" to any of these is a decline at every carrier in the panel. */
+export const UNIVERSAL_KNOCKOUTS: { key: HealthQuestionKey; reason: string }[] = [
+  { key: 'q1_hospitalized', reason: 'Hospitalized, bedridden, or in a care facility' },
+  { key: 'q13_adl', reason: 'Needs help with daily activities or a mobility aid' },
+  { key: 'q2_hospice', reason: 'Hospice, home health, or oxygen' },
+  { key: 'q3_dialysis', reason: 'Dialysis' },
+  { key: 'q4_cancer', reason: 'Active cancer treatment' },
+  { key: 'q5_transplant', reason: 'Organ transplant history' },
+  { key: 'q6_als_hiv_hepc', reason: 'ALS / HIV / Hepatitis C' },
+  { key: 'q19_chf', reason: 'Congestive heart failure' },
+  { key: 'q10_neuro', reason: 'Neurodegenerative condition' },
+  { key: 'q11_mental', reason: 'Severe mental health condition' },
+  { key: 'q22_substance', reason: 'Alcohol or drug treatment' },
+  { key: 'q12_pending', reason: 'Pending procedure or hospitalization' },
+];
+
+/** Any heart condition the applicant reported directly (not inferred from meds). */
+export function reportedHeartCondition(h: HealthAnswers): boolean {
+  return h.q8_heart === 'y' || h.q16_afib === 'y' || h.q18_defib === 'y' || h.q19_chf === 'y';
 }
 
 export function emptyHealthAnswers(): HealthAnswers {
@@ -63,7 +102,18 @@ export function emptyHealthAnswers(): HealthAnswers {
     q10_neuro: null,
     q11_mental: null,
     q12_pending: null,
+    q13_adl: null,
+    q14_therapy: null,
+    q15_stroke: null,
+    q16_afib: null,
+    q17_circulation: null,
+    q18_defib: null,
+    q19_chf: null,
+    q20_mobility: null,
+    q21_bowel: null,
+    q22_substance: null,
     diabetesMgmt: null,
+    diabetesComplications: null,
     heartRecency: null,
   };
 }
@@ -318,18 +368,7 @@ function emptyClusterDrugs(): Record<DdlCluster, string[]> {
 
 function scoreHealth(h: HealthAnswers): number {
   // Any of these as "yes" is an underwriting knockout — score = 0.
-  const knockouts: YesNo[] = [
-    h.q1_hospitalized,
-    h.q2_hospice,
-    h.q3_dialysis,
-    h.q4_cancer,
-    h.q5_transplant,
-    h.q6_als_hiv_hepc,
-    h.q10_neuro,
-    h.q11_mental,
-    h.q12_pending,
-  ];
-  if (knockouts.some((a) => a === 'y')) return 0;
+  if (UNIVERSAL_KNOCKOUTS.some(({ key }) => h[key] === 'y')) return 0;
 
   let score = 100;
   if (h.q7_diabetes === 'y') {
@@ -337,6 +376,8 @@ function scoreHealth(h: HealthAnswers): number {
     else if (h.diabetesMgmt === 'u50') score = Math.min(score, 65);
     else if (h.diabetesMgmt === 'oral') score = Math.min(score, 80);
     else score = Math.min(score, 90); // diet
+    // Eye, nerve, kidney, or circulation complications decline at most carriers.
+    if (h.diabetesComplications === 'y') score = Math.min(score, 10);
   }
   if (h.q8_heart === 'y') {
     if (h.heartRecency === 'now') score = Math.min(score, 5);
@@ -344,6 +385,13 @@ function scoreHealth(h: HealthAnswers): number {
     else score = Math.min(score, 55); // 2+ years
   }
   if (h.q9_copd === 'y') score = Math.min(score, 50);
+  if (h.q18_defib === 'y') score = Math.min(score, 5);
+  if (h.q15_stroke === 'y') score = Math.min(score, 10);
+  if (h.q17_circulation === 'y') score = Math.min(score, 35);
+  if (h.q14_therapy === 'y') score = Math.min(score, 40);
+  if (h.q16_afib === 'y') score = Math.min(score, 45);
+  if (h.q21_bowel === 'y') score = Math.min(score, 45);
+  if (h.q20_mobility === 'y') score = Math.min(score, 50);
   return score;
 }
 
@@ -379,7 +427,7 @@ function scoreMeds(meds: MedItem[], health: HealthAnswers): MedsScore {
   // meds, an anticoagulant (AFib/stent/DVT proxy), or an explicit heart
   // answer on the health screen.
   const cardiacSignal =
-    clusters.cardio >= 1 || clusters.anticoagulant >= 1 || health.q8_heart === 'y';
+    clusters.cardio >= 1 || clusters.anticoagulant >= 1 || reportedHeartCondition(health);
 
   // Severity tiers within diabetes / cardio clusters. Underwriters read
   // drug stacks as an escalation ladder, not a raw count — someone on
@@ -597,7 +645,7 @@ function adjustCarrierScore(
   let s = overall;
 
   const cardiacSignal =
-    clusters.cardio >= 1 || clusters.anticoagulant >= 1 || health.q8_heart === 'y';
+    clusters.cardio >= 1 || clusters.anticoagulant >= 1 || reportedHeartCondition(health);
   const hasInsulin = meds.some((m) => ddlLookup(m.name)?.isInsulin);
 
   // Bankers Fidelity — the softest carrier in the panel. Documented to
@@ -640,15 +688,8 @@ function adjustCarrierScore(
  * hospitalization, pending procedures, severe mental/neurodegenerative
  * dx, or any med on the universal DDL (Humira, Gleevec, OxyContin, etc.). */
 function universalKnockoutReason(meds: MedItem[], health: HealthAnswers): string | null {
-  if (health.q1_hospitalized === 'y') return 'Hospitalized in past 12 months';
-  if (health.q2_hospice === 'y') return 'Hospice care';
-  if (health.q3_dialysis === 'y') return 'Dialysis';
-  if (health.q4_cancer === 'y') return 'Active cancer treatment';
-  if (health.q5_transplant === 'y') return 'Organ transplant history';
-  if (health.q6_als_hiv_hepc === 'y') return 'ALS / HIV / Hepatitis C';
-  if (health.q10_neuro === 'y') return 'Neurodegenerative condition';
-  if (health.q11_mental === 'y') return 'Severe mental health condition';
-  if (health.q12_pending === 'y') return 'Pending procedure or hospitalization';
+  const ko = UNIVERSAL_KNOCKOUTS.find(({ key }) => health[key] === 'y');
+  if (ko) return ko.reason;
   const declineMed = meds.find((m) => ddlLookup(m.name)?.declineAll);
   if (declineMed) {
     const cond = ddlLookup(declineMed.name)?.condition ?? 'universal DDL';
@@ -679,7 +720,7 @@ function carrierKnockoutReason(
     }
     if (
       clusters.diabetes >= 1 &&
-      (health.q8_heart === 'y' || clusters.anticoagulant >= 1 || clusters.cardio >= 3)
+      (reportedHeartCondition(health) || clusters.anticoagulant >= 1 || clusters.cardio >= 3)
     ) {
       return 'Diabetes + cardiac — modeled against Mutual of Omaha\'s known "2×2" underwriting pattern; confirm directly with the carrier.';
     }
@@ -795,20 +836,9 @@ export function scoreApplication(inputs: ScoringInputs): ScoringResult {
   // show 60–70% just from meds/build/tobacco being full.
   const overall = universalKo ? 0 : rawOverall;
 
-  const healthFlagCount = [
-    inputs.health.q1_hospitalized,
-    inputs.health.q2_hospice,
-    inputs.health.q3_dialysis,
-    inputs.health.q4_cancer,
-    inputs.health.q5_transplant,
-    inputs.health.q6_als_hiv_hepc,
-    inputs.health.q7_diabetes,
-    inputs.health.q8_heart,
-    inputs.health.q9_copd,
-    inputs.health.q10_neuro,
-    inputs.health.q11_mental,
-    inputs.health.q12_pending,
-  ].filter((a) => a === 'y').length;
+  const healthFlagCount = (Object.keys(inputs.health) as (keyof HealthAnswers)[]).filter(
+    (k) => /^q\d+_/.test(k) && inputs.health[k] === 'y',
+  ).length;
 
   const ageMul = ageMultiplier(inputs.age);
   const tobMul = tobaccoMultiplier(inputs.tobacco);
