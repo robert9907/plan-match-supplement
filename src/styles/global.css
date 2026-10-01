@@ -575,7 +575,7 @@ textarea {
 }
 .hq-group-count {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   padding: 0 14px 10px;
 }
