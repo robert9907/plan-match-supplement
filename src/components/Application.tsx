@@ -4,6 +4,7 @@ import { formatDob, useFlow } from '../context/FlowContext';
 import { useAutoAdvance } from '../hooks/useAutoAdvance';
 import { heightLabel } from '../lib/buildChart';
 import { submitApplication } from '../lib/submitApplication';
+import { UNIVERSAL_KNOCKOUTS } from '../lib/scoringEngine';
 import {
   TCPA_CONSENT_DISCLOSURE_PREFIX,
   TCPA_CONSENT_DISCLOSURE_SUFFIX,
@@ -87,18 +88,7 @@ function ReviewStage({ onNext, onBack, planLetter, rateRange, rateClassName, car
   const heightDisplay =
     flow.heightIn && flow.weightLbs ? `${heightLabel(flow.heightIn)} / ${flow.weightLbs} lbs` : '—';
 
-  const hasKnockouts =
-    [
-      flow.health.q1_hospitalized,
-      flow.health.q2_hospice,
-      flow.health.q3_dialysis,
-      flow.health.q4_cancer,
-      flow.health.q5_transplant,
-      flow.health.q6_als_hiv_hepc,
-      flow.health.q10_neuro,
-      flow.health.q11_mental,
-      flow.health.q12_pending,
-    ].filter((a) => a === 'y').length > 0;
+  const hasKnockouts = UNIVERSAL_KNOCKOUTS.some(({ key }) => flow.health[key] === 'y');
 
   const diabetesLabel = (() => {
     if (flow.health.q7_diabetes !== 'y') return 'No';
@@ -109,7 +99,8 @@ function ReviewStage({ onNext, onBack, planLetter, rateRange, rateClassName, car
       u50: '<50u insulin',
       o50: '50u+ insulin',
     };
-    return `Yes — ${mgmt ? map[mgmt] : 'not specified'}`;
+    const complications = flow.health.diabetesComplications === 'y' ? ', with complications' : '';
+    return `Yes — ${mgmt ? map[mgmt] : 'not specified'}${complications}`;
   })();
 
   const heartLabel = (() => {
@@ -121,6 +112,13 @@ function ReviewStage({ onNext, onBack, planLetter, rateRange, rateClassName, car
   const otherFlags = (() => {
     const list: string[] = [];
     if (flow.health.q9_copd === 'y') list.push('COPD/respiratory');
+    if (flow.health.q16_afib === 'y') list.push('atrial fibrillation');
+    if (flow.health.q18_defib === 'y') list.push('implanted defibrillator');
+    if (flow.health.q15_stroke === 'y') list.push('stroke/TIA');
+    if (flow.health.q17_circulation === 'y') list.push('circulation/aneurysm');
+    if (flow.health.q14_therapy === 'y') list.push('recent therapy');
+    if (flow.health.q20_mobility === 'y') list.push('arthritis/spinal stenosis');
+    if (flow.health.q21_bowel === 'y') list.push("Crohn's/colitis");
     if (hasKnockouts) list.push('knockout condition flagged');
     return list.length ? list.join(', ') : 'None flagged';
   })();
