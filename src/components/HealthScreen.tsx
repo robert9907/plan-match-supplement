@@ -78,7 +78,7 @@ const ALL_QUESTIONS = SECTIONS.flatMap((s) => s.questions);
 const DIABETES_OPTIONS: { value: HealthAnswers['diabetesMgmt']; label: string }[] = [
   { value: 'diet', label: 'Diet' },
   { value: 'oral', label: 'Pills' },
-  { value: 'u50', label: '<50u insulin' },
+  { value: 'u50', label: '<50u' },
   { value: 'o50', label: '50u+' },
 ];
 
@@ -218,7 +218,7 @@ export function HealthScreen() {
 
                   {q.key === 'q7_diabetes' && value === 'y' && (
                     <div className="slider-wrap">
-                      <div className="sl">How is it managed?</div>
+                      <div className="sl">How is it managed? (insulin units/day)</div>
                       <div className="slider-opts">
                         {DIABETES_OPTIONS.map((opt) => (
                           <button
