@@ -105,7 +105,7 @@ export function RateProjection() {
             <>
               {' '}Sample Plan G quotes for a 65-year-old non-tobacco applicant in North
               Carolina typically fall in the $115–$180/month range from carriers such as
-              Aetna, Cigna, Humana, Mutual of Omaha, UnitedHealthcare, Blue Cross NC, and
+              Aetna, Cigna, Humana, Mutual of Omaha, Blue Cross NC, and
               Anthem. Community-rated filings are typical in North Carolina.
             </>
           )}
