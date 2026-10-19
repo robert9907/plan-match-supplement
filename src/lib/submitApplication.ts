@@ -33,6 +33,13 @@ export async function submitApplication(flow: FlowState, age: number): Promise<S
     status: m.status,
     statusText: m.statusText,
     ...(m.rxcui ? { rxcui: m.rxcui } : {}),
+    // Two-photo bottle scan facts → AgentBase client_medications
+    // (pharmacy_id, quantity, refill_date).
+    ...(m.pharmacy ? { pharmacy: m.pharmacy } : {}),
+    ...(m.quantity ? { quantity: m.quantity } : {}),
+    ...(m.daysSupply ? { daysSupply: m.daysSupply } : {}),
+    ...(m.fillDate ? { fillDate: m.fillDate } : {}),
+    ...(m.refillDate ? { refillDate: m.refillDate } : {}),
   }));
 
   const payload = {

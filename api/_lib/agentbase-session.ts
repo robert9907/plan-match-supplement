@@ -31,6 +31,13 @@ export interface AgentBaseMedication {
   dose?: string | null;
   frequency?: string | null;
   form?: string | null;
+  /** Bottle-scan facts — the receiver's shared writer (planmatch-sync.js)
+   *  sets pharmacy_id / quantity / refill_date from these. */
+  pharmacy?: unknown;
+  quantity?: number;
+  daysSupply?: number;
+  fillDate?: string;
+  refillDate?: string;
 }
 
 export interface AgentBaseProvider {

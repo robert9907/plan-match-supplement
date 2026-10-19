@@ -8,7 +8,7 @@ import {
   type DrugSearchResult,
   MIN_SEARCH_CHARS,
 } from '../lib/drugSearch';
-import { classifyMed, type MedItem } from '../lib/scoringEngine';
+import { classifyMed, type MedItem, type MedScanFacts } from '../lib/scoringEngine';
 import { BackRow, Frame } from './Frame';
 import { PillScanSheet } from './PillScanSheet';
 
@@ -65,7 +65,7 @@ export function Meds() {
   // path we try to resolve a real rxcui against the shared library
   // before storing — combo scoring rules that need a generic name
   // ("insulin glargine" → insulin cluster) can match on it.
-  const addByName = async (name: string, dose: string) => {
+  const addByName = async (name: string, dose: string, scan?: MedScanFacts) => {
     const classification = classifyMed(name);
     let resolvedRxcui: string | undefined;
     try {
@@ -79,6 +79,7 @@ export function Meds() {
       name,
       dose,
       ...(resolvedRxcui ? { rxcui: resolvedRxcui } : {}),
+      ...(scan ?? {}),
       ...classification,
     };
     flow.addMed(med);
@@ -198,7 +199,27 @@ export function Meds() {
 
       {scanOpen && (
         <PillScanSheet
+          zip={flow.zip}
           onClose={() => setScanOpen(false)}
+          onAdd={(drugs) => {
+            // Snap path: the sheet already asked "Is this your doctor?",
+            // so only confirmed prescribers are filed. The sheet stays
+            // open on its locked-down screen; onClose closes it.
+            for (const d of drugs) {
+              void addByName(d.name, d.dose, {
+                pharmacy: d.pharmacyDetail,
+                quantity: d.quantity,
+                daysSupply: d.daysSupply,
+                fillDate: d.fillDate,
+                refillDate: d.refillDate,
+              });
+              if (d.prescriber && d.prescriberConfirmed) {
+                flow.addProvider(
+                  d.prescriberNpi ? { name: d.prescriber, npi: d.prescriberNpi } : { name: d.prescriber },
+                );
+              }
+            }
+          }}
           onConfirm={(drugs) => {
             for (const { name, dose, prescriber, prescriberNpi } of drugs) {
               void addByName(name, dose);

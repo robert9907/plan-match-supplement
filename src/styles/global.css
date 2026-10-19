@@ -4767,3 +4767,128 @@ textarea {
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* ─── Snap: two-scan camera + drop-down confirm sheet ─────────────── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+/* Barcode side: a wide, short frame — the barcode + quantity under it. */
+.scan-frame.pill.barcode { width: min(300px, 86vw); aspect-ratio: 16 / 9; transition: aspect-ratio 0.3s ease, width 0.3s ease; }
+.scan-shutter-row { flex-direction: column; gap: 14px; }
+.scan-skip-back {
+  background: transparent; border: none; color: rgba(255, 255, 255, 0.75);
+  font-family: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; min-height: 44px;
+}
+
+@keyframes snapDrop { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes snapPop { 0% { transform: scale(0.92); opacity: 0; } 70% { transform: scale(1.02); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes snapRing { from { stroke-dashoffset: 302; } to { stroke-dashoffset: 0; } }
+@keyframes snapTick { from { stroke-dashoffset: 60; } to { stroke-dashoffset: 0; } }
+@keyframes snapFlow { 0% { transform: translateX(-30px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateX(160px); opacity: 0; } }
+
+.snap-top-sheet {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 202;
+  max-height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background: var(--off-white); border-radius: 0 0 32px 32px;
+  padding: max(20px, env(safe-area-inset-top)) 16px 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  display: flex; flex-direction: column; gap: 14px;
+  animation: snapDrop 0.5s cubic-bezier(0.2, 0.9, 0.25, 1.05) both;
+  color: var(--text-primary);
+}
+@media (min-width: 560px) { .snap-top-sheet { left: 50%; right: auto; width: 520px; transform: translateX(-50%); animation: none; } }
+.snap-med { display: flex; align-items: center; gap: 12px; }
+.snap-med-thumb { width: 56px; height: 56px; border-radius: 14px; overflow: hidden; flex-shrink: 0; background: var(--white); border: 1px solid var(--border); }
+.snap-med-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.snap-med-body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.snap-read { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--green-text); }
+.snap-read svg { width: 13px; height: 13px; }
+.snap-med-title { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.snap-med-sub { font-size: 15px; color: rgba(13, 47, 94, 0.7); line-height: 1.35; }
+.snap-h { font-size: 19px; font-weight: 600; margin-top: 2px; }
+.snap-card {
+  background: var(--white); border-radius: 22px; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 1px 2px rgba(13, 47, 94, 0.06), 0 8px 24px rgba(13, 47, 94, 0.06);
+}
+.snap-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.03em; color: rgba(13, 47, 94, 0.62); }
+.snap-eyebrow-gold { color: #C8A24A; }
+.snap-name { font-size: 20px; font-weight: 700; line-height: 1.25; }
+.snap-sub { font-size: 15px; color: rgba(13, 47, 94, 0.7); line-height: 1.35; }
+.snap-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.snap-tags:empty { display: none; }
+.snap-tag { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 10px; font-size: 13px; font-weight: 600; }
+.snap-tag svg { width: 12px; height: 12px; }
+.snap-tag-green { background: #E3F7F1; color: #00664F; }
+.snap-tag-blue { background: #EAF1FA; color: #16407A; }
+.snap-doc { display: flex; align-items: center; gap: 12px; }
+.snap-avatar {
+  width: 52px; height: 52px; border-radius: 26px; flex-shrink: 0;
+  background: linear-gradient(135deg, #16407A, #4B9CD3); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700;
+}
+.snap-actions { display: flex; gap: 10px; margin-top: 4px; }
+.snap-btn {
+  flex: 1; min-height: 54px; border-radius: 16px; border: none; cursor: pointer;
+  background: var(--navy); color: #fff; font-family: inherit; font-size: 17px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  transition: transform 0.12s ease;
+}
+.snap-btn:active { transform: scale(0.98); }
+.snap-btn-soft { background: #E9EEF5; color: var(--navy); }
+.snap-btn-go { background: #00CEA1; color: #062B22; font-size: 18px; font-weight: 700; min-height: 58px; flex: none; width: 100%; animation: snapPop 0.35s ease-out both; }
+.snap-btn-xl { min-height: 68px; border-radius: 20px; font-size: 19px; width: 100%; flex: none; }
+.snap-saved {
+  min-height: 54px; border-radius: 16px; border: none; cursor: pointer; margin-top: 4px;
+  background: #E3F7F1; color: #00664F; font-family: inherit; font-size: 17px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  animation: snapPop 0.35s ease-out both;
+}
+.snap-saved-muted { background: #F1F3F7; color: rgba(13, 47, 94, 0.7); font-weight: 500; font-size: 16px; }
+.snap-private { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: rgba(13, 47, 94, 0.62); }
+.snap-private svg { width: 13px; height: 13px; }
+.snap-grabber { width: 40px; height: 5px; border-radius: 3px; background: var(--border); align-self: center; }
+.snap-back { align-self: flex-start; min-height: 44px; background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; font-size: 17px; font-weight: 600; color: var(--navy); }
+.snap-picker-title { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+.snap-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 4px; border-radius: 14px; background: #E6EBF2; }
+.snap-seg button { min-height: 44px; border-radius: 11px; border: none; background: transparent; cursor: pointer; font-family: inherit; font-size: 16px; font-weight: 600; color: rgba(13, 47, 94, 0.7); }
+.snap-seg button.on { background: var(--white); color: var(--navy); box-shadow: 0 1px 3px rgba(13, 47, 94, 0.12); }
+.snap-search { display: flex; align-items: center; min-height: 54px; padding: 0 16px; border-radius: 16px; background: var(--white); border: 1px solid rgba(13, 47, 94, 0.18); }
+.snap-search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 17px; color: var(--navy); }
+.snap-list { padding: 0; gap: 0; overflow: hidden; }
+.snap-list-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 68px; padding: 12px 16px; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; font-family: inherit; text-align: left; color: var(--navy); }
+.snap-list-row:last-child { border-bottom: none; }
+.snap-list-main { flex: 1; min-width: 0; }
+.snap-list-name { font-size: 17px; font-weight: 600; }
+.snap-list-empty { padding: 16px; font-size: 15px; color: rgba(13, 47, 94, 0.7); }
+.snap-mail { border-radius: 22px; background: #0E2C55; color: #fff; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.snap-mail-title { font-size: 18px; font-weight: 600; line-height: 1.3; }
+.snap-done-check { align-self: center; margin-top: 8px; }
+.snap-ring-bg { fill: #E3F7F1; }
+.snap-ring { fill: none; stroke: #00CEA1; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 302; animation: snapRing 0.9s ease-out both; }
+.snap-tick { fill: none; stroke: #00785E; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; animation: snapTick 0.4s 0.8s ease-out both; }
+.snap-done-title { font-size: 28px; font-weight: 700; text-align: center; letter-spacing: -0.02em; }
+.snap-done-sub { font-size: 16px; color: rgba(13, 47, 94, 0.7); text-align: center; }
+.snap-done-list { padding: 4px 16px; gap: 0; }
+.snap-done-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.snap-done-row:last-child { border-bottom: none; }
+.snap-done-dot { width: 36px; height: 36px; border-radius: 18px; flex-shrink: 0; background: #E3F7F1; color: #00785E; display: flex; align-items: center; justify-content: center; }
+.snap-done-value { font-size: 17px; font-weight: 600; }
+.snap-lock { border-radius: 22px; background: #0E2C55; color: #fff; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.snap-lock-flow { display: flex; align-items: center; }
+.snap-lock-icon, .snap-lock-vault { width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.snap-lock-icon { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.snap-lock-vault { background: #C8A24A; color: #0E2C55; }
+.snap-lock-vault svg { width: 22px; height: 22px; }
+.snap-lock-track { flex: 1; position: relative; height: 4px; margin: 0 12px; border-radius: 2px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.snap-lock-pulse { position: absolute; top: 0; left: 0; width: 30px; height: 4px; border-radius: 2px; background: #00CEA1; animation: snapFlow 1.8s ease-in-out infinite; }
+.snap-lock-title { font-size: 18px; font-weight: 600; }
+.snap-lock-sub { font-size: 15px; color: #C9D6EA; line-height: 1.4; }
+.snap-lock-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.snap-lock-tags span { padding: 5px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.12); font-size: 13px; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  .snap-top-sheet, .snap-saved, .snap-btn-go, .snap-ring, .snap-tick, .snap-lock-pulse { animation: none; }
+  .snap-ring, .snap-tick { stroke-dashoffset: 0; }
+}
+.scan-back-hint { max-width: 300px; text-align: center; color: rgba(255, 255, 255, 0.85); font-size: 15px; line-height: 1.4; }
