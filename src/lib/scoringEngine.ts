@@ -26,7 +26,29 @@ export interface MedItem {
    *  DDL lookups fall back to the generic name (e.g. "insulin glargine"
    *  → insulin) when the user-typed first word doesn't match a brand. */
   rxcui?: string;
+  /** Two-photo bottle scan: confirmed pharmacy (NPPES NPI when matched),
+   *  quantity from the barcode side, fill / refill-by dates (YYYY-MM-DD).
+   *  Not scored — carried to AgentBase for the client file. */
+  pharmacy?: MedPharmacy;
+  quantity?: number;
+  daysSupply?: number;
+  fillDate?: string;
+  refillDate?: string;
 }
+
+export interface MedPharmacy {
+  npi?: string;
+  name: string;
+  address1?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  phone?: string;
+  mailOrder?: boolean;
+  confirmed: boolean;
+}
+
+export type MedScanFacts = Pick<MedItem, 'pharmacy' | 'quantity' | 'daysSupply' | 'fillDate' | 'refillDate'>;
 
 export type YesNo = 'y' | 'n' | null;
 

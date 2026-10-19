@@ -47,6 +47,36 @@ interface MedicationInput {
    *  key AgentBase's formulary / tier panel works from — a medication
    *  without it can be displayed but not priced against a plan. */
   rxcui?: string | null;
+  /** Two-photo bottle scan facts. Passed through to AgentBase, whose
+   *  shared sync writer turns pharmacy into client_medications.pharmacy_id
+   *  and fills quantity / refill_date. */
+  pharmacy?: {
+    npi?: string;
+    name: string;
+    address1?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    phone?: string;
+    mailOrder?: boolean;
+    confirmed: boolean;
+  } | null;
+  quantity?: number | null;
+  daysSupply?: number | null;
+  fillDate?: string | null;
+  refillDate?: string | null;
+}
+
+// Only the bottle-scan keys that are actually present — older clients
+// send none, and the AgentBase writer treats absent as "don't touch".
+function scanFacts(m: MedicationInput): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (m.pharmacy && typeof m.pharmacy.name === 'string' && m.pharmacy.name.trim()) out.pharmacy = m.pharmacy;
+  if (typeof m.quantity === 'number' && m.quantity > 0) out.quantity = m.quantity;
+  if (typeof m.daysSupply === 'number' && m.daysSupply > 0) out.daysSupply = m.daysSupply;
+  if (typeof m.fillDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.fillDate)) out.fillDate = m.fillDate;
+  if (typeof m.refillDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.refillDate)) out.refillDate = m.refillDate;
+  return out;
 }
 
 interface EnrollPayload {
@@ -735,6 +765,7 @@ async function bridgeToAgentBase(
         // priceable medication row (parseMedication in
         // agentbase-crm/lib/planmatch-sync.js reads this key).
         rxcui: m.rxcui?.trim() || null,
+        ...scanFacts(m),
       }));
 
     const providerObjects = (p.context?.providers ?? [])
@@ -996,6 +1027,7 @@ async function bridgeToAgentBase(
         name: m.name.trim(),
         rxcui: m.rxcui?.trim() || null,
         dose: m.dose?.trim() || null,
+        ...scanFacts(m),
       }));
     const provsForSync = (p.context?.providers ?? [])
       .filter((pr) => pr?.name?.trim())

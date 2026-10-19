@@ -39,11 +39,46 @@ const PROMPT = `Read this prescription label. Return JSON with:
 - prescriber: prescribing doctor's full name
 - prescriberNpi: if visible
 - pharmacy: pharmacy name
+- pharmacyPhone: the pharmacy's phone number as printed
+- pharmacyAddress: the pharmacy's street address as printed (street only)
+- pharmacyCity: the pharmacy's city
+- pharmacyState: the pharmacy's 2-letter state
+- pharmacyZip: the pharmacy's 5-digit ZIP
 - refills: number of refills remaining
+- fillDate: the date the prescription was filled, as YYYY-MM-DD
+- refillDate: a "refill by" / "next refill" date if one is printed, as YYYY-MM-DD (null if not printed — do not calculate one)
 Also include "confidence": "high" | "medium" | "low" reflecting how legible the label is.
 Use null for any field you can't read. Return only the JSON, no other text.`;
 
 type SupportedMimeType = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
+
+// Scan 2 of 2: the barcode side of the bottle. Most pharmacy labels
+// print the dispensed quantity directly under the barcode, so the front
+// read can miss it — this pass reads only what sits around the barcode.
+const BACK_PROMPT = `This photo shows the barcode side of a prescription bottle label. Return JSON with:
+- quantity: the dispensed quantity printed near the barcode (usually directly below it, e.g. "QTY 90" or "90 TAB"), as a number only
+- daysSupply: days' supply if printed (e.g. "DS 90" or "90 DAY SUPPLY"), as a number only
+- ndc: the NDC number if printed
+Also include "confidence": "high" | "medium" | "low" reflecting how legible the quantity is.
+Use null for any field you can't read. Return only the JSON, no other text.`;
+
+function posInt(v: unknown): number | null {
+  if (v == null) return null;
+  const m = String(v).replace(/,/g, '').match(/\d+(?:\.\d+)?/);
+  if (!m) return null;
+  const n = Number(m[0]);
+  return Number.isFinite(n) && n > 0 && n < 10000 ? n : null;
+}
+
+function isoDate(v: unknown): string | null {
+  const s = nullable(v);
+  if (!s) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
+  if (!m) return null;
+  const y = m[3].length === 2 ? `20${m[3]}` : m[3];
+  return `${y}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+}
 
 interface LabelResult {
   drugName: string | null;
@@ -53,7 +88,14 @@ interface LabelResult {
   prescriber: string | null;
   prescriberNpi: string | null;
   pharmacy: string | null;
+  pharmacyPhone: string | null;
+  pharmacyAddress: string | null;
+  pharmacyCity: string | null;
+  pharmacyState: string | null;
+  pharmacyZip: string | null;
   refills: string | null;
+  fillDate: string | null;
+  refillDate: string | null;
   confidence: 'high' | 'medium' | 'low';
 }
 
@@ -119,7 +161,14 @@ function normalizeLabel(raw: Record<string, unknown>): LabelResult {
     prescriber: nullable(raw.prescriber),
     prescriberNpi: nullable(raw.prescriberNpi),
     pharmacy: nullable(raw.pharmacy),
+    pharmacyPhone: nullable(raw.pharmacyPhone),
+    pharmacyAddress: nullable(raw.pharmacyAddress),
+    pharmacyCity: nullable(raw.pharmacyCity),
+    pharmacyState: nullable(raw.pharmacyState)?.toUpperCase().slice(0, 2) ?? null,
+    pharmacyZip: nullable(raw.pharmacyZip)?.replace(/\D/g, '').slice(0, 5) || null,
     refills: nullable(raw.refills),
+    fillDate: isoDate(raw.fillDate),
+    refillDate: isoDate(raw.refillDate),
     confidence,
   };
 }
@@ -138,7 +187,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST required' });
 
-  const body = (req.body ?? {}) as { image_base64?: string; mime_type?: string };
+  const body = (req.body ?? {}) as { image_base64?: string; mime_type?: string; side?: string };
+  const side: 'front' | 'back' = body.side === 'back' ? 'back' : 'front';
   const raw = body.image_base64 ?? '';
   const imageBase64 = stripDataUrl(raw);
   const mimeType = normalizeMimeType(body.mime_type ?? 'image/jpeg');
@@ -160,7 +210,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const message = await anthropic().messages.create({
       model: VISION_MODEL,
       max_tokens: 1024,
-      system: PROMPT,
+      system: side === 'back' ? BACK_PROMPT : PROMPT,
       messages: [
         {
           role: 'user',
@@ -194,6 +244,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         fallback: true,
         raw: text.slice(0, 500),
       });
+    }
+
+    if (side === 'back') {
+      const confRaw = String(parsed.confidence ?? '').toLowerCase();
+      const back = {
+        quantity: posInt(parsed.quantity),
+        daysSupply: posInt(parsed.daysSupply),
+        ndc: nullable(parsed.ndc),
+        confidence: confRaw === 'high' || confRaw === 'low' ? confRaw : 'medium',
+      };
+      const ok = back.quantity != null && back.confidence !== 'low';
+      return res.status(200).json({ ok, side, back, ...(ok ? {} : { fallback: true }) });
     }
 
     const label = normalizeLabel(parsed);

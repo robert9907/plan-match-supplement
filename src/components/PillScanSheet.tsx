@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useCameraStream } from '../hooks/useCameraStream';
-import { useLabelScan, type LabelScanResult } from '../hooks/useLabelScan';
+import { scanBackSide, useLabelScan, type BackScanResult, type LabelScanResult } from '../hooks/useLabelScan';
+import { SnapConfirmSheet, type PharmacyDetail, type SnapResult } from './SnapConfirmSheet';
+import { deriveLicensedStateOrUndefined } from '../lib/licensedStates';
 import {
   drugDisplayDetail,
   drugDisplayName,
@@ -35,7 +37,7 @@ function cleanDrugName(raw: string): string {
 
 // ─── Component ────────────────────────────────────────────────────
 
-type Stage = 'capturing' | 'review' | 'fallback';
+type Stage = 'capturing' | 'review' | 'confirm' | 'fallback';
 
 const CREDENTIAL_SUFFIX =
   /(?:^|[\s,])(?:M\.?D|D\.?O|N\.?P|P\.?A(?:-C)?|D\.?D\.?S|D\.?P\.?M|O\.?D|PharmD|APRN|CRNA|FNP|DNP|RN)\.?\s*$/i;
@@ -61,6 +63,8 @@ interface ScanQueueItem {
   // Per-row include/exclude toggle for the review stage. Defaults true
   // on success rows; the user can uncheck a misread before Add All.
   selected: boolean;
+  /** Scan 2 of 2 — the barcode side, where the quantity is printed. */
+  back?: { status: 'pending' | 'success' | 'error' | 'skipped'; result: BackScanResult | null };
 }
 
 export interface ScannedDrug {
@@ -74,9 +78,22 @@ export interface ScannedDrug {
   prescriberNpi: string | null;
   /** Dispensing pharmacy — kept for the client file, not scored. */
   pharmacy: string;
+  /** From the two-photo scan + confirm sheet; ride to AgentBase. */
+  pharmacyDetail?: PharmacyDetail;
+  quantity?: number;
+  daysSupply?: number;
+  fillDate?: string;
+  refillDate?: string;
+  /** False when the consumer said "Not my doctor" on the confirm sheet. */
+  prescriberConfirmed?: boolean;
 }
 
 interface Props {
+  /** ZIP from About You — scopes the pharmacy and doctor lookups. */
+  zip: string;
+  /** Snap path: drugs confirmed on the pharmacy/doctor sheet. The sheet
+   *  then shows its locked-down screen, so the parent must NOT close. */
+  onAdd: (drugs: ScannedDrug[]) => void;
   /** Called once with every drug the user confirmed — single bottle
    *  scans pass a single-element array, multi-bottle pass N. Parent
    *  runs classifyMed + addMed, records any prescriber via addProvider,
@@ -102,7 +119,7 @@ function typedDrug(name: string, dose: string): ScannedDrug {
   return { name, dose, prescriber: '', prescriberNpi: null, pharmacy: '' };
 }
 
-export function PillScanSheet({ onConfirm, onClose }: Props) {
+export function PillScanSheet({ zip, onAdd, onConfirm, onClose }: Props) {
   const [stage, setStage] = useState<Stage>('capturing');
   const [uploadBusy, setUploadBusy] = useState(false);
   const [queue, setQueue] = useState<ScanQueueItem[]>([]);
@@ -110,6 +127,11 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
   const [typed, setTyped] = useState('');
   const [matches, setMatches] = useState<DrugSearchResult[]>([]);
   const idCounter = useRef(0);
+  // Two photos per bottle: scan 1 front label, scan 2 the barcode side
+  // (quantity is printed under the barcode). When set, the next photo
+  // is that bottle's barcode side.
+  const [awaitingBackId, setAwaitingBackId] = useState<string | null>(null);
+  const [confirmItems, setConfirmItems] = useState<ScanQueueItem[]>([]);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const cameraActive = stage === 'capturing';
@@ -208,7 +230,10 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
       const res = await scan(dataUrl);
       if (res.label?.drugName) {
         updateItem(id, { status: 'success', label: res.label, error: null, selected: true });
-        setStage('review');
+        setConfirmItems([
+          { id, dataUrl, status: 'success', label: res.label, error: null, selected: true },
+        ]);
+        setStage('confirm');
       } else {
         updateItem(id, {
           status: 'error',
@@ -230,7 +255,17 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
     if (!dataUrl) return;
     setFlash(true);
     window.setTimeout(() => setFlash(false), 220);
+    if (awaitingBackId && queue.some((it) => it.id === awaitingBackId)) {
+      const backId = awaitingBackId;
+      updateItem(backId, { back: { status: 'pending', result: null } });
+      void scanBackSide(dataUrl).then((res) =>
+        updateItem(backId, { back: { status: res.ok ? 'success' : 'error', result: res.back } }),
+      );
+      setAwaitingBackId(null);
+      return;
+    }
     const id = `scan-${Date.now()}-${idCounter.current++}`;
+    setAwaitingBackId(id);
     setQueue((prev) => [
       ...prev,
       {
@@ -247,18 +282,49 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
 
   function onDone() {
     stop();
-    // Single capture → keep the existing single-card review so a one-
-    // bottle scan still works exactly as before.
+    setAwaitingBackId(null);
+    // Single capture → straight to the pharmacy/doctor confirm sheet.
+    // Several → the checklist first, then the sheet.
     if (queue.length === 1) {
       const only = queue[0];
       if (only.status === 'success' && only.label?.drugName) {
-        setStage('review');
+        setConfirmItems([only]);
+        setStage('confirm');
       } else {
         setStage('fallback');
       }
       return;
     }
     setStage('review');
+  }
+
+  function onSkipBack() {
+    if (!awaitingBackId) return;
+    updateItem(awaitingBackId, { back: { status: 'skipped', result: null } });
+    setAwaitingBackId(null);
+  }
+
+  function commitSnap(results: SnapResult[]) {
+    const drugs: ScannedDrug[] = [];
+    for (const r of results) {
+      const base = labelToDrug(r.item.label);
+      if (!base) continue;
+      const back = r.item.back;
+      const days = back?.daysSupply ?? undefined;
+      drugs.push({
+        ...base,
+        prescriber: r.doctor?.name ?? base.prescriber,
+        prescriberNpi: r.doctor?.npi ?? base.prescriberNpi,
+        prescriberConfirmed: r.doctor != null,
+        pharmacy: r.pharmacy?.name ?? base.pharmacy,
+        ...(r.pharmacy ? { pharmacyDetail: r.pharmacy } : {}),
+        ...(back?.quantity ? { quantity: back.quantity } : {}),
+        ...(days ? { daysSupply: days } : {}),
+        ...(r.item.label.fillDate ? { fillDate: r.item.label.fillDate } : {}),
+        ...(r.item.label.refillDate ? { refillDate: r.item.label.refillDate } : {}),
+      });
+    }
+    if (drugs.length) onAdd(drugs);
   }
 
   function removeFromQueue(id: string) {
@@ -277,12 +343,10 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
   }
 
   function confirmFromQueue() {
-    const drugs = queue
-      .filter((it) => it.selected && it.status === 'success' && it.label?.drugName)
-      .map((it) => labelToDrug(it.label!))
-      .filter((d): d is ScannedDrug => Boolean(d));
-    if (drugs.length === 0) return;
-    onConfirm(drugs);
+    const picked = queue.filter((it) => it.selected && it.status === 'success' && it.label?.drugName);
+    if (picked.length === 0) return;
+    setConfirmItems(picked);
+    setStage('confirm');
   }
 
   function confirmTyped() {
@@ -292,6 +356,8 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
   }
 
   function rescan() {
+    setAwaitingBackId(null);
+    setConfirmItems([]);
     setQueue([]);
     setTyped('');
     setMatches([]);
@@ -335,7 +401,7 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
       {/* Viewfinder — live <video> on capturing stage; sits behind the
           flash overlay so a capture confirmation reads even on dark
           labels. */}
-      <div className="scan-frame pill" aria-hidden={stage !== 'capturing'}>
+      <div className={['scan-frame', 'pill', awaitingBackId ? 'barcode' : ''].filter(Boolean).join(' ')} aria-hidden={stage !== 'capturing'}>
         {stage === 'capturing' && (
           <>
             <video
@@ -354,9 +420,11 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
       <div className="scan-status">
         {stage === 'capturing' && status === 'requesting' && 'Opening camera…'}
         {stage === 'capturing' && status === 'ready' && (
-          total === 0
-            ? 'Point at the bottle label'
-            : `${total} bottle${total === 1 ? '' : 's'} scanned · keep going`
+          awaitingBackId
+            ? 'Scan 2 of 2 · Barcode side'
+            : total === 0
+            ? 'Scan 1 of 2 · Front label'
+            : 'Next bottle · Scan 1 of 2 · Front label'
         )}
         {stage === 'capturing' && status === 'denied' && 'Camera access needed — type instead'}
         {stage === 'capturing' && status === 'unsupported' && 'Camera unavailable — type instead'}
@@ -447,52 +515,33 @@ export function PillScanSheet({ onConfirm, onClose }: Props) {
             disabled={status !== 'ready'}
             aria-label="Capture"
           />
+          {awaitingBackId && (
+            <>
+              <div className="scan-back-hint">Turn the bottle. Fit the barcode in the box — we read the quantity printed under it.</div>
+              <button type="button" className="scan-skip-back" onClick={onSkipBack}>
+                No barcode on this bottle — skip
+              </button>
+            </>
+          )}
         </div>
       )}
 
-      {/* Review — single-bottle (legacy single card). Used when the user
-          tapped Done after one capture and OCR resolved with a label. */}
-      {stage === 'review' && queue.length === 1 && queue[0].label?.drugName && (
-        <div className="scan-sheet" role="dialog" aria-label="Confirm detected medication">
-          <div className="scan-sheet-handle" />
-          <div className="scan-sheet-title">
-            {queue[0].label.confidence === 'low'
-              ? 'Best read of your label'
-              : 'Detected from your label'}
-          </div>
-          <div className="scan-sheet-mbi" style={{ fontSize: 18, letterSpacing: 0 }}>
-            {cleanDrugName(queue[0].label.drugName)}
-            {queue[0].label.strength ? ` · ${queue[0].label.strength}` : ''}
-          </div>
-          {queue[0].label.directions && (
-            <div className="scan-sheet-hint" style={{ marginBottom: 8 }}>
-              {queue[0].label.directions}
-            </div>
-          )}
-          {queue[0].label.prescriber && (
-            <div className="scan-sheet-hint" style={{ marginTop: 0 }}>
-              Prescribed by {formatPrescriber(queue[0].label.prescriber)}
-            </div>
-          )}
-          <div className="scan-sheet-hint">
-            {queue[0].label.confidence === 'low'
-              ? "We couldn't read it confidently. Confirm or retype."
-              : 'Tap confirm to add this to your list.'}
-          </div>
-          <button className="btn" onClick={confirmFromQueue} type="button">
-            Confirm &amp; add →
-          </button>
-          <button
-            className="scan-sheet-retry"
-            type="button"
-            onClick={() => setStage('fallback')}
-          >
-            Not right — type instead
-          </button>
-          <button className="scan-sheet-retry" type="button" onClick={rescan}>
-            Rescan the bottle
-          </button>
-        </div>
+      {/* Drop-down confirm sheet — pharmacy + doctor checks, then the
+          locked-down screen. */}
+      {stage === 'confirm' && confirmItems.length > 0 && (
+        <SnapConfirmSheet
+          items={confirmItems.map((it) => ({
+            dataUrl: it.dataUrl,
+            label: it.label!,
+            back: it.back?.status === 'success' ? it.back.result : null,
+          }))}
+          userState={deriveLicensedStateOrUndefined(zip) ?? null}
+          zip={zip}
+          onCommit={commitSnap}
+          onAddAnother={rescan}
+          onFinish={onClose}
+          onTypeInstead={() => setStage('fallback')}
+        />
       )}
 
       {/* Review — multi-bottle list with checkboxes. */}
