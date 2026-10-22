@@ -105,7 +105,7 @@ export function RateProjection() {
             <>
               {' '}Sample Plan G quotes for a 65-year-old non-tobacco applicant in North
               Carolina typically fall in the $115–$180/month range from carriers such as
-              Aetna, Cigna, Humana, Mutual of Omaha, Blue Cross NC, and
+              Cigna, Humana, Mutual of Omaha, Blue Cross NC, and
               Anthem. Community-rated filings are typical in North Carolina.
             </>
           )}
@@ -116,6 +116,17 @@ export function RateProjection() {
           <br />
           Sourced from carrier filings. Actual premiums vary by exact birth date, health history,
           and carrier discounts.
+          <br />
+          <br />
+          <strong>We do not offer every plan available in your area.</strong> See the{' '}
+          <a
+            href="https://www.medicare.gov/medigap-supplemental-insurance-plans/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Medicare Plan Finder
+          </a>{' '}
+          or call 1-800-MEDICARE for information on all of your options.
         </div>
       </div>
     </Frame>

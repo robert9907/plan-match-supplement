@@ -616,7 +616,15 @@ export function Results() {
         and rates are determined by each carrier's underwriting department. Exact quote provided before enrollment.
         <br />
         <br />
-        Contact Medicare.gov or 1-800-MEDICARE for a complete listing of insurers. This tool does not provide medical
+        <strong>We do not offer every plan available in your area.</strong> See the{' '}
+        <a
+          href="https://www.medicare.gov/medigap-supplemental-insurance-plans/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Medicare Plan Finder
+        </a>{' '}
+        or call 1-800-MEDICARE for information on all of your options. This tool does not provide medical
         advice. Medicare Supplement plans do not cover prescription drugs. You'll need a separate standalone Part D
         prescription drug plan to cover your medications.
         <br />
