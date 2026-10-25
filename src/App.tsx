@@ -9,6 +9,7 @@ import { Meds } from './components/Meds';
 import { Providers } from './components/Providers';
 import { RateProjection } from './components/RateProjection';
 import { Results } from './components/Results';
+import { SarahWidget } from './components/SarahWidget';
 import { logPmImpression, logPmOpened, logPmStep } from './lib/analytics';
 
 // Reset scroll on every route change. Inside the embed iframe the user
@@ -91,6 +92,7 @@ export default function App() {
         <Route path="/submitted" element={<Handshake />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <SarahWidget />
     </FlowProvider>
   );
 }
