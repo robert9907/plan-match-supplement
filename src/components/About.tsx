@@ -5,6 +5,7 @@ import { prefetchRates } from '../lib/cmsPremiums';
 import { deriveLicensedStateOrUndefined } from '../lib/licensedStates';
 import { BackRow, Frame } from './Frame';
 import { MedigapExplainer } from './MedigapExplainer';
+import { useExplainer } from './Explainer';
 
 const PROMPTS: Exclude<PromptReason, null>[] = [
   'Turning 65',
@@ -91,6 +92,7 @@ const YEAR_OPTIONS: string[] = (() => {
 export function About() {
   const navigate = useNavigate();
   const flow = useFlow();
+  const promptHelp = useExplainer('supp.prompt');
   const [maDismissed, setMaDismissed] = useState(false);
 
   // Rob is licensed in NC/TX/GA only. api/rates.ts:stateForZip silently
@@ -151,7 +153,9 @@ export function About() {
 
       <div className="sec-label">
         What's prompting this? <span className="sec-hint">(tap one)</span>
+        {promptHelp.pill}
       </div>
+      {promptHelp.panel}
       <div className="chip-row">
         {PROMPTS.map((p) => (
           <button

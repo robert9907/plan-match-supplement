@@ -10,6 +10,7 @@ import {
 } from '../lib/scoringEngine';
 import { prefetchRates } from '../lib/cmsPremiums';
 import { BackRow, Frame } from './Frame';
+import { useExplainer } from './Explainer';
 
 interface Question {
   key: HealthQuestionKey;
@@ -91,6 +92,7 @@ const HEART_OPTIONS: { value: HealthAnswers['heartRecency']; label: string }[] =
 export function HealthScreen() {
   const navigate = useNavigate();
   const flow = useFlow();
+  const healthHelp = useExplainer('supp.health');
   const [scoring, setScoring] = useState(false);
   const [scoreError, setScoreError] = useState<string | null>(null);
   const h = flow.health;
@@ -163,6 +165,8 @@ export function HealthScreen() {
         {ALL_QUESTIONS.length} quick questions. If none apply in a group, one tap clears it. A “yes” doesn’t always mean a
         decline.
       </div>
+      <div style={{ margin: '10px 0 4px' }}>{healthHelp.pill}</div>
+      {healthHelp.panel}
 
       {SECTIONS.map((section) => {
         const sectionAnswered = section.questions.filter((q) => h[q.key] !== null).length;
