@@ -12,6 +12,7 @@ import { stateForZip } from '../lib/medsupRates';
 import { BackRow, Frame } from './Frame';
 import { RateSourceDisclosure } from './RateSourceDisclosure';
 import { RateProjectionWidget } from './RateProjectionWidget';
+import { DentalExplainer } from './DentalExplainer';
 
 export function RateProjection() {
   const navigate = useNavigate();
@@ -110,6 +111,8 @@ export function RateProjection() {
             </>
           )}
         </div>
+
+        <DentalExplainer />
 
         <div className="disclaimer">
           <span className="privacy-badge">🔒 Rates are estimates</span>
