@@ -1,5 +1,5 @@
 /*!
- * GenerationHealth.me call card v1.1.0
+ * GenerationHealth.me call card v1.2.0
  *
  * Tapping a link to Rob's number, (828) 761-3326, opens a branded card
  * showing the number with Call / Text / Copy buttons, instead of jumping
@@ -9,6 +9,13 @@
  *
  * Other numbers (1-800-MEDICARE, carrier lines) are left alone.
  *
+ * v1.2.0: inside a Plan Match iframe, a tap on our number asks the parent
+ *         page to open the card there, so "Call now" is a plain top-level
+ *         tel: link. iOS Chrome silently drops a tel: navigation started
+ *         from a cross-origin iframe (target=_top), so the call never
+ *         dialed. If the parent page has no card script (no reply within
+ *         400ms), the card opens inside the frame with an ordinary tel:
+ *         link, which dials after the browser's confirmation.
  * v1.1.0: card renders inside a shadow root so the host page's CSS
  *         (WordPress theme rules on p / a / button) can't restyle it.
  *
@@ -123,7 +130,6 @@
   function show() {
     if (open) return;
     lastFocus = document.activeElement;
-    var target = framed ? ' target="_top"' : '';
 
     var host = document.createElement('div');
     host.setAttribute('data-pm-call-card', '');
@@ -141,9 +147,9 @@
         '<p class="pmcc-label">Talk with a licensed broker</p>' +
         '<p class="pmcc-num" id="pmcc-num">' + DISPLAY + '</p>' +
         '<p class="pmcc-sub">Rob Simm &middot; Free, no-obligation help</p>' +
-        '<a class="pmcc-btn pmcc-call" data-pm-direct href="' + TEL + '"' + target + '>' + PHONE_SVG + 'Call now</a>' +
+        '<a class="pmcc-btn pmcc-call" data-pm-direct href="' + TEL + '">' + PHONE_SVG + 'Call now</a>' +
         '<div class="pmcc-row">' +
-          '<a class="pmcc-btn pmcc-alt" data-pm-direct href="' + SMS + '"' + target + '>Text</a>' +
+          '<a class="pmcc-btn pmcc-alt" data-pm-direct href="' + SMS + '">Text</a>' +
           '<button type="button" class="pmcc-btn pmcc-alt pmcc-copy">Copy number</button>' +
         '</div>' +
         '<p class="pmcc-note">Your phone may ask you to confirm the call. That&rsquo;s normal.</p>' +
@@ -187,10 +193,39 @@
       if (!el || el.hasAttribute('data-pm-direct')) return;
       if (!isOurNumber(el.getAttribute('href') || '')) return;
       e.preventDefault();
-      show();
+      if (framed) askParent(); else show();
     },
     true
   );
+
+  // ── Parent handoff ────────────────────────────────────────────────
+  var MSG = 'pm-call-card';
+  var TRUSTED_FRAME_ORIGIN = /^https:\/\/([a-z0-9-]+\.)*generationhealth\.me$|^https:\/\/plan-match-supplement\.vercel\.app$/;
+  var pending = null;
+
+  function askParent() {
+    if (pending) return;
+    try {
+      window.parent.postMessage({ source: MSG, type: 'open' }, '*');
+    } catch (err) {
+      show();
+      return;
+    }
+    pending = setTimeout(function () { pending = null; show(); }, 400);
+  }
+
+  window.addEventListener('message', function (e) {
+    var d = e.data;
+    if (!d || d.source !== MSG) return;
+    if (d.type === 'ack' && framed && e.source === window.parent) {
+      if (pending) { clearTimeout(pending); pending = null; }
+      return;
+    }
+    if (d.type === 'open' && TRUSTED_FRAME_ORIGIN.test(e.origin)) {
+      show();
+      try { e.source.postMessage({ source: MSG, type: 'ack' }, e.origin); } catch (err) {}
+    }
+  });
 
   window.pmCallCard = { open: show, close: close };
 })();
