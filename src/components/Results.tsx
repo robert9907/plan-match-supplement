@@ -10,6 +10,7 @@ import {
   type CarrierGroup,
 } from '../lib/carrierGroups';
 import { ScoreRing } from './ScoreRing';
+import { openAppLink } from '../lib/topLevelAppLinks';
 import { Building, type GroupContext } from './Building';
 import { CompareModal } from './CompareModal';
 import { FitScoreExplainer } from './FitScoreExplainer';
@@ -681,7 +682,7 @@ export function Results() {
               const sms = `sms:?&body=${encodeURIComponent(
                 `My Plan Match supplement results: ${window.location.href}`,
               )}`;
-              window.location.href = sms;
+              openAppLink(sms);
             }}
             title="Text these results"
           >
