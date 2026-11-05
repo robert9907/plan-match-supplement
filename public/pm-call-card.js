@@ -1,5 +1,5 @@
 /*!
- * GenerationHealth.me call card v1.0.0
+ * GenerationHealth.me call card v1.1.0
  *
  * Tapping a link to Rob's number, (828) 761-3326, opens a branded card
  * showing the number with Call / Text / Copy buttons, instead of jumping
@@ -8,6 +8,9 @@
  * browser's confirmation can read or copy the number and dial by hand.
  *
  * Other numbers (1-800-MEDICARE, carrier lines) are left alone.
+ *
+ * v1.1.0: card renders inside a shadow root so the host page's CSS
+ *         (WordPress theme rules on p / a / button) can't restyle it.
  *
  * One file, no dependencies. Mirrored byte-for-byte in:
  *   plan-match              apps/web/public/pm-call-card.js  (also served to WordPress)
@@ -36,6 +39,7 @@
   }
 
   var CSS =
+    ':host{all:initial}*{box-sizing:border-box}p{margin:0}' +
     '.pmcc-backdrop{position:fixed;inset:0;z-index:2147483646;background:rgba(9,22,44,.48);' +
     '-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:flex-end;' +
     'justify-content:center;opacity:0;transition:opacity .22s ease}' +
@@ -77,21 +81,14 @@
   var open = null;
   var lastFocus = null;
 
-  function injectStyles() {
-    if (document.getElementById('pmcc-style')) return;
-    var s = document.createElement('style');
-    s.id = 'pmcc-style';
-    s.textContent = CSS;
-    (document.head || document.documentElement).appendChild(s);
-  }
-
   function close() {
     if (!open) return;
     var el = open;
     open = null;
     el.classList.remove('pmcc-in');
     document.removeEventListener('keydown', onKey, true);
-    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 260);
+    var host = el.__host || el;
+    setTimeout(function () { if (host.parentNode) host.parentNode.removeChild(host); }, 260);
     if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
   }
 
@@ -125,12 +122,17 @@
 
   function show() {
     if (open) return;
-    injectStyles();
     lastFocus = document.activeElement;
     var target = framed ? ' target="_top"' : '';
 
+    var host = document.createElement('div');
+    host.setAttribute('data-pm-call-card', '');
+    host.style.cssText = 'all:initial;position:fixed;inset:0;z-index:2147483646;';
+    var root = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host;
     var wrap = document.createElement('div');
     wrap.className = 'pmcc-backdrop';
+    var style = document.createElement('style');
+    style.textContent = CSS;
     wrap.innerHTML =
       '<div class="pmcc-card" role="dialog" aria-modal="true" aria-labelledby="pmcc-num">' +
         '<div class="pmcc-grab" aria-hidden="true"></div>' +
@@ -160,7 +162,10 @@
       direct[i].addEventListener('click', function () { setTimeout(close, 400); });
     }
 
-    document.body.appendChild(wrap);
+    root.appendChild(style);
+    root.appendChild(wrap);
+    document.body.appendChild(host);
+    wrap.__host = host;
     open = wrap;
     document.addEventListener('keydown', onKey, true);
     // Next frame so the slide-up transition runs.
