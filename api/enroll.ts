@@ -145,6 +145,9 @@ interface EnrollPayload {
    *  flipped true. Burden-of-proof evidence under TCPA 47 USC 227 +
    *  47 CFR 64.1200(f)(9). Optional so legacy clients can still submit. */
   tcpaConsentAt?: string | null;
+  /** GH tracker cookies — used to resolve first-touch traffic source. */
+  ghVid?: string | null;
+  ghSid?: string | null;
   signedAt: string | null;
 
   // Full screening context
@@ -417,6 +420,45 @@ function dobIso(p: EnrollPayload): string | null {
   const d = pad2(p.dobDay);
   if (!y || !m || !d) return null;
   return `${y}-${m}-${d}`;
+}
+
+// ─── Traffic-source resolution (first touch) ─────────────────────────
+// The GH tracker on plan-match-prod classifies every visit
+// (gh_analytics_events.source: chatgpt / gemini / copilot / perplexity /
+// claude / google / bing / facebook / other / direct). Resolve this
+// visitor's earliest outside source via the gh_vid cookie (gh_sid
+// fallback) so the AgentBase lead carries it. Fail-open: any error or
+// timeout returns null and the lead is written exactly as before.
+type TrafficSource = { source: string; referrer: string | null };
+
+async function resolveTrafficSource(p: EnrollPayload): Promise<TrafficSource | null> {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  const base = url.replace(/\/$/, '');
+  const headers = { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' };
+  const lookups: Array<[string, string]> = [];
+  if (typeof p.ghVid === 'string' && p.ghVid) lookups.push(['visitor_id', p.ghVid]);
+  if (typeof p.ghSid === 'string' && p.ghSid) lookups.push(['session_id', p.ghSid]);
+  if (lookups.length === 0) return null;
+  try {
+    for (const [col, val] of lookups) {
+      const q =
+        `${base}/rest/v1/gh_analytics_events?${col}=eq.${encodeURIComponent(val)}` +
+        `&source=not.in.(direct,plan-match)&dev_test=not.is.true` +
+        `&select=source,referrer&order=created_at.asc&limit=1`;
+      const r = await fetch(q, { headers, signal: AbortSignal.timeout(2500) });
+      if (!r.ok) continue;
+      const rows = (await r.json().catch(() => [])) as Array<{ source?: string | null; referrer?: string | null }>;
+      const row = Array.isArray(rows) ? rows[0] : undefined;
+      if (row?.source) return { source: row.source, referrer: row.referrer || null };
+    }
+    // No outside source on record — leave it unknown rather than guess.
+    return null;
+  } catch (err) {
+    console.warn('[enroll] traffic source lookup failed (fail-open)', (err as Error)?.message);
+    return null;
+  }
 }
 
 // ─── Supabase insert (PostgREST, service role) ──────────────────────────
@@ -777,6 +819,7 @@ async function bridgeToAgentBase(
         ...(pr.address ? { address: pr.address } : {}),
       }));
 
+    const traffic = await resolveTrafficSource(p);
     const leadRow = {
       first_name: p.firstName,
       last_name: p.lastName,
@@ -786,6 +829,7 @@ async function bridgeToAgentBase(
       age: p.age ?? null,
       source: 'plan_match_supplement',
       product: 'supplement',
+      referrer: traffic?.referrer ?? null,
       // W3 Fix 3: leads.context on AgentBase carries the encrypted
       // bundle. The agent UI uses medicare_id_last4 + medicare_id_masked
       // for caller verification; full MBI is decrypt-on-demand at
@@ -820,6 +864,14 @@ async function bridgeToAgentBase(
         part_b_effective: p.partBEffective ?? null,
         enrollment_id: submissionId,
         medications: medicationObjects,
+        // Attribution — AgentBase promote copies these onto clients.
+        gh_vid: typeof p.ghVid === 'string' ? p.ghVid : null,
+        gh_sid: typeof p.ghSid === 'string' ? p.ghSid : null,
+        referrer_url: traffic?.referrer ?? null,
+        utm_source: traffic?.source ?? null,
+        // First-touch traffic source from the GH tracker (chatgpt, gemini,
+        // copilot, perplexity, claude, google, bing, facebook, other).
+        traffic_source: traffic?.source ?? null,
         health_answers: p.context?.healthAnswers ?? {},
         cluster_counts: p.context?.clusterCounts ?? {},
         combo_flags: p.context?.comboFlags ?? [],
