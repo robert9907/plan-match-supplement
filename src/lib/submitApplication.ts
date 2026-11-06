@@ -1,4 +1,5 @@
 import type { FlowState } from '../context/FlowContext';
+import { cookieGet } from './analytics';
 
 export interface SubmitResult {
   ok: boolean;
@@ -96,6 +97,12 @@ export async function submitApplication(flow: FlowState, age: number): Promise<S
     // under 47 CFR 64.1200(f)(9); sending it is the whole point of
     // capturing it.
     tcpaConsentAt: flow.application.tcpaConsentAt ?? null,
+
+    // GH tracker cookies (shared on .generationhealth.me) — the server
+    // resolves the visitor's first-touch traffic source (ChatGPT, Google…)
+    // from these so the AgentBase lead carries it.
+    ghVid: cookieGet('gh_vid'),
+    ghSid: cookieGet('gh_sid'),
 
     // Full screening context
     context: {

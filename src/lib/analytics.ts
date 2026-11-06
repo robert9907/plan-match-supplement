@@ -122,7 +122,7 @@ function fnv(str: string): string {
   return h.toString(16);
 }
 
-function cookieGet(name: string): string | null {
+export function cookieGet(name: string): string | null {
   if (typeof document === 'undefined') return null;
   const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]+)'));
   return m ? decodeURIComponent(m[1]) : null;
