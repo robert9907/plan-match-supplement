@@ -9,11 +9,13 @@ interface FrameProps {
   /** If true, hides the 5 progress dots (used on application/handshake). */
   hideDots?: boolean;
   children: ReactNode;
+  /** Redacts taps/entries on this screen in funnel tracking (data-pm-private). */
+  privateArea?: string;
 }
 
-export function Frame({ step = 1, tag = 'MEDICARE · SUPPLEMENT', hideDots = false, children }: FrameProps) {
+export function Frame({ step = 1, tag = 'MEDICARE · SUPPLEMENT', hideDots = false, children, privateArea }: FrameProps) {
   return (
-    <div className="frame">
+    <div className="frame" data-pm-private={privateArea}>
       <div className="topbar">
         <div className="topbar-logo">PM</div>
         <div className="topbar-name">Plan Match</div>

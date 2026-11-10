@@ -101,7 +101,7 @@ export function Meds() {
         underwriting list.
       </div>
 
-      <button className="scan-pill" onClick={() => setScanOpen(true)} type="button">
+      <button className="scan-pill" data-cp="med_search_opened" onClick={() => setScanOpen(true)} type="button">
         <span className="scan-pill-icon">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <rect x="2" y="4" width="20" height="16" rx={2} />
@@ -126,13 +126,14 @@ export function Meds() {
         </svg>
         <input
           className="search-input"
+          data-cp="med_search_opened"
           placeholder="Or type a medication name…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
       {matches.length > 0 && (
-        <div className="ac">
+        <div className="ac" data-pm-private="meds">
           {matches.map((d) => (
             <div key={d.rxcui} className="ac-item" onClick={() => addDrug(d)}>
               <div className="ac-name">{drugDisplayName(d)}</div>
@@ -144,7 +145,7 @@ export function Meds() {
 
       <div style={{ marginTop: 8 }}>
         {flow.meds.map((m, i) => (
-          <div key={m.name} className="item-card">
+          <div key={m.name} className="item-card" data-pm-private="meds">
             <div className={`item-dot ${m.status}`} />
             <div className="item-info">
               <div className="item-name">{m.name}</div>

@@ -29,6 +29,8 @@
 // currently reports 601 completions against 41 flow starts. Use pm_step
 // with meta.step='results' to signal flow completion instead.
 
+import { cp } from './funnelTracking';
+
 const PRODUCT = 'supplement';
 
 // Hardcoded to plan-match-prod rather than reading VITE_SUPABASE_URL —
@@ -69,7 +71,7 @@ const PASSTHROUGH_PREFIX = 'pm_';
 // Dev-traffic exclusion. Auto-suppress when running on localhost or a
 // vercel.app preview host. gh_dev=1 cookie is a per-device opt-out for
 // production visits from Rob's own devices.
-function isDevOrigin(): boolean {
+export function isDevOrigin(): boolean {
   if (typeof window === 'undefined') return false;
   const h = (window.location.hostname || '').toLowerCase();
   if (h === 'localhost' || h === '127.0.0.1' || h === '::1') return true;
@@ -387,6 +389,7 @@ export function logPmStep(step: string, county?: string | null): void {
 // Contact / enroll wrappers — kept for parity with the source tracker's
 // API surface. Flow completion should fire through logPmStep('results').
 export function logPmContacted(method: string, county?: string | null): void {
+  cp('action_taken', { method });
   logPlanMatchEvent('pm_contacted', { method }, { step: 'contact', county });
 }
 

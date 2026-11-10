@@ -155,7 +155,7 @@ export function HealthScreen() {
   };
 
   return (
-    <Frame step={4}>
+    <Frame privateArea="health" step={4}>
       <BackRow onClick={() => navigate('/providers')} />
       <div className="step-label">Step 5 of 6 · Health screen</div>
       <h1 className="headline">

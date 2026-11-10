@@ -124,7 +124,7 @@ export function Handshake() {
         </span>
       </div>
 
-      <a href="tel:+18287613326" className="call-rob-link">
+      <a href="tel:+18287613326" data-cp="action_taken" className="call-rob-link">
         📞 Can't wait? Call (828) 761-3326
       </a>
 

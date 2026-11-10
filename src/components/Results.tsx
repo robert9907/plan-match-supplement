@@ -439,6 +439,7 @@ export function Results() {
             <button
               type="button"
               className="fit-score-caption"
+              data-cp="fit_explainer_opened"
               onClick={openFitExplainer}
               aria-label="How is the Fit Score calculated?"
             >
@@ -450,7 +451,8 @@ export function Results() {
         <button
           type="button"
           className="factor-pills"
-          onClick={openFitExplainer}
+          data-cp="fit_explainer_opened"
+              onClick={openFitExplainer}
           aria-label="How is the Fit Score calculated?"
         >
           {FACTOR_ITEMS.map((f) => {
@@ -649,7 +651,7 @@ export function Results() {
       <MedigapDisclosures />
 
       <div className="results-footer-tel">
-        <a href="tel:+18287613326">Questions? Call (828) 761-3326</a>
+        <a href="tel:+18287613326" data-cp="action_taken">Questions? Call (828) 761-3326</a>
         <div className="results-footer-name">Rob Simm · NPN #10447418 · GenerationHealth.me</div>
       </div>
 
@@ -690,6 +692,7 @@ export function Results() {
           <button
             type="button"
             className="action-btn action-btn-primary"
+            data-cp="compare_opened"
             onClick={() => setShowCompare(true)}
             disabled={slotsFilled < 1}
           >

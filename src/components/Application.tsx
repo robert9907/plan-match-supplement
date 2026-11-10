@@ -381,7 +381,7 @@ function DetailsStage({ onNext, onBack }: DetailsStageProps) {
   const canContinue = missing.length === 0;
 
   return (
-    <Frame tag="APPLICATION" hideDots>
+    <Frame privateArea="application" tag="APPLICATION" hideDots>
       <BackRow onClick={onBack} />
       <div className="step-label">Application · Medicare & contact info</div>
       <h1 className="headline">
@@ -674,7 +674,7 @@ function SignStage({ onBack, carrierName }: SignStageProps) {
   };
 
   return (
-    <Frame tag="APPLICATION" hideDots>
+    <Frame privateArea="application" tag="APPLICATION" hideDots>
       <BackRow onClick={onBack} />
       <div className="step-label">Application · Authorization</div>
       <h1 className="headline">

@@ -11,6 +11,7 @@ import { RateProjection } from './components/RateProjection';
 import { Results } from './components/Results';
 import { SarahWidget } from './components/SarahWidget';
 import { logPmImpression, logPmOpened, logPmStep } from './lib/analytics';
+import { useFunnelCheckpoints } from './hooks/useFunnelCheckpoints';
 
 // Reset scroll on every route change. Inside the embed iframe the user
 // otherwise lands at whatever scroll offset the previous screen left
@@ -37,6 +38,7 @@ function ScrollToTop() {
 // 'rates' and 'health' are supplement-specific and land untagged in the
 // rollup until the mapping learns them.
 const STEP_FOR_ROUTE: Record<string, string> = {
+  '/':          'about',       // About is served at '/' ('/about' redirects there) — without this, step 1 never logged
   '/about':     'about',       // profiled
   '/rates':     'rates',       // supplement-only; untagged in rollup
   '/meds':      'meds-list',   // profiled
@@ -58,6 +60,9 @@ const STEP_FOR_ROUTE: Record<string, string> = {
 //     back-navigation to a visited step does not double-count.
 function AnalyticsBeacon() {
   const { pathname } = useLocation();
+
+  // 30-checkpoint funnel + every tap / every entry (see lib/funnelCatalog.ts).
+  useFunnelCheckpoints();
 
   useEffect(() => {
     logPmOpened();

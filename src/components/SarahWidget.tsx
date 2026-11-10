@@ -261,7 +261,7 @@ export function SarahWidget() {
 
       <div style={{ display: 'flex', gap: 8, padding: '0 14px 14px' }}>
         <a
-          href="tel:+18287613326"
+          href="tel:+18287613326" data-cp="action_taken"
           style={{ flex: 1, minHeight: 46, borderRadius: 12, background: T.accent, color: T.white, fontWeight: 700, fontSize: 16, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           Call Rob
