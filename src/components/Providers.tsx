@@ -109,6 +109,7 @@ export function Providers() {
         </svg>
         <input
           className="search-input"
+          data-cp="provider_search_opened"
           placeholder="Doctor's name (e.g. Sarah Chen)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -134,7 +135,7 @@ export function Providers() {
       </div>
 
       {matches.length > 0 && (
-        <div className="ac">
+        <div className="ac" data-pm-private="providers">
           {matches.map((p) => (
             <div key={p.npi} className="ac-item" onClick={() => addFromSearch(p)}>
               <div className="ac-name">{providerDisplayName(p)}</div>
@@ -151,7 +152,7 @@ export function Providers() {
 
       <div style={{ marginTop: 8 }}>
         {flow.providers.map((p, i) => (
-          <div key={`${p.name}-${i}`} className="item-card">
+          <div key={`${p.name}-${i}`} className="item-card" data-pm-private="providers">
             <div className="item-dot safe" />
             <div className="item-info">
               <div className="item-name">{p.name}</div>

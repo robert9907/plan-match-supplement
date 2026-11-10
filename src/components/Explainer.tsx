@@ -127,7 +127,7 @@ export function useExplainer(
           ))}
           {' · '}Updated {formatChecked(explainer.checked)}
         </div>
-        <a href="tel:+18287613326" style={{ fontSize: 16, fontWeight: 700, color: T.accent, textDecoration: 'none' }}>
+        <a href="tel:+18287613326" data-cp="action_taken" style={{ fontSize: 16, fontWeight: 700, color: T.accent, textDecoration: 'none' }}>
           Still unsure? Call Rob · (828) 761-3326
         </a>
       </div>

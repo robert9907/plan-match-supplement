@@ -241,7 +241,7 @@ export function SnapConfirmSheet({ items, userState, zip, onCommit, onAddAnother
         .map((p) => ({ kind: 'Doctor', value: (docMatches[p] && doctorName(docMatches[p]!)) || p })),
     ];
     return (
-      <div className="snap-top-sheet snap-done" role="dialog" aria-label="Saved">
+      <div data-pm-private="snap" className="snap-top-sheet snap-done" role="dialog" aria-label="Saved">
         <svg className="snap-done-check" width="104" height="104" viewBox="0 0 112 112" role="img" aria-label="All set">
           <circle cx="56" cy="56" r="48" className="snap-ring-bg" />
           <circle cx="56" cy="56" r="48" className="snap-ring" transform="rotate(-90 56 56)" />
@@ -309,7 +309,7 @@ export function SnapConfirmSheet({ items, userState, zip, onCommit, onAddAnother
       : items.map((it) => titleCase(it.label.drugName ?? '')).join(', ');
 
   return (
-    <div className="snap-top-sheet" role="dialog" aria-label="Confirm pharmacy and doctor">
+    <div data-pm-private="snap" className="snap-top-sheet" role="dialog" aria-label="Confirm pharmacy and doctor">
       <div className="snap-med">
         <div className="snap-med-thumb">{first?.dataUrl ? <img src={first.dataUrl} alt="" /> : null}</div>
         <div className="snap-med-body">
@@ -458,7 +458,7 @@ function PharmacyPicker({
   const labelKey = normKey(labelName);
 
   return (
-    <div className="snap-top-sheet" role="dialog" aria-label="Choose pharmacy">
+    <div data-pm-private="snap" className="snap-top-sheet" role="dialog" aria-label="Choose pharmacy">
       <button type="button" className="snap-back" onClick={onBack}>← Back</button>
       <div className="snap-picker-title">Where do you pick up your medicine?</div>
       <div className="snap-seg" role="tablist">

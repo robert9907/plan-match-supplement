@@ -393,7 +393,7 @@ export function PillScanSheet({ zip, onAdd, onConfirm, onClose }: Props) {
   // ─── Render ────────────────────────────────────────────────────
 
   return (
-    <div className="scan-overlay" role="dialog" aria-label="Pill bottle scanner">
+    <div data-pm-private="pill-scan" className="scan-overlay" role="dialog" aria-label="Pill bottle scanner">
       <button className="scan-close" onClick={onClose} type="button">
         Cancel
       </button>
