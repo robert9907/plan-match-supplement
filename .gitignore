@@ -19,3 +19,6 @@ Claude outputs/
 
 # scraper resume checkpoint (regenerated each run)
 data/**/*.partial.json
+
+# Cloud Run compile output (Dockerfile.gcp)
+build/

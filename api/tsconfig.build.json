@@ -1,0 +1,9 @@
+{
+  "//": "Emit-only twin of api/tsconfig.json, used by the Google Cloud Run image (Dockerfile.gcp) to compile the functions to build/api/*.js. Same NodeNext rules; only noEmit is flipped.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "../build/api",
+    "rootDir": "."
+  }
+}
