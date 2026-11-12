@@ -1141,13 +1141,23 @@ function dropNullish<T extends Record<string, unknown>>(obj: T): Partial<T> {
 // AgentBase's /api/send-sms so the Messaging Service SID, opt-out check,
 // and messages-table audit already wired there are reused. No Twilio
 // creds need to live on this project. Set AGENTBASE_SMS_URL to the
-// AgentBase deploy base URL (e.g. https://agentbase-crm.vercel.app) to
-// enable; unset disables the send cleanly (preview deploys stay quiet).
+// AgentBase base URL (https://crm.generationhealth.me) to enable; unset
+// disables the send cleanly (preview deploys stay quiet).
+//
+// AgentBase's /api/send-sms only accepts server-to-server callers that
+// present Authorization: Bearer AGENTBASE_SMS_SECRET (lib/sms-bridge-auth
+// there). Without it every ack returned 401 while the application saved
+// normally, so a missing secret is logged and the send is skipped.
 
 async function notifyCustomerBySms(p: EnrollPayload): Promise<void> {
   const agentbaseUrl = process.env.AGENTBASE_SMS_URL;
   if (!agentbaseUrl) {
     console.log('[enroll:sms] AGENTBASE_SMS_URL not set; skipping customer ack.');
+    return;
+  }
+  const smsSecret = process.env.AGENTBASE_SMS_SECRET;
+  if (!smsSecret) {
+    console.error('[enroll:sms] AGENTBASE_SMS_SECRET not set; skipping customer ack.');
     return;
   }
 
@@ -1162,12 +1172,15 @@ async function notifyCustomerBySms(p: EnrollPayload): Promise<void> {
   const body =
     `Hi ${firstName} — we received your application for ${p.carrier} Plan ${p.planLetter}. ` +
     `We're reviewing now and will be in touch within 10 minutes. ` +
-    `— Generation Health, (828) 761-3326`;
+    `— GenerationHealth.me, (828) 761-3326`;
 
   const base = agentbaseUrl.replace(/\/$/, '');
   const resp = await fetch(`${base}/api/send-sms`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${smsSecret}`,
+    },
     body: JSON.stringify({
       to,
       body,
