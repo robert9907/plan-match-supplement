@@ -461,15 +461,23 @@ async function resolveTrafficSource(p: EnrollPayload): Promise<TrafficSource | n
   }
 }
 
-// ─── Supabase insert (PostgREST, service role) ──────────────────────────
+// ─── Application insert (PostgREST, service role) ───────────────────────
+//
+// HIPAA Phase 2 (Nov 2026): supplement_applications lives in the AgentBase
+// database on Google Cloud (Google BAA), schema `planmatch` — not in
+// plan-match-prod Supabase (no BAA). Same PostgREST shape; the
+// Content-Profile header selects the schema. AGENTBASE_SUPABASE_URL points at
+// the Google data API.
 
 async function persistToSupabase(
   p: EnrollPayload,
   tcpaConsent: TcpaConsentRecord | null,
 ): Promise<string> {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.');
+  const url = process.env.AGENTBASE_SUPABASE_URL;
+  const key = process.env.AGENTBASE_SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error('AGENTBASE_SUPABASE_URL and AGENTBASE_SUPABASE_SERVICE_ROLE_KEY must be set.');
+  }
 
   const cleanMbi = String(p.mbiNumber || '').replace(/[\s-]/g, '').toUpperCase();
   const digits = (p.phone || '').replace(/\D/g, '');
@@ -539,6 +547,7 @@ async function persistToSupabase(
       apikey: key,
       Authorization: `Bearer ${key}`,
       'Content-Type': 'application/json',
+      'Content-Profile': 'planmatch',
       Prefer: 'return=representation',
     },
     body: JSON.stringify(row),
@@ -546,12 +555,12 @@ async function persistToSupabase(
 
   if (!resp.ok) {
     const text = await resp.text();
-    throw new Error(`Supabase insert ${resp.status}: ${text.slice(0, 300)}`);
+    throw new Error(`Application insert ${resp.status}: ${text.slice(0, 300)}`);
   }
 
   const body = (await resp.json()) as Array<{ id: string }>;
   const inserted = Array.isArray(body) ? body[0] : null;
-  if (!inserted?.id) throw new Error('Supabase returned no id.');
+  if (!inserted?.id) throw new Error('Application insert returned no id.');
   return inserted.id;
 }
 
