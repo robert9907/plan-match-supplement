@@ -1,9 +1,10 @@
 // scripts/_smoke-envmissing-502.ts — smoke test
 //
-// Verifies the hardening applied to api/enroll.ts: when
-// AGENTBASE_SUPABASE_URL / AGENTBASE_SUPABASE_SERVICE_ROLE_KEY are unset,
-// bridgeToAgentBase throws and the handler now returns 502 (not 200) with
-// { field: '_agentbase' }.
+// Verifies api/enroll.ts never fakes success when
+// AGENTBASE_SUPABASE_URL / AGENTBASE_SUPABASE_SERVICE_ROLE_KEY are unset.
+// Since HIPAA Phase 2 (Nov 2026) supplement_applications itself lives in the
+// AgentBase database on Google, so the application save is the first thing
+// to fail: the handler returns 500 with { field: '_server' } (not 200).
 //
 // The supplement_applications INSERT is stubbed via a fetch monkeypatch
 // so this script never touches a real database.
@@ -94,17 +95,17 @@ console.log('Status:', capturedStatus);
 console.log('Body:', JSON.stringify(capturedBody, null, 2));
 
 const pass =
-  capturedStatus === 502 &&
+  capturedStatus === 500 &&
   capturedBody?.ok === false &&
   Array.isArray(capturedBody?.errors) &&
   capturedBody.errors.some(
-    (e: { field?: string; message?: string }) => e?.field === '_agentbase',
+    (e: { field?: string; message?: string }) => e?.field === '_server',
   );
 
 if (pass) {
-  console.log('\n✅ PASS — 502 with { field: "_agentbase" } as expected');
+  console.log('\n✅ PASS — 500 with { field: "_server" } as expected');
   process.exit(0);
 } else {
-  console.error('\n❌ FAIL — expected 502 with _agentbase error');
+  console.error('\n❌ FAIL — expected 500 with _server error');
   process.exit(1);
 }
