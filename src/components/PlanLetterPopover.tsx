@@ -32,7 +32,7 @@ const COPY: Record<Plan, PlanCopy> = {
       { label: 'Specialist visits', value: '$0', free: true },
       { label: 'Emergency room', value: '$0', free: true },
     ],
-    risk: { label: 'Annual out-of-pocket', value: '~$283 deductible' },
+    risk: { label: 'Annual out-of-pocket', value: '~$292 deductible' },
   },
   N: {
     letter: 'N',
@@ -45,7 +45,7 @@ const COPY: Record<Plan, PlanCopy> = {
       { label: 'Specialist visits', value: 'up to $20' },
       { label: 'Emergency room', value: 'up to $50' },
     ],
-    risk: { label: 'Annual out-of-pocket', value: '$283 + copays' },
+    risk: { label: 'Annual out-of-pocket', value: '$292 + copays' },
   },
 };
 
